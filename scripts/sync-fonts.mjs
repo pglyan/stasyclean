@@ -22,8 +22,24 @@
  *   3) unicode-range виден глазами и не меняется молча при обновлении
  *      версии провайдера.
  *
+ * Почему пять семейств: Manrope — основное, Lora и Playfair Display —
+ * редакционные засечные варианты для разных тем, Nunito — округлый шрифт
+ * тёплой «Милоты», Comfortaa — геометрический округлый для «Голубой
+ * свежести». Все пять покрывают кириллицу и расширенную латиницу (č ć ž š đ),
+ * поэтому любой из них можно поставить на все три языка.
+ *
+ * У Comfortaa есть ограничение самой гарнитуры: верхний вес — 700. Тема,
+ * которая ставит её на заголовки, не может сделать их тяжелее, поэтому
+ * «жирность заголовков» вынесена в токен (см. --font-heading-weight
+ * в src/styles/params.css), а не зашита в CSS темы.
+ *
+ * В прод-сборку попадают файлы только той темы, что выбрана в
+ * design.config.json: тема объявляет свои семейства в src/data/themes.ts
+ * (поле available), а конкретные импорты — в src/themes/entries/<id>.ts.
+ *
  * Запуск:  node scripts/sync-fonts.mjs
- * Требует установленных @fontsource-variable/{manrope,lora}.
+ * Требует установленных
+ * @fontsource-variable/{comfortaa,manrope,lora,playfair-display,nunito}.
  */
 
 import { copyFile, mkdir, stat } from 'node:fs/promises';
@@ -38,7 +54,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
  */
 const target = join(root, 'src', 'assets', 'fonts');
 
-const FAMILIES = ['manrope', 'lora'];
+const FAMILIES = ['manrope', 'lora', 'playfair-display', 'nunito', 'comfortaa'];
 const SUBSETS = ['latin', 'latin-ext', 'cyrillic'];
 
 await mkdir(target, { recursive: true });

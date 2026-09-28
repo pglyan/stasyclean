@@ -24,7 +24,12 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { getThemePreset, themeIds } from '../src/data/themes.ts';
-import { DESIGN_KEYS, assertThemeFonts, resolveDesign } from '../src/data/designSchema.ts';
+import {
+  DESIGN_KEYS,
+  assertThemeFonts,
+  assertThemePalettes,
+  resolveDesign,
+} from '../src/data/designSchema.ts';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const configPath = join(root, 'design.config.json');
@@ -54,6 +59,9 @@ function describe(settings) {
   const bodyFont = settings.bodyFont ?? theme.defaults.bodyFont;
   assertThemeFonts(theme, settings, { headingFont, bodyFont });
 
+  const palette = settings.palette ?? theme.defaults.palette;
+  assertThemePalettes(theme, settings, palette);
+
   const families = [...new Set([headingFont, bodyFont].filter((kind) => kind !== 'system'))];
 
   console.log(`\ndesign.config.json — ${configPath}\n`);
@@ -61,6 +69,13 @@ function describe(settings) {
   console.log(`\n  Тема:            ${theme.id} (${theme.name.ru} / ${theme.name.en})`);
   console.log(`  Шрифт заголовков: ${headingFont}`);
   console.log(`  Шрифт текста:     ${bodyFont}`);
+  console.log(
+    `  Палитра:          ${
+      palette
+        ? `${palette} — из ${theme.available.palettes.map((item) => item.id).join(' | ')}`
+        : 'как в теме (у этой темы палитр нет)'
+    }`,
+  );
   console.log(
     families.length
       ? `  Файлы шрифтов:    ${families.join(', ')} — по 3 субсета, браузер скачает только нужный`

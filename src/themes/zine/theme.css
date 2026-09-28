@@ -1,0 +1,410 @@
+/**
+ * Тема «Бетон и бумага» (zine) — брутализм и самиздат.
+ *
+ * Графический язык: печатный плакат из подручных средств.
+ *   • жёсткие чёрные рамки и сдвинутые тени вместо теней со сглаживанием;
+ *   • капс, жирный Manrope и моно-подписи (var(--font-mono)) для служебных слов;
+ *   • чёрные «маркерные» плашки на заголовках секций;
+ *   • зерно бумаги поверх страницы (data-texture='grain');
+ *   • бегущая строка над подвалом — типографская лента;
+ *   • жёлтый акцент на чёрном, никаких полутонов.
+ *
+ * Тема не везёт ни одного веб-шрифта: используются Manrope из основной темы
+ * сайта и системный моноширинный. Поэтому прод-сборка с этой темой легче
+ * остальных.
+ */
+
+@import '../../fonts/manrope.css';
+
+[data-skin='zine'] {
+  color-scheme: light;
+
+  --brand-h: 48;
+  --brand-s: 100%;
+  --brand-l: 52%;
+  --brand-ink: #0f0f0c;
+  /* Цвет ссылок задан явно: производный от жёлтого акцента (78% акцента +
+     чернила) давал 2.25:1 — ссылки в этой теме были практически нечитаемы,
+     а жёлтый на бумаге не годится для текста вообще. Тёмная олива сохраняет
+     «печатный» характер темы и проходит AA (4.93:1). Проверка —
+     `npm run check:colors`. */
+  --brand-strong: #7c6620;
+
+  --bg: #f4f1ea;
+  --surface: #ffffff;
+  --surface-2: #eae4d7;
+  --ink: #0f0f0c;
+  --ink-soft: #4b463c;
+  --line: #0f0f0c;
+
+  --shadow-color: 45 30% 15%;
+
+  --radius: 0px;
+
+  --hard-bw: 2px;
+  --hard-shadow: 6px 6px 0;
+
+  --fs-display: clamp(2.75rem, 6vw, 5.5rem);
+  --tracking-tight: -0.03em;
+
+  --texture-opacity: 0.3;
+}
+
+/* Заголовки: плотный капс, служебные слова — моно */
+
+[data-skin='zine'] h1,
+[data-skin='zine'] h2,
+[data-skin='zine'] h3,
+[data-skin='zine'] h4 {
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-tight);
+  line-height: 1.02;
+}
+
+[data-skin='zine'] .eyebrow {
+  padding: 0.2em 0.6em;
+  background: var(--ink);
+  color: var(--bg);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+}
+
+[data-skin='zine'] .eyebrow::before {
+  display: none;
+}
+
+/* Секции: чёрные плашки-маркеры и жёсткие разделители */
+
+[data-skin='zine'] .section-head h2 {
+  display: inline-block;
+  padding: 0.12em 0.35em;
+  background: var(--ink);
+  color: var(--bg);
+  box-decoration-break: clone;
+}
+
+[data-skin='zine'] .section-head__lead {
+  max-inline-size: 58ch;
+  color: var(--ink-soft);
+}
+
+[data-skin='zine'] .section--surface,
+[data-skin='zine'] .section--surface-2 {
+  border-block: var(--hard-bw) solid var(--ink);
+}
+
+[data-skin='zine'] .section--dark {
+  border-block: var(--hard-bw) solid var(--ink);
+}
+
+/* Шапка: рамка снизу и капс-навигация */
+
+[data-skin='zine'] .site-header,
+[data-skin='zine'] .site-header.is-scrolled {
+  background: var(--bg);
+  backdrop-filter: none;
+  border-block-end: var(--hard-bw) solid var(--ink);
+}
+
+[data-skin='zine'] .brand {
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+[data-skin='zine'] .brand__mark {
+  border: var(--hard-bw) solid var(--ink);
+  border-radius: 0;
+  background: var(--brand);
+  color: var(--brand-ink);
+  box-shadow: var(--hard-shadow) var(--ink);
+}
+
+[data-skin='zine'] .nav__link {
+  border-radius: 0;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: var(--fs-xs);
+  letter-spacing: 0.08em;
+}
+
+[data-skin='zine'] .nav__link:hover,
+[data-skin='zine'] .nav__link[aria-current='page'] {
+  background: var(--brand);
+  color: var(--brand-ink);
+}
+
+[data-skin='zine'] .nav__menu {
+  border: var(--hard-bw) solid var(--ink);
+  border-radius: 0;
+  background: var(--bg);
+  box-shadow: var(--hard-shadow) var(--ink);
+}
+
+[data-skin='zine'] .lang {
+  border: var(--hard-bw) solid var(--ink);
+  border-radius: 0;
+}
+
+/* Бейджи: служебные штампы */
+
+[data-skin='zine'] .badge {
+  border: var(--hard-bw) solid var(--ink);
+  border-radius: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+[data-skin='zine'] .badge--brand {
+  background: var(--brand);
+  color: var(--brand-ink);
+}
+
+[data-skin='zine'] .badge--solid {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+[data-skin='zine'] .icon-box {
+  border: var(--hard-bw) solid var(--ink);
+  border-radius: 0;
+  background: var(--brand);
+  color: var(--brand-ink);
+}
+
+/* Жёлтый работает только как заливка: как цвет текста он нечитаем на бумаге.
+   Там, где база красит в --brand ссылки, иконки и «плюсы», берём --brand-strong
+   (жёлтый, подмешанный к чернилам) — он держит контраст и остаётся «своим». */
+
+[data-skin='zine'] a:hover,
+[data-skin='zine'] .footer__col a:hover {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+}
+
+[data-skin='zine'] .check-list svg,
+[data-skin='zine'] .hero__promise svg,
+[data-skin='zine'] .service-card__highlights svg,
+[data-skin='zine'] .review__stars,
+[data-skin='zine'] .faq__question::after {
+  color: var(--brand-strong);
+}
+
+/* Таблицы и панели: рамка и «шапка» из чёрной плашки */
+
+[data-skin='zine'] .price-table-wrap {
+  border: var(--hard-bw) solid var(--ink);
+  border-radius: 0;
+  background: var(--bg);
+  box-shadow: var(--hard-shadow) var(--ink);
+}
+
+[data-skin='zine'] .price-table thead th {
+  background: var(--ink);
+  color: var(--bg);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+}
+
+[data-skin='zine'] .price-table tr[data-popular],
+[data-skin='zine'] .price-table [data-popular] {
+  background: var(--brand);
+}
+
+[data-skin='zine'] .price-table tr[data-popular] th,
+[data-skin='zine'] .price-table tr[data-popular] td {
+  color: var(--brand-ink);
+}
+
+[data-skin='zine'] .tabs__panel,
+[data-skin='zine'] .calc__result,
+[data-skin='zine'] .form {
+  border: var(--hard-bw) solid var(--ink);
+  border-radius: 0;
+  background: var(--bg);
+  box-shadow: var(--hard-shadow) var(--ink);
+}
+
+[data-skin='zine'] .faq__item {
+  border: var(--hard-bw) solid var(--ink);
+  border-radius: 0;
+  background: var(--bg);
+}
+
+[data-skin='zine'] .faq__item[open] {
+  box-shadow: var(--hard-shadow) var(--ink);
+}
+
+[data-skin='zine'] .faq__question {
+  font-family: var(--font-body);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  font-size: var(--fs-sm);
+}
+
+[data-skin='zine'] .faq__question::after {
+  font-family: var(--font-mono);
+}
+
+[data-skin='zine'] .chip,
+[data-skin='zine'] .tabs__tab {
+  border: var(--hard-bw) solid var(--ink);
+  border-radius: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: var(--fs-xs);
+  letter-spacing: 0.06em;
+}
+
+[data-skin='zine'] .chip[aria-pressed='true'],
+[data-skin='zine'] .tabs__tab[aria-selected='true'] {
+  background: var(--brand);
+  color: var(--brand-ink);
+}
+
+[data-skin='zine'] .check,
+[data-skin='zine'] .form__input,
+[data-skin='zine'] .form__textarea,
+[data-skin='zine'] .form__select {
+  border: var(--hard-bw) solid var(--ink);
+  border-radius: 0;
+  background: var(--bg);
+}
+
+[data-skin='zine'] .check:has(input:checked) {
+  background: color-mix(in oklab, var(--brand) 35%, var(--bg));
+  border-color: var(--ink);
+}
+
+/* Шаги: номера в чёрных квадратах */
+
+[data-skin='zine'] .step {
+  padding: var(--s4);
+  border: var(--hard-bw) solid var(--ink);
+  background: var(--bg);
+}
+
+[data-skin='zine'] .step__num {
+  display: grid;
+  place-items: center;
+  inline-size: 2.25rem;
+  block-size: 2.25rem;
+  background: var(--ink);
+  color: var(--brand);
+  font-family: var(--font-mono);
+  font-size: var(--fs-base);
+  font-weight: 700;
+}
+
+/* Отзывы, цифры, районы */
+
+[data-skin='zine'] .review__avatar {
+  border: var(--hard-bw) solid var(--ink);
+  border-radius: 0;
+  background: var(--brand);
+  color: var(--brand-ink);
+}
+
+[data-skin='zine'] .areas li {
+  border: var(--hard-bw) solid var(--ink);
+  border-radius: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Финальный призыв и подвал */
+
+[data-skin='zine'] .cta-band {
+  border: var(--hard-bw) solid var(--ink);
+  border-radius: 0;
+  background: var(--brand);
+  color: var(--brand-ink);
+  box-shadow: var(--hard-shadow) var(--ink);
+}
+
+[data-skin='zine'] .cta-band__title,
+[data-skin='zine'] .cta-band__text {
+  color: var(--brand-ink);
+}
+
+[data-skin='zine'] .cta-band .btn {
+  background: var(--ink);
+  border: var(--hard-bw) solid var(--ink);
+  color: var(--bg);
+}
+
+[data-skin='zine'] .cta-band .btn--ghost {
+  background: transparent;
+  border-color: var(--ink);
+  color: var(--brand-ink);
+}
+
+[data-skin='zine'] .site-footer {
+  /* Лента-бегунок шире экрана: срезаем её, не создавая scroll-контейнера */
+  overflow-x: clip;
+  background: var(--bg);
+  border-block-start: var(--hard-bw) solid var(--ink);
+}
+
+[data-skin='zine'] .footer__col h3 {
+  font-family: var(--font-mono);
+  letter-spacing: 0.14em;
+}
+
+/* Бегущая строка: чистая CSS-лента над подвалом, без разметки и JS.
+   Текст нейтрален к языку — это знак бренда и слова о клининге.
+
+   Лента бесшовная: в content лежат ДВЕ одинаковые строки, а сдвиг идёт
+   на -50% ширины псевдоэлемента (`inline-size: max-content`), то есть ровно
+   на одну строку. Поэтому шва на стыке не видно при любом шрифте и кегле —
+   в отличие от анимации text-indent, где сдвиг пришлось бы считать вручную.
+   Переполнение срезает подвал: без clip лента растянула бы страницу. */
+
+[data-skin='zine'] .site-footer::before {
+  content: 'STASYCLEAN — ČIŠĆENJE — CLEANING — УБОРКА — BEOGRAD — STASYCLEAN — ČIŠĆENJE — CLEANING — УБОРКА — BEOGRAD — ';
+  display: block;
+  inline-size: max-content;
+  white-space: nowrap;
+  padding-block: 0.35em;
+  margin-block-end: var(--s10);
+  border-block: var(--hard-bw) solid var(--ink);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--ink);
+}
+
+[data-skin='zine'][data-motion='on'] .site-footer::before {
+  animation: zine-marquee 30s linear infinite;
+}
+
+/* Системная настройка «меньше движения» важнее темы: лента остаётся,
+   но показывает начало строки и не едет. */
+@media (prefers-reduced-motion: reduce) {
+  [data-skin='zine'][data-motion='on'] .site-footer::before {
+    animation: none;
+  }
+}
+
+@keyframes zine-marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+

@@ -154,13 +154,3 @@
   border-radius: var(--r-pill);
   white-space: nowrap;
 }
-
-/* Лента-предупреждение в начале демо-страницы */
-.demo-ribbon {
-  padding-block: var(--s2);
-  background: var(--surface-2);
-  border-block-end: var(--bw) solid var(--line);
-  font-size: var(--fs-xs);
-  color: var(--ink-soft);
-  text-align: center;
-}

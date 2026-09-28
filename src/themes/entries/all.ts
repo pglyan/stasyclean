@@ -4,6 +4,11 @@ import trust from './trust';
 import citrus from './citrus';
 import sand from './sand';
 import nordic from './nordic';
+import atelier from './atelier';
+import mila from './mila';
+import bubble from './bubble';
+import sorbet from './sorbet';
+import zine from './zine';
 
 /**
  * Демонстрационный вход тем.
@@ -16,7 +21,7 @@ import nordic from './nordic';
  * id здесь — 'all': в демо тема меняется в браузере, а не на сборке,
  * поэтому «текущая тема» известна только из data-skin на <html>.
  */
-const entries = [fresh, trust, citrus, sand, nordic];
+const entries = [fresh, trust, citrus, sand, nordic, atelier, mila, bubble, sorbet, zine];
 
 const fonts: Partial<Record<FontKind, FontUrls>> = {};
 

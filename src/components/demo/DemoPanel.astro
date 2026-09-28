@@ -10,10 +10,17 @@ import {
   buttonOptions,
   cardOptions,
   containerOptions,
+  decorOptions,
   densityOptions,
   fontOptions,
   heroOptions,
+  paletteOptions,
+  photoOptions,
+  photoShapeOptions,
   radiusOptions,
+  sectionsOptions,
+  surfaceOptions,
+  textureOptions,
 } from '../../data/designOptions';
 import { designForBuild } from '../../data/activeDesign';
 
@@ -76,8 +83,10 @@ interface Group {
   setting: string;
   apply: string;
   options: Option[];
-  /** Группу фильтруем по списку шрифтов активной темы: чего нет — не показываем. */
-  filterByTheme?: 'heading' | 'body';
+  /** Группу фильтруем по списку активной темы: чего тема не разрешает — не показываем. */
+  filterByTheme?: 'heading' | 'body' | 'palette';
+  /** Как показать вариант: точкой тона (акцент) или свотчем палитры. */
+  dots?: 'palette';
 }
 
 /** Подписи вариантов локализованы — стенд смотрят на трёх языках. */
@@ -90,6 +99,16 @@ const toOptions = (options: { value: string | number; label: Localized; hue?: nu
 
 /** Группы настроек описываются данными — разметка остаётся компактной. */
 const groups: Group[] = [
+  {
+    label: ui.panel.palette,
+    setting: 'palette',
+    apply: 'attr:data-palette',
+    /* «Как в теме» — это отсутствие атрибута: тема показывает свой набор
+       цветов так, как его написал автор. */
+    options: [{ value: '', label: ui.panel.sameAsTheme }, ...toOptions(paletteOptions)],
+    filterByTheme: 'palette',
+    dots: 'palette',
+  },
   {
     label: ui.panel.accent,
     setting: 'accent',
@@ -145,6 +164,42 @@ const groups: Group[] = [
     setting: 'hero',
     apply: 'attr:data-hero',
     options: toOptions(heroOptions),
+  },
+  {
+    label: ui.panel.sections,
+    setting: 'sections',
+    apply: 'attr:data-sections',
+    options: toOptions(sectionsOptions),
+  },
+  {
+    label: ui.panel.texture,
+    setting: 'texture',
+    apply: 'attr:data-texture',
+    options: toOptions(textureOptions),
+  },
+  {
+    label: ui.panel.surface,
+    setting: 'surface',
+    apply: 'attr:data-surface',
+    options: toOptions(surfaceOptions),
+  },
+  {
+    label: ui.panel.decor,
+    setting: 'decor',
+    apply: 'attr:data-decor',
+    options: toOptions(decorOptions),
+  },
+  {
+    label: ui.panel.photo,
+    setting: 'photo',
+    apply: 'attr:data-photo',
+    options: toOptions(photoOptions),
+  },
+  {
+    label: ui.panel.photoShape,
+    setting: 'photo-shape',
+    apply: 'attr:data-photo-shape',
+    options: [{ value: '', label: ui.panel.sameAsTheme }, ...toOptions(photoShapeOptions)],
   },
   {
     label: ui.panel.motion,
@@ -210,8 +265,19 @@ const groups: Group[] = [
             data-meta-button={preset.defaults.button}
             data-meta-container={preset.defaults.container}
             data-meta-hero={preset.defaults.hero}
+            data-meta-sections={preset.defaults.sections}
+            data-meta-texture={preset.defaults.texture}
+            data-meta-surface={preset.defaults.surface}
+            data-meta-decor={preset.defaults.decor}
+            data-meta-photo={preset.defaults.photo}
+            data-meta-photo-shape={preset.defaults.photoShape ?? ''}
             data-meta-heading={preset.available.heading.join(',')}
             data-meta-body={preset.available.body.join(',')}
+            data-meta-palette={preset.defaults.palette ?? ''}
+            data-meta-palettes={JSON.stringify(
+              Object.fromEntries(preset.available.palettes.map((item) => [item.id, item.swatch])),
+            )}
+            data-meta-color={preset.swatch[1]}
             data-kind={preset.kind}
             title={preset.description[locale]}
           >
@@ -236,6 +302,13 @@ const groups: Group[] = [
               data-value={option.value}
               data-apply={group.apply}
             >
+              {group.dots === 'palette' && (
+                <span class="panel__option-swatch" aria-hidden="true">
+                  <span data-swatch></span>
+                  <span data-swatch></span>
+                  <span data-swatch></span>
+                </span>
+              )}
               {option.hue !== undefined && (
                 <span
                   aria-hidden="true"
@@ -304,10 +377,12 @@ const groups: Group[] = [
 
   /**
    * Ключ хранилища версионирован: до перехода на темы-скины в нём лежали
-   * другие значения (data-theme='mint'), и такие записи нужно игнорировать,
-   * а не пытаться применить.
+   * другие значения (data-theme='mint'), а в версии 3 изменилось фото:
+   * лечение снимка (data-photo) и его форма (data-photo-shape) разделились,
+   * поэтому старое значение photo='arch' больше ничего не значит и такие
+   * записи нужно игнорировать, а не применять.
    */
-  const STORAGE_VERSION = 2;
+  const STORAGE_VERSION = 3;
   const STORAGE_KEY = 'stasyclean:demo:v2';
   const defaults: Record<string, string> = JSON.parse(panel?.dataset.defaults ?? '{}');
 
@@ -365,6 +440,7 @@ const groups: Group[] = [
    * из data-meta-* на кнопке темы.
    */
   const THEME_DEFAULT_KEYS: Record<string, string> = {
+    palette: 'metaPalette',
     radius: 'metaRadius',
     density: 'metaDensity',
     font: 'metaFont',
@@ -373,25 +449,64 @@ const groups: Group[] = [
     button: 'metaButton',
     container: 'metaContainer',
     hero: 'metaHero',
+    sections: 'metaSections',
+    texture: 'metaTexture',
+    surface: 'metaSurface',
+    decor: 'metaDecor',
+    photo: 'metaPhoto',
+    'photo-shape': 'metaPhotoShape',
   };
 
   /**
-   * Показываем только те шрифты, которые тема везёт с собой.
+   * Показываем только то, что тема действительно везёт: шрифты — из её
+   * available, палитры — из available.palettes.
    *
-   * Это не косметика: в прод-сборку попадают файлы шрифтов только выбранной
-   * темы. Если бы заказчик выбрал «Nunito» внутри темы без Nunito, после
-   * сборки он увидел бы другой шрифт и не понял, почему.
+   * Это не косметика: в прод-сборку попадают файлы шрифтов и CSS палитр
+   * только выбранной темы. Если бы заказчик выбрал «Nunito» внутри темы без
+   * Nunito или палитру, которой у темы нет, после сборки он увидел бы другое
+   * оформление и не понял, почему. Если тема не разрешает ни одного варианта —
+   * прячем группу целиком, а не показываем пустой ряд.
    */
-  function syncThemeFonts(themeButton: HTMLElement) {
+  function syncThemeOptions(themeButton: HTMLElement) {
     const allowed: Record<string, string[]> = {
       heading: (themeButton.dataset.metaHeading ?? '').split(','),
       body: (themeButton.dataset.metaBody ?? '').split(','),
+      palette: Object.keys(palettesOf(themeButton)),
     };
 
     document.querySelectorAll<HTMLElement>('[data-filter]').forEach((list) => {
       const allow = allowed[list.dataset.filter ?? ''] ?? [];
+      let visible = 0;
+
       list.querySelectorAll<HTMLElement>('[data-setting]').forEach((option) => {
-        option.hidden = !allow.includes(option.dataset.value ?? '');
+        const value = option.dataset.value ?? '';
+        // «Как в теме» (пустое значение) имеет смысл, только если есть из чего выбирать
+        option.hidden = allow.length === 0 || (value !== '' && !allow.includes(value));
+        if (!option.hidden) visible += 1;
+      });
+
+      list.closest('.panel__group')?.toggleAttribute('hidden', visible === 0);
+    });
+
+    paintPaletteSwatches(themeButton);
+  }
+
+  /** Свотчи палитр берём у темы: одна и та же палитра в разных темах своя. */
+  function palettesOf(themeButton: HTMLElement): Record<string, string[]> {
+    try {
+      return JSON.parse(themeButton.dataset.metaPalettes ?? '{}');
+    } catch {
+      return {};
+    }
+  }
+
+  function paintPaletteSwatches(themeButton: HTMLElement) {
+    const palettes = palettesOf(themeButton);
+
+    document.querySelectorAll<HTMLElement>('[data-setting="palette"]').forEach((option) => {
+      const swatch = palettes[option.dataset.value ?? ''];
+      option.querySelectorAll<HTMLElement>('[data-swatch]').forEach((dot, index) => {
+        dot.style.background = swatch ? swatch[index] : '';
       });
     });
   }
@@ -400,13 +515,34 @@ const groups: Group[] = [
   function applyThemeDefaults(themeButton: HTMLElement) {
     for (const [setting, key] of Object.entries(THEME_DEFAULT_KEYS)) {
       if (touched.includes(setting)) continue;
+
+      /**
+       * Пустое значение — это тоже умолчание: так помечены «палитра как в
+       * теме» и «форма фото как в базовом слое». Пропустить его нельзя,
+       * иначе после темы с палитрой у следующей темы остался бы её атрибут.
+       */
       const value = themeButton.dataset[key];
-      if (!value) continue;
+      if (value === undefined) continue;
+
       settings[setting] = value;
       applyOne(setting, value);
     }
 
-    syncThemeFonts(themeButton);
+    syncThemeOptions(themeButton);
+  }
+
+  /**
+   * Цвет адресной строки браузера на стенде — как у собранной темы.
+   *
+   * На сборке <meta name="theme-color"> приходит из палитры выбранной темы
+   * (Base.astro), а в демо тема и палитра меняются в браузере, поэтому панель
+   * обновляет мету сама: заказчик видит на телефоне тот же акцент. Если
+   * выбрана палитра — берём её акцент, иначе акцент темы.
+   */
+  function syncThemeColor(themeButton: HTMLElement) {
+    const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+    const color = palettesOf(themeButton)[settings.palette ?? '']?.[1] ?? themeButton.dataset.metaColor;
+    if (meta && color) meta.content = color;
   }
 
   function themeButtonOf(themeId: string) {
@@ -420,10 +556,19 @@ const groups: Group[] = [
     if (setting === 'theme') {
       // тема приносит свои умолчания...
       const themeButton = themeButtonOf(value);
-      if (themeButton) applyThemeDefaults(themeButton);
-    } else if (!touched.includes(setting)) {
+      if (themeButton) {
+        applyThemeDefaults(themeButton);
+        syncThemeColor(themeButton);
+      }
+    } else {
       // ...но ручной выбор пользователя всегда приоритетнее
-      touched.push(setting);
+      if (!touched.includes(setting)) touched.push(setting);
+
+      // палитра меняет ещё и акцент в адресной строке браузера
+      if (setting === 'palette') {
+        const themeButton = themeButtonOf(settings.theme ?? '');
+        if (themeButton) syncThemeColor(themeButton);
+      }
     }
 
     syncPressed();
@@ -462,7 +607,10 @@ const groups: Group[] = [
     Object.entries(settings).forEach(([key, value]) => applyOne(key, value));
 
     const themeButton = themeButtonOf(settings.theme ?? '');
-    if (themeButton) syncThemeFonts(themeButton);
+    if (themeButton) {
+      syncThemeOptions(themeButton);
+      syncThemeColor(themeButton);
+    }
 
     syncPressed();
     save();
@@ -501,6 +649,13 @@ const groups: Group[] = [
         button: settings.button,
         container: settings.container,
         hero: settings.hero,
+        sections: settings.sections,
+        texture: settings.texture,
+        surface: settings.surface,
+        decor: settings.decor,
+        photo: settings.photo,
+        photoShape: settings['photo-shape'] || null,
+        palette: settings.palette || null,
         motion: settings.motion,
         stickyCta: settings.sticky,
       },
@@ -540,7 +695,10 @@ const groups: Group[] = [
   Object.entries(settings).forEach(([key, value]) => applyOne(key, value));
 
   const currentTheme = themeButtonOf(settings.theme ?? '');
-  if (currentTheme) syncThemeFonts(currentTheme);
+  if (currentTheme) {
+    syncThemeOptions(currentTheme);
+    syncThemeColor(currentTheme);
+  }
 
   syncPressed();
 </script>

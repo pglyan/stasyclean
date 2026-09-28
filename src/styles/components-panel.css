@@ -89,7 +89,7 @@
   border-block-start: var(--bw) solid var(--line);
 }
 
-.panel__group + .panel__group {
+.panel__group:not([hidden]) + .panel__group:not([hidden]) {
   margin-block-start: var(--s6);
   padding-block-start: var(--s6);
   border-block-start: var(--bw) solid var(--line);
@@ -171,6 +171,36 @@
 .panel__option:hover {
   border-color: var(--brand-ring);
   color: var(--ink);
+}
+
+/**
+ * Свотч палитры: три точки «фон / акцент / текст».
+ *
+ * Цвета подставляет скрипт панели — они зависят от темы (одна и та же
+ * палитра в «Милоте» и «Голубой свежести» выглядит по-своему), поэтому в
+ * разметке лежат только точки без цвета.
+ */
+.panel__option-swatch {
+  display: inline-flex;
+  gap: 2px;
+  margin-inline-end: 0.45em;
+  vertical-align: -0.1em;
+}
+
+.panel__option-swatch span {
+  inline-size: 0.42em;
+  block-size: 0.7em;
+  border: var(--bw) solid color-mix(in oklab, var(--ink) 20%, transparent);
+}
+
+.panel__option-swatch span:first-child {
+  border-start-start-radius: 3px;
+  border-end-start-radius: 3px;
+}
+
+.panel__option-swatch span:last-child {
+  border-start-end-radius: 3px;
+  border-end-end-radius: 3px;
 }
 
 .panel__option[aria-pressed='true'] {

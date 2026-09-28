@@ -1,0 +1,250 @@
+/**
+ * Тема «Сорбет» (sorbet) — третья вариация милой линии.
+ *
+ * Графический язык: мягкая геометрия и «десертная» пастель.
+ *   • заголовки Nunito, текст Manrope 500: округло, но не так плотно, как в «Милоте»;
+ *   • искры (data-decor='sparkles') и «чешуйчатая» текстура (data-texture='scallops');
+ *   • фон-градиент (data-surface='gradient') — страница «светлеет» книзу;
+ *   • фото-слоты в виде арки (data-photo-shape='arch');
+ *   • мягкие тени вместо рамок (data-card='shadow'), кнопки — пастельная подложка
+ *     (data-button='soft'). Форма и кнопки переключаются параметрами, здесь —
+ *     только то, что делает тему собой.
+ *
+ * Родство с «Милотой» и «Голубой свежестью» — общие механизмы (декор, текстура,
+ * форма фото, петли анимаций) и одинаковые правила: палитра меняет только цвет,
+ * литеральные цвета живут только в блоках токенов (проверка `npm run check:colors`).
+ */
+
+@import '../../fonts/nunito.css';
+@import '../../fonts/manrope.css';
+@import './palettes.css';
+
+[data-skin='sorbet'] {
+  color-scheme: light;
+
+  --brand-h: 268;
+  --brand-s: 70%;
+  --brand-l: 72%;
+  --brand-ink: #322b3d;
+  --brand-strong: #7e60a1;
+
+  --bg: #fbf9ff;
+  --surface: #ffffff;
+  --surface-2: #efe8fb;
+  --ink: #322b3d;
+  --ink-soft: #6b6575;
+  --line: #e2d7f5;
+
+  --shadow-color: 268 28% 42%;
+  --shadow-md: 0 10px 24px -10px hsl(var(--shadow-color) / 0.2);
+  --shadow-lg: 0 26px 60px -22px hsl(var(--shadow-color) / 0.28);
+
+  --radius: 20px;
+
+  --fs-h2: clamp(1.75rem, 1.9vw + 1.25rem, 2.4rem);
+  --fs-h3: clamp(1.35rem, 1vw + 1.1rem, 1.7rem);
+  --lh-heading: 1.16;
+
+  /* Манера текста: чуть легче, чем в «Милоте» — сорбет не такой плотный */
+  --font-body-weight: 500;
+
+  --texture-color: color-mix(in oklab, var(--brand) 30%, transparent);
+  --texture-opacity: 0.55;
+  --decor-opacity: 0.5;
+
+  /* Полоса секции полупрозрачная: сквозь неё видно градиент и искры */
+  --band-bg: color-mix(in oklab, var(--surface) 78%, transparent);
+}
+
+/* Знак бренда — половинка «шарика сорбета» */
+[data-skin='sorbet'] .brand__mark {
+  border-radius: 50% 50% 44% 56% / 56% 56% 44% 44%;
+  background: linear-gradient(150deg, var(--brand), var(--accent-2));
+}
+
+[data-skin='sorbet'] .nav__link {
+  border-radius: var(--r-pill);
+  font-weight: 600;
+}
+
+/* Фото-слоты: арка (data-photo-shape='arch') + тонкая светлая обводка внутри */
+[data-skin='sorbet'] .photo::before {
+  content: '';
+  position: absolute;
+  inset: 0.6rem;
+  border: 1px solid color-mix(in oklab, var(--surface) 65%, transparent);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+[data-skin='sorbet'] .badge {
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+[data-skin='sorbet'] .badge--brand {
+  background: var(--brand);
+  color: var(--brand-ink);
+}
+
+[data-skin='sorbet'] .chip,
+[data-skin='sorbet'] .tabs__tab {
+  border: 0;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+[data-skin='sorbet'] .chip[aria-pressed='true'],
+[data-skin='sorbet'] .tabs__tab[aria-selected='true'] {
+  background: var(--brand);
+  color: var(--brand-ink);
+}
+
+/* Иконки: мягкая «капля» из подложки акцента */
+[data-skin='sorbet'] .icon-box {
+  inline-size: 3.1rem;
+  block-size: 3.1rem;
+  border-radius: 42% 58% 52% 48% / 48% 44% 56% 52%;
+  background: color-mix(in oklab, var(--brand) 18%, var(--surface));
+  color: var(--brand-strong);
+}
+
+/* Кнопки: капсулы; пастельная подложка приходит из data-button='soft' */
+[data-skin='sorbet'] .btn {
+  border-radius: var(--r-pill);
+  font-weight: 600;
+}
+
+[data-skin='sorbet'] .btn--ghost {
+  box-shadow: 0 3px 0 color-mix(in oklab, var(--ink) 10%, transparent);
+}
+
+/* Карточки: мягкая тень (подложка и ховер заданы data-card='shadow') */
+[data-skin='sorbet'] .card,
+[data-skin='sorbet'] .service-card {
+  border-radius: var(--r-lg);
+}
+
+[data-skin='sorbet'] .service-card__name,
+[data-skin='sorbet'] .service-card__price {
+  font-weight: 700;
+}
+
+[data-skin='sorbet'] .service-card__foot {
+  border-block-start: 1px dashed var(--line);
+}
+
+/* Панели: подложка вместо рамки */
+[data-skin='sorbet'] .tabs__panel,
+[data-skin='sorbet'] .calc__result,
+[data-skin='sorbet'] .form,
+[data-skin='sorbet'] .faq__item {
+  border: 0;
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+[data-skin='sorbet'] .check {
+  border: 0;
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+}
+
+[data-skin='sorbet'] .check:has(input:checked) {
+  background: color-mix(in oklab, var(--brand) 26%, var(--surface));
+  box-shadow: inset 0 0 0 2px color-mix(in oklab, var(--brand-strong) 35%, transparent);
+}
+
+/* Полосы секций: крупное скругление и «плавающая» подложка */
+[data-skin='sorbet'] .section--surface,
+[data-skin='sorbet'] .section--surface-2 {
+  border-radius: var(--r-xl);
+  margin-inline: var(--gutter);
+}
+
+/* Таблица цен: без линий, с пунктирными швами между строками */
+[data-skin='sorbet'] .price-table-wrap {
+  border: 0;
+  border-radius: var(--r-lg);
+  background: transparent;
+}
+
+[data-skin='sorbet'] .price-table thead th {
+  background: var(--surface-2);
+  color: var(--ink-soft);
+}
+
+[data-skin='sorbet'] .price-table th,
+[data-skin='sorbet'] .price-table td {
+  border-block-end: 1px dashed var(--line);
+}
+
+/* Шаги: номера в мягких квадратах */
+[data-skin='sorbet'] .step__num {
+  display: grid;
+  place-items: center;
+  inline-size: 2.6rem;
+  block-size: 2.6rem;
+  border-radius: var(--r-md);
+  background: color-mix(in oklab, var(--brand) 22%, var(--surface));
+  color: var(--brand-strong);
+  font-weight: 700;
+}
+
+[data-skin='sorbet'] .review__avatar {
+  background: var(--surface-2);
+  color: var(--brand-strong);
+  font-weight: 700;
+}
+
+[data-skin='sorbet'] .areas li {
+  border: 0;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  color: var(--ink);
+  font-weight: 500;
+}
+
+/* Финальный призыв: «гребёнка» по нижнему краю — перекликается с аркой фото */
+[data-skin='sorbet'] .cta-band {
+  position: relative;
+  border-radius: var(--r-xl);
+}
+
+[data-skin='sorbet'] .cta-band::after {
+  content: '';
+  position: absolute;
+  inset-inline: var(--s6);
+  inset-block-end: -0.45rem;
+  block-size: 0.45rem;
+  background: radial-gradient(circle at 50% 0, var(--brand) 0 0.45rem, transparent 0.47rem);
+  background-size: 1.15rem 0.45rem;
+  background-repeat: repeat-x;
+  pointer-events: none;
+}
+
+/* Подвал: скруглённый верх и мягкая подложка */
+[data-skin='sorbet'] .site-footer {
+  border: 0;
+  border-start-start-radius: var(--r-xl);
+  border-start-end-radius: var(--r-xl);
+  background: var(--surface-2);
+  margin-block-start: var(--s8);
+}
+
+[data-skin='sorbet'] .site-footer .brand__mark {
+  background: var(--brand);
+}
+
+/* Петля pop — «дыхание» номеров шагов. Ограничители те же, что у декора:
+   включённые анимации в панели и системная настройка «меньше движения». */
+@media (prefers-reduced-motion: no-preference) {
+  [data-skin='sorbet'][data-motion='on'] .step__num {
+    animation: pop var(--anim-slow) ease-in-out infinite alternate;
+  }
+}

@@ -112,6 +112,16 @@ const themeFontUrls = themeEntry.fonts[designForBuild.headingFont];
 const preloadFont = themeFontUrls?.[locale];
 
 /**
+ * Цвет интерфейса браузера (адресная строка на телефоне) — акцент темы,
+ * а не константа: он должен совпадать с тем, что видит посетитель.
+ *
+ * Обращаемся к designForBuild напрямую, а не через локальный `theme`:
+ * Astro поднимает объявления, которые нужны шаблону, наверх тела компонента,
+ * и ссылка на `theme` оказалась бы выше его объявления.
+ */
+const themeColor = designForBuild.theme.swatch[1];
+
+/**
  * Пока в проекте нет фотографий, вместо og:image используется
  * сгенерированная на сборке картинка (scripts/make-og.mjs).
  *
@@ -122,16 +132,37 @@ const ogImage = absolute(asset(`og/${locale}.png`));
 
 const demoMode = import.meta.env.PUBLIC_DEMO === 'on';
 
+/** Тема, выбранная на сборке: её CSS, её палитра, её умолчания. */
+const theme = designForBuild.theme;
+
 /**
  * Алиас @theme и design.config.json обязаны указывать на одну тему:
  * первый выбирает CSS, второй — значения параметров. В демо алиас ведёт на
  * сводный вход (id 'all'), потому что там тема меняется прямо в браузере.
  */
-if (!demoMode && themeEntry.id !== designForBuild.theme.id) {
+if (!demoMode && themeEntry.id !== theme.id) {
   throw new Error(
     `Расхождение темы: astro.config.mjs выбрал «${themeEntry.id}», ` +
-      `а design.config.json — «${designForBuild.theme.id}». ` +
+      `а design.config.json — «${theme.id}». ` +
       'Пересоберите конфиг командой npm run design или проверьте алиас @theme.',
+  );
+}
+
+/**
+ * Тема обязана поставлять все семейства, которые сама разрешает в поле
+ * `available` (src/data/themes.ts). Иначе предзагрузка шрифта останется
+ * без адреса, а браузер молча возьмёт fallback — и заказчик увидит не тот
+ * шрифт, который выбирал в панели. Дешевле упасть на сборке.
+ */
+const missingFonts = [...new Set([...theme.available.heading, ...theme.available.body])].filter(
+  (kind) => kind !== 'system' && !themeEntry.fonts[kind],
+);
+
+if (missingFonts.length) {
+  throw new Error(
+    `Тема «${theme.id}» разрешает шрифты ${missingFonts.join(', ')}, но её вход ` +
+      `(src/themes/entries/${theme.id}.ts) их не поставляет. Добавьте туда импорт ` +
+      'адресов субсетов или уберите семейство из `available`.',
   );
 }
 
@@ -184,10 +215,13 @@ const DemoPanel = demoMode
     <link rel="icon" href={asset('favicon.svg')} type="image/svg+xml" />
     <link rel="apple-touch-icon" href={asset('favicon.svg')} />
     <link rel="manifest" href={asset('manifest.webmanifest')} />
-    <meta name="theme-color" content="#12a87b" />
+    <meta name="theme-color" content={themeColor} />
 
-    {/* Один предзагруженный файл шрифта: субсет заголовков для этой локали */}
-    <link rel="preload" href={preloadFont} as="font" type="font/woff2" crossorigin />
+    {/* Один предзагруженный файл шрифта: субсет заголовков для этой локали.
+        Тема без веб-шрифтов (headingFont = system) не предзагружает ничего. */}
+    {preloadFont && (
+      <link rel="preload" href={preloadFont} as="font" type="font/woff2" crossorigin />
+    )}
 
     <JsonLd locale={locale} routeKey={routeKey} extra={jsonLd} />
   </head>

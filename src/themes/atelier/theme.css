@@ -1,0 +1,325 @@
+/**
+ * Тема «Ателье» (atelier) — fashion/editorial.
+ *
+ * Графический язык: журнальный разворот, а не рекламный баннер.
+ *   • крупная засечная типографика Playfair Display с очень плотным набором;
+ *   • прямые углы (radius 0), никаких теней и скруглений;
+ *   • волосяные линейки и нумерация секций (data-sections='editorial');
+ *   • кнопки — подчёркнутый капс (data-button='link');
+ *   • фотографии в двухцветной печати (data-photo='duotone');
+ *   • один тёплый кирпичный акцент на почти монохромной палитре.
+ *
+ * Тема задаёт и токены, и собственные правила: то, что делает её собой,
+ * лежит здесь, а не в общем CSS — поэтому в прод-сборке за неё платит
+ * только тот, кто её выбрал.
+ */
+
+@import '../../fonts/playfair-display.css';
+@import '../../fonts/manrope.css';
+
+[data-skin='atelier'] {
+  color-scheme: light;
+
+  --brand-h: 12;
+  --brand-s: 46%;
+  --brand-l: 38%;
+  --brand-ink: #fffaf7;
+
+  --bg: #f6f3ee;
+  --surface: #ffffff;
+  --surface-2: #ece7df;
+  --ink: #15120e;
+  --ink-soft: #6d6459;
+  --line: #ded7cd;
+
+  --shadow-color: 24 18% 20%;
+
+  --radius: 0px;
+
+  /* Типографика разворота: большой кегль, плотные интерлиньяж и трекинг */
+  --fs-display: clamp(3rem, 7vw, 6.5rem);
+  --fs-h1: clamp(2.5rem, 5vw, 4.75rem);
+  --fs-h2: clamp(2rem, 3.4vw, 3.5rem);
+  --fs-h3: clamp(1.5rem, 1.6vw + 1.1rem, 2rem);
+  --lh-tight: 0.98;
+  --lh-heading: 1.06;
+  --tracking-tight: -0.035em;
+
+  --measure: 62ch;
+}
+
+/* Шапка: знак без заливки, навигация капсом в разрежённом наборе */
+
+[data-skin='atelier'] .brand {
+  font-family: var(--font-heading);
+  font-size: 1.35rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+[data-skin='atelier'] .brand__mark {
+  border: 1px solid var(--ink);
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+}
+
+[data-skin='atelier'] .nav__link,
+[data-skin='atelier'] .lang__item {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+[data-skin='atelier'] .nav__link:hover,
+[data-skin='atelier'] .nav__link[aria-current='page'] {
+  background: transparent;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.4em;
+}
+
+[data-skin='atelier'] .site-header,
+[data-skin='atelier'] .site-header.is-scrolled {
+  background: var(--bg);
+  backdrop-filter: none;
+}
+
+[data-skin='atelier'] .lang {
+  border-radius: 0;
+  border-color: transparent;
+}
+
+[data-skin='atelier'] .lang__item[aria-current='true'] {
+  background: transparent;
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
+}
+
+/* Заголовки: засечный шрифт, аккуратная оптическая посадка */
+
+[data-skin='atelier'] h1,
+[data-skin='atelier'] h2,
+[data-skin='atelier'] h3 {
+  font-weight: 500;
+  letter-spacing: var(--tracking-tight);
+}
+
+[data-skin='atelier'] .hero__lead,
+[data-skin='atelier'] .section-head__lead {
+  max-inline-size: 52ch;
+  line-height: 1.7;
+}
+
+[data-skin='atelier'] .eyebrow {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  color: var(--ink-soft);
+}
+
+[data-skin='atelier'] .eyebrow::before {
+  inline-size: 2.5rem;
+  block-size: 1px;
+  background: var(--ink-soft);
+}
+
+/* Первый экран: заголовок как обложка */
+
+[data-skin='atelier'] .hero__title {
+  max-inline-size: 28ch;
+  font-weight: 500;
+}
+
+[data-skin='atelier'] .hero__promise,
+[data-skin='atelier'] .hero__badges {
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+[data-skin='atelier'] .badge {
+  padding-inline: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink-soft);
+}
+
+[data-skin='atelier'] .badge--brand {
+  color: var(--brand);
+}
+
+/* Карточки: без рамок, разделены линейками, цена крупным кеглем */
+
+[data-skin='atelier'] .card {
+  padding-inline: 0;
+}
+
+[data-skin='atelier'] .service-card {
+  padding-block-start: var(--s5);
+  border-block-start: var(--bw) solid var(--ink);
+}
+
+[data-skin='atelier'] .service-card__name {
+  font-size: var(--fs-h3);
+  font-weight: 500;
+}
+
+[data-skin='atelier'] .service-card__foot {
+  align-items: baseline;
+  border-block-start: 0;
+}
+
+[data-skin='atelier'] .service-card__price,
+[data-skin='atelier'] .price-row__value,
+[data-skin='atelier'] .calc__total,
+[data-skin='atelier'] .stat__value {
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+[data-skin='atelier'] .icon-box {
+  inline-size: auto;
+  block-size: auto;
+  border-radius: 0;
+  background: transparent;
+  color: var(--brand);
+}
+
+/* Таблица цен: типографская, без «коробки» */
+
+[data-skin='atelier'] .price-table-wrap {
+  border: 0;
+  border-block-start: var(--bw) solid var(--ink);
+  border-radius: 0;
+  background: transparent;
+}
+
+[data-skin='atelier'] .price-table thead th {
+  background: transparent;
+  border-block-end: var(--bw) solid var(--ink);
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  color: var(--ink-soft);
+}
+
+[data-skin='atelier'] .price-table tr[data-popular],
+[data-skin='atelier'] .price-table [data-popular] {
+  background: transparent;
+}
+
+[data-skin='atelier'] .price-table tr[data-popular] th,
+[data-skin='atelier'] .price-table tr[data-popular] td {
+  color: var(--brand);
+}
+
+/* Чипы, табы, панели: та же жёсткая геометрия */
+
+[data-skin='atelier'] .chip,
+[data-skin='atelier'] .tabs__tab {
+  border-radius: 0;
+  background: transparent;
+  border-color: var(--line);
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+[data-skin='atelier'] .tabs__panel,
+[data-skin='atelier'] .calc__result,
+[data-skin='atelier'] .faq__item,
+[data-skin='atelier'] .form {
+  padding-inline: 0;
+  border: 0;
+  border-block-start: var(--bw) solid var(--ink);
+  border-radius: 0;
+  background: transparent;
+}
+
+[data-skin='atelier'] .steps {
+  gap: var(--s10);
+}
+
+[data-skin='atelier'] .step__num {
+  font-size: var(--fs-h2);
+  font-weight: 400;
+  color: var(--ink-soft);
+}
+
+[data-skin='atelier'] .faq__question {
+  padding-inline: 0;
+  font-family: var(--font-heading);
+  font-size: var(--fs-lg);
+  font-weight: 500;
+}
+
+[data-skin='atelier'] .faq__answer {
+  padding-inline: 0;
+}
+
+[data-skin='atelier'] .faq__item[open] {
+  border-color: var(--ink);
+}
+
+[data-skin='atelier'] .review__avatar {
+  border: 1px solid var(--ink);
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+}
+
+[data-skin='atelier'] .review__text {
+  font-family: var(--font-heading);
+  font-size: var(--fs-base);
+  line-height: 1.6;
+  color: var(--ink);
+}
+
+[data-skin='atelier'] .areas li {
+  border-color: var(--line);
+  border-radius: 0;
+  background: transparent;
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* Финальный призыв: плотный чернильный блок */
+
+[data-skin='atelier'] .cta-band {
+  padding: var(--s16) var(--s10);
+  border-radius: 0;
+  background: var(--ink);
+  color: var(--bg);
+}
+
+[data-skin='atelier'] .cta-band__title,
+[data-skin='atelier'] .cta-band__text {
+  color: var(--bg);
+}
+
+[data-skin='atelier'] .cta-band__title {
+  font-weight: 500;
+}
+
+[data-skin='atelier'] .cta-band .btn {
+  background: transparent;
+  border: 0;
+  border-block-end: 1.5px solid currentColor;
+  color: var(--bg);
+}
+
+/* Подвал: линейка сверху и разрежённые подписи колонок */
+
+[data-skin='atelier'] .site-footer {
+  background: var(--bg);
+  border-block-start: var(--bw) solid var(--ink);
+}
+
+[data-skin='atelier'] .footer__col h3 {
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+}
+

@@ -1,0 +1,300 @@
+/**
+ * Тема «Милота» (mila) — тёплая и дружелюбная.
+ *
+ * Графический язык: мягкие формы и «сделанность руками».
+ *   • округлый шрифт Nunito, тяжёлые заголовки;
+ *   • очень большой радиус (26px) и «капсульные» элементы;
+ *   • фото-слоты органичной формы (blob) с пунктирной обводкой;
+ *   • карточки-наклейки с лёгким поворотом (data-card='sticker');
+ *   • точечная текстура фона (data-texture='dots');
+ *   • мягкие «объёмные» тени вместо линий.
+ */
+
+@import '../../fonts/nunito.css';
+@import './palettes.css';
+
+[data-skin='mila'] {
+  color-scheme: light;
+
+  --brand-h: 345;
+  --brand-s: 65%;
+  --brand-l: 48%;
+  --brand-ink: #ffffff;
+  --brand-strong: #aa324c;
+
+  --bg: #fff9f5;
+  --surface: #ffffff;
+  --surface-2: #ffeee9;
+  --ink: #3f2f35;
+  --ink-soft: #77686c;
+  --line: #f2e0dc;
+
+  --shadow-color: 5 35% 45%;
+  --shadow-md: 0 10px 24px -8px hsl(var(--shadow-color) / 0.22);
+  --shadow-lg: 0 26px 60px -20px hsl(var(--shadow-color) / 0.3);
+
+  --radius: 26px;
+
+  --fs-h2: clamp(1.85rem, 2vw + 1.3rem, 2.6rem);
+  --fs-h3: clamp(1.4rem, 1vw + 1.15rem, 1.75rem);
+  --lh-heading: 1.15;
+
+  --texture-opacity: 0.5;
+  /* «Пузырь» фото-слота: форма включается параметром data-photo-shape='blob'
+     (умолчание темы), а сам контур темы задают здесь. */
+  --photo-radius: 46% 54% 52% 48% / 42% 46% 54% 58%;
+}
+
+/* Заголовки: тяжёлый округлый набор без агрессивного трекинга.
+   Вес и плотность приходят из выбора шрифта (data-font='nunito'
+   в src/styles/params.css) — здесь тема их не дублирует. */
+
+[data-skin='mila'] .eyebrow {
+  font-size: 0.78rem;
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+
+[data-skin='mila'] .eyebrow::before {
+  inline-size: 1.75rem;
+  block-size: 3px;
+  background: var(--brand);
+}
+
+/* Знак и шапка: скруглённый «пузырь» */
+
+[data-skin='mila'] .brand {
+  font-weight: 800;
+}
+
+[data-skin='mila'] .brand__mark {
+  border-radius: 50% 50% 46% 54% / 52% 48% 52% 48%;
+  box-shadow: 0 4px 0 color-mix(in oklab, var(--brand) 35%, transparent);
+}
+
+[data-skin='mila'] .site-header {
+  border-block-end-color: var(--line);
+}
+
+[data-skin='mila'] .nav__link {
+  border-radius: var(--r-pill);
+  font-weight: 600;
+}
+
+/* Фото-слоты: органичная форма и пунктирная «обводка».
+   Тон подложки выводится из акцента (раньше здесь стояли два литеральных
+   персиковых цвета) — теперь палитра перекрашивает и фото-заглушки, а форма
+   «пузыря» включается параметром data-photo-shape='blob' (см. params.css). */
+
+[data-skin='mila'] .photo {
+  background:
+    radial-gradient(120% 90% at 24% 12%, var(--surface-2) 0%, transparent 62%),
+    linear-gradient(
+      150deg,
+      color-mix(in oklab, var(--brand) 8%, var(--surface)) 0%,
+      color-mix(in oklab, var(--brand) 16%, var(--surface-2)) 100%
+    );
+}
+
+[data-skin='mila'] .photo::before {
+  content: '';
+  position: absolute;
+  inset: 0.6rem;
+  border: 2px dashed color-mix(in oklab, var(--brand) 45%, transparent);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+[data-skin='mila'] .ba,
+[data-skin='mila'] .ba__layer {
+  border-radius: inherit;
+}
+
+/* Бейджи-наклейки */
+
+[data-skin='mila'] .badge {
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  color: var(--ink);
+  font-weight: 700;
+}
+
+[data-skin='mila'] .badge--brand {
+  background: var(--brand);
+  color: var(--brand-ink);
+  rotate: -2deg;
+}
+
+/* Иконки в «пузырях» */
+
+[data-skin='mila'] .icon-box {
+  inline-size: 3.25rem;
+  block-size: 3.25rem;
+  border-radius: 50% 50% 44% 56% / 54% 46% 54% 46%;
+  background: var(--surface-2);
+  color: var(--brand);
+}
+
+/* Кнопки: капсулы с объёмной нижней гранью */
+
+[data-skin='mila'] .btn {
+  box-shadow: 0 4px 0 color-mix(in oklab, var(--brand) 40%, transparent);
+  font-weight: 800;
+}
+
+[data-skin='mila'] .btn:hover {
+  transform: translateY(2px);
+}
+
+[data-skin='mila'] .btn--ghost {
+  box-shadow: 0 4px 0 color-mix(in oklab, var(--ink) 12%, transparent);
+}
+
+/* Карточки-наклейки: толстая «мультяшная» подложка уже задана параметром,
+   здесь — только пастельные детали */
+
+[data-skin='mila'] .card {
+  border-radius: var(--r-lg);
+}
+
+[data-skin='mila'] .service-card__name {
+  font-weight: 800;
+}
+
+[data-skin='mila'] .service-card__foot {
+  border-block-start: 2px dashed var(--line);
+}
+
+[data-skin='mila'] .service-card__price {
+  font-weight: 800;
+}
+
+/* Полосатые панели: крупные скругления и мягкая подложка */
+
+[data-skin='mila'] .section--surface,
+[data-skin='mila'] .section--surface-2 {
+  border-radius: var(--r-xl);
+  margin-inline: var(--gutter);
+}
+
+[data-skin='mila'] .tabs__panel,
+[data-skin='mila'] .calc__result,
+[data-skin='mila'] .form,
+[data-skin='mila'] .faq__item {
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  border: 0;
+  box-shadow: 0 6px 0 color-mix(in oklab, var(--ink) 7%, transparent);
+}
+
+[data-skin='mila'] .chip,
+[data-skin='mila'] .tabs__tab {
+  border: 0;
+  background: var(--surface-2);
+  color: var(--ink);
+  font-weight: 700;
+}
+
+[data-skin='mila'] .chip[aria-pressed='true'],
+[data-skin='mila'] .tabs__tab[aria-selected='true'] {
+  background: var(--brand);
+  color: var(--brand-ink);
+}
+
+[data-skin='mila'] .check {
+  border: 0;
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+}
+
+[data-skin='mila'] .check:has(input:checked) {
+  background: color-mix(in oklab, var(--brand) 18%, var(--surface));
+  box-shadow: inset 0 0 0 2px color-mix(in oklab, var(--brand) 45%, transparent);
+}
+
+/* Таблица цен: без линий, «подушечки» строк */
+
+[data-skin='mila'] .price-table-wrap {
+  border: 0;
+  border-radius: var(--r-lg);
+  background: transparent;
+}
+
+[data-skin='mila'] .price-table thead th {
+  background: var(--surface-2);
+  color: var(--ink-soft);
+}
+
+[data-skin='mila'] .price-table thead th:first-child {
+  border-start-start-radius: var(--r-md);
+  border-end-start-radius: var(--r-md);
+}
+
+[data-skin='mila'] .price-table thead th:last-child {
+  border-start-end-radius: var(--r-md);
+  border-end-end-radius: var(--r-md);
+}
+
+[data-skin='mila'] .price-table th,
+[data-skin='mila'] .price-table td {
+  border-block-end: 1px dashed var(--line);
+}
+
+/* Шаги: крупные номера в пузырях */
+
+[data-skin='mila'] .step__num {
+  display: grid;
+  place-items: center;
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+  border-radius: 50% 50% 46% 54% / 52% 48% 52% 48%;
+  background: var(--surface-2);
+  color: var(--brand);
+  font-weight: 800;
+}
+
+/* Отзывы и районы */
+
+[data-skin='mila'] .review__avatar {
+  background: var(--surface-2);
+  color: var(--brand);
+  font-weight: 800;
+}
+
+[data-skin='mila'] .areas li {
+  border: 0;
+  background: var(--surface-2);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* Финальный призыв: большая пастельная карточка с точками.
+   Кнопку не переопределяем: на брендовом фоне база (components-blocks-e.css)
+   уже даёт белую «подушечку» с текстом цвета акцента — ровно то, что нужно. */
+
+[data-skin='mila'] .cta-band {
+  border-radius: var(--r-xl);
+  background:
+    radial-gradient(
+        circle at 1px 1px,
+        color-mix(in oklab, var(--brand-ink) 55%, transparent) 1.5px,
+        transparent 1.6px
+      )
+      0 0 / 18px 18px,
+    var(--brand);
+}
+
+/* Подвал: скруглённый верх и мягкая подложка */
+
+[data-skin='mila'] .site-footer {
+  border: 0;
+  border-start-start-radius: var(--r-xl);
+  border-start-end-radius: var(--r-xl);
+  background: var(--surface-2);
+  margin-block-start: var(--s8);
+}
+
+[data-skin='mila'] .site-footer .brand__mark {
+  background: var(--brand);
+}
+

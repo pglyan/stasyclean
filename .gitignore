@@ -8,6 +8,13 @@ dist-demo/
 # OG-картинки генерируются на сборке (scripts/make-og.mjs)
 public/og/
 
+# Файлы шрифтов копируются из пакетов Fontsource (scripts/sync-fonts.mjs):
+# в репозиторий не попадают, чтобы версия шрифта не разъезжалась с npm.
+# Шаг есть в «Быстром старте», в deploy/README.md и в CI перед сборкой.
+# Рукописные @font-face и адреса субсетов (src/fonts/*.css, src/fonts/*.urls.ts)
+# при этом коммитятся: это исходники, а не вывод скрипта.
+src/assets/fonts/
+
 # generated types
 .astro/
 

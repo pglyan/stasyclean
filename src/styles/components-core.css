@@ -88,9 +88,9 @@
 }
 
 .card--interactive:hover {
-  border-color: var(--brand-ring);
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
+  border-color: var(--card-line-hover);
+  box-shadow: var(--card-shadow-hover);
+  transform: translateY(var(--card-lift));
 }
 
 .card__title {

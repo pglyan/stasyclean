@@ -15,10 +15,18 @@ import type {
   ButtonKind,
   CardKind,
   ContainerKind,
+  DecorKind,
   DensityKind,
   FontKind,
   HeroKind,
+  PaletteKind,
+  PhotoKind,
+  PhotoShapeKind,
+  SectionsKind,
+  SurfaceKind,
+  TextureKind,
 } from '../themes/types';
+import { paletteIds, paletteLabels } from './palettes';
 
 export interface PanelOption<T> {
   value: T;
@@ -63,6 +71,14 @@ export const fontOptions: PanelOption<FontKind>[] = [
     label: { sr: 'Nunito — oblo', en: 'Nunito — rounded', ru: 'Nunito — округлый' },
   },
   {
+    value: 'comfortaa',
+    label: {
+      sr: 'Comfortaa — mekano oblo',
+      en: 'Comfortaa — soft rounded',
+      ru: 'Comfortaa — мягко-округлый',
+    },
+  },
+  {
     value: 'system',
     label: {
       sr: 'Sistemski — bez webfontova',
@@ -82,13 +98,72 @@ export const cardOptions: PanelOption<CardKind>[] = [
   { value: 'flat', label: { sr: 'Bez okvira', en: 'No frames', ru: 'Без рамок' } },
   { value: 'outline', label: { sr: 'Tanka ivica', en: 'Thin outline', ru: 'Тонкая рамка' } },
   { value: 'shadow', label: { sr: 'Meka senka', en: 'Soft shadow', ru: 'Мягкая тень' } },
+  { value: 'hard', label: { sr: 'Gruba ivica', en: 'Hard edge', ru: 'Жёсткая рамка' } },
+  { value: 'sticker', label: { sr: 'Nalepnica', en: 'Sticker', ru: 'Наклейка' } },
 ];
 
 export const buttonOptions: PanelOption<ButtonKind>[] = [
   { value: 'solid', label: { sr: 'Puna boja', en: 'Solid', ru: 'Заливка' } },
   { value: 'soft', label: { sr: 'Meka podloga', en: 'Soft fill', ru: 'Мягкий фон' } },
   { value: 'outline', label: { sr: 'Kontura', en: 'Outline', ru: 'Контур' } },
+  { value: 'link', label: { sr: 'Veza (caps, podvučeno)', en: 'Link (caps, underlined)', ru: 'Ссылка (капс, подчёркнуто)' } },
+  { value: 'hard', label: { sr: 'Blok sa senkom', en: 'Block with shadow', ru: 'Блок с тенью' } },
 ];
+
+export const sectionsOptions: PanelOption<SectionsKind>[] = [
+  { value: 'plain', label: { sr: 'Ravnomerno', en: 'Even', ru: 'Ровно' } },
+  { value: 'banded', label: { sr: 'Trake', en: 'Bands', ru: 'Полосы' } },
+  { value: 'editorial', label: { sr: 'Numerisano (magazin)', en: 'Numbered (magazine)', ru: 'Нумерация (журнал)' } },
+];
+
+export const textureOptions: PanelOption<TextureKind>[] = [
+  { value: 'none', label: { sr: 'Bez teksture', en: 'None', ru: 'Без текстуры' } },
+  { value: 'grain', label: { sr: 'Zrno (štampa)', en: 'Grain (print)', ru: 'Зерно (печать)' } },
+  { value: 'dots', label: { sr: 'Tačke', en: 'Dots', ru: 'Точки' } },
+  { value: 'grid', label: { sr: 'Mreža', en: 'Grid', ru: 'Сетка' } },
+  { value: 'waves', label: { sr: 'Talasi', en: 'Waves', ru: 'Волны' } },
+  { value: 'stripes', label: { sr: 'Pruge', en: 'Stripes', ru: 'Полосы' } },
+  { value: 'scallops', label: { sr: 'Školjke', en: 'Scallops', ru: 'Чешуйки' } },
+  { value: 'checks', label: { sr: 'Karo', en: 'Checks', ru: 'Клетка' } },
+];
+
+export const surfaceOptions: PanelOption<SurfaceKind>[] = [
+  { value: 'flat', label: { sr: 'Ravna podloga', en: 'Flat', ru: 'Ровный фон' } },
+  { value: 'tint', label: { sr: 'Tonirana', en: 'Tinted', ru: 'Тонированный' } },
+  { value: 'gradient', label: { sr: 'Gradijent', en: 'Gradient', ru: 'Градиент' } },
+  { value: 'mesh', label: { sr: 'Mreža u boji', en: 'Mesh', ru: 'Цветная сетка' } },
+];
+
+export const decorOptions: PanelOption<DecorKind>[] = [
+  { value: 'none', label: { sr: 'Bez dekora', en: 'None', ru: 'Без декора' } },
+  { value: 'bubbles', label: { sr: 'Mehurići', en: 'Bubbles', ru: 'Пузырьки' } },
+  { value: 'sparkles', label: { sr: 'Iskrice', en: 'Sparkles', ru: 'Искры' } },
+  { value: 'confetti', label: { sr: 'Konfete', en: 'Confetti', ru: 'Конфетти' } },
+  { value: 'ripples', label: { sr: 'Krugovi na vodi', en: 'Ripples', ru: 'Круги на воде' } },
+];
+
+export const photoOptions: PanelOption<PhotoKind>[] = [
+  { value: 'plain', label: { sr: 'Obično', en: 'Plain', ru: 'Обычно' } },
+  { value: 'duotone', label: { sr: 'Dvobojno', en: 'Duotone', ru: 'Двухцветно' } },
+  { value: 'halftone', label: { sr: 'Raster', en: 'Halftone', ru: 'Растр' } },
+];
+
+export const photoShapeOptions: PanelOption<PhotoShapeKind>[] = [
+  { value: 'rect', label: { sr: 'Pravougaonik', en: 'Rectangle', ru: 'Прямоугольник' } },
+  { value: 'arch', label: { sr: 'Luk', en: 'Arch', ru: 'Арка' } },
+  { value: 'round', label: { sr: 'Oblo', en: 'Rounded', ru: 'Скруглённая' } },
+  { value: 'blob', label: { sr: 'Organski oblik', en: 'Blob', ru: 'Органичная' } },
+];
+
+/**
+ * Палитры берём из общего реестра (src/data/palettes.ts): подписи одинаковы
+ * для всех тем, а вот какие палитры доступны — решает тема, и панель
+ * фильтрует список по её полю available.palettes.
+ */
+export const paletteOptions: PanelOption<PaletteKind>[] = paletteIds.map((id) => ({
+  value: id,
+  label: paletteLabels[id],
+}));
 
 export const containerOptions: PanelOption<ContainerKind>[] = [
   { value: 'normal', label: { sr: 'Normalna širina', en: 'Normal width', ru: 'Обычная ширина' } },
