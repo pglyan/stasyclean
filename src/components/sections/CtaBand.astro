@@ -1,0 +1,40 @@
+---
+import type { Locale } from '../../i18n/config';
+import { href } from '../../i18n/routes';
+import { useUI } from '../../i18n/ui';
+import { site } from '../../data/site';
+
+import Icon from '../ui/Icon.astro';
+
+/** Финальный призыв к действию: полоса в цвете бренда. */
+
+interface Props {
+  locale: Locale;
+  title?: string;
+  text?: string;
+}
+
+const { locale, title, text } = Astro.props;
+const ui = useUI(locale);
+---
+
+<section class="section">
+  <div class="container">
+    <div class="cta-band">
+      <div>
+        <h2 class="cta-band__title">{title ?? ui.home.formTitle}</h2>
+        <p class="cta-band__text">{text ?? ui.home.formLead}</p>
+      </div>
+      <div class="cta-band__actions">
+        <a class="btn btn--lg" href={site.telegramUrl} target="_blank" rel="noopener noreferrer">
+          <Icon name="telegram" class="btn__icon" />
+          {ui.cta.telegram}
+        </a>
+        <a class="btn btn--ghost btn--lg" href={`${href(locale, 'prices')}#calculator`}>
+          <Icon name="calculator" class="btn__icon" />
+          {ui.cta.calculate}
+        </a>
+      </div>
+    </div>
+  </div>
+</section>

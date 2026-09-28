@@ -1,0 +1,30 @@
+---
+import Base from '../layouts/Base.astro';
+import PageBody from '../components/PageBody.astro';
+import { DEFAULT_LOCALE, type Locale } from '../i18n/config';
+import { generatedRoutes, type PageKey } from '../i18n/routes';
+
+/**
+ * Внутренние страницы языка по умолчанию: /cene, /usluge/... и так далее.
+ * Страницы без переведённого слага (главная) обслуживаются в index.astro.
+ */
+export function getStaticPaths() {
+  return generatedRoutes([DEFAULT_LOCALE])
+    .filter((route) => route.segments.length > 0)
+    .map((route) => ({
+      params: { slug: route.segments.join('/') },
+      props: { locale: route.locale, routeKey: route.key },
+    }));
+}
+
+interface Props {
+  locale: Locale;
+  routeKey: PageKey;
+}
+
+const { locale, routeKey } = Astro.props;
+---
+
+<Base locale={locale} routeKey={routeKey}>
+  <PageBody locale={locale} routeKey={routeKey} />
+</Base>

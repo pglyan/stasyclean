@@ -1,0 +1,304 @@
+/**
+ * Обвязка страницы: шапка, навигация, переключатель языка, мобильное меню.
+ *
+ * Выпадающее меню «Услуги» работает на :hover/:focus-within без единой
+ * строки JS — это и быстрее, и надёжнее. JS нужен только мобильному меню
+ * (переключение класса и aria-expanded).
+ */
+
+.site-header {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 40;
+  background: color-mix(in oklab, var(--bg) 86%, transparent);
+  backdrop-filter: blur(14px);
+  border-block-end: var(--bw) solid transparent;
+  transition:
+    border-color var(--dur) var(--ease),
+    background-color var(--dur) var(--ease);
+}
+
+/* Класс ставит nav.js после первой прокрутки */
+.site-header.is-scrolled {
+  border-block-end-color: var(--line);
+  background: color-mix(in oklab, var(--bg) 94%, transparent);
+}
+
+.site-header__inner {
+  display: flex;
+  align-items: center;
+  gap: var(--s6);
+  min-block-size: 4.5rem;
+}
+
+.site-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  margin-inline-start: auto;
+}
+
+/* ---------- Логотип ---------- */
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s3);
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: var(--tracking-tight);
+  color: var(--ink);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.brand:hover {
+  color: var(--ink);
+}
+
+.brand__mark {
+  display: grid;
+  place-items: center;
+  inline-size: 2.25rem;
+  block-size: 2.25rem;
+  border-radius: var(--r-sm);
+  background: var(--brand);
+  color: var(--brand-ink);
+}
+
+.brand__mark svg {
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+}
+
+/* ---------- Навигация ---------- */
+
+.nav {
+  display: none;
+}
+
+@media (min-width: 62rem) {
+  .nav {
+    display: block;
+  }
+}
+
+.nav__list {
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nav__link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s1);
+  padding: var(--s2) var(--s3);
+  border-radius: var(--r-sm);
+  color: var(--ink);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color var(--dur-fast) var(--ease);
+}
+
+.nav__link:hover {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+
+.nav__link[aria-current='page'] {
+  background: var(--surface-2);
+  font-weight: 600;
+}
+
+.nav__link svg {
+  inline-size: 0.875rem;
+  block-size: 0.875rem;
+  opacity: 0.6;
+  transition: transform var(--dur-fast) var(--ease);
+}
+
+.nav__item {
+  position: relative;
+}
+
+.nav__menu {
+  position: absolute;
+  inset-block-start: calc(100% + var(--s2));
+  inset-inline-start: 0;
+  min-inline-size: 16rem;
+  padding: var(--s2);
+  margin: 0;
+  list-style: none;
+  background: var(--surface);
+  border: var(--bw) solid var(--line);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-md);
+  opacity: 0;
+  visibility: hidden;
+  translate: 0 -0.25rem;
+  transition:
+    opacity var(--dur-fast) var(--ease),
+    translate var(--dur-fast) var(--ease),
+    visibility var(--dur-fast);
+}
+
+.nav__item:hover .nav__menu,
+.nav__item:focus-within .nav__menu {
+  opacity: 1;
+  visibility: visible;
+  translate: 0 0;
+}
+
+.nav__item:hover .nav__link svg,
+.nav__item:focus-within .nav__link svg {
+  transform: rotate(180deg);
+}
+
+.nav__menu a {
+  display: block;
+  padding: var(--s2) var(--s3);
+  border-radius: var(--r-sm);
+  color: var(--ink);
+  font-size: var(--fs-sm);
+  text-decoration: none;
+}
+
+.nav__menu a:hover {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+
+/* ---------- Переключатель языка ---------- */
+
+.lang {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+  padding: 0.125rem;
+  border: var(--bw) solid var(--line);
+  border-radius: var(--r-pill);
+}
+
+.lang__item {
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--r-pill);
+  color: var(--ink-soft);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide);
+  text-decoration: none;
+}
+
+.lang__item:hover {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+
+.lang__item[aria-current='true'] {
+  background: var(--brand);
+  color: var(--brand-ink);
+}
+
+/* ---------- Кнопка-бургер ---------- */
+
+.burger {
+  display: grid;
+  place-items: center;
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+  border-radius: var(--r-sm);
+  border: var(--bw) solid var(--line);
+  color: var(--ink);
+}
+
+@media (min-width: 62rem) {
+  .burger {
+    display: none;
+  }
+}
+
+.header-cta {
+  display: none;
+}
+
+@media (min-width: 48rem) {
+  .header-cta {
+    display: inline-flex;
+  }
+}
+
+/* ---------- Мобильное меню ---------- */
+
+.drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  padding: var(--s6) var(--gutter) var(--gutter);
+  overflow-y: auto;
+  translate: 0 -100%;
+  visibility: hidden;
+  transition:
+    translate var(--dur-slow) var(--ease),
+    visibility var(--dur-slow);
+}
+
+.drawer.is-open {
+  translate: 0 0;
+  visibility: visible;
+}
+
+.drawer__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-block-end: var(--s6);
+}
+
+.drawer__list {
+  display: grid;
+  gap: var(--s1);
+  margin: 0 0 var(--s6);
+  padding: 0;
+  list-style: none;
+  font-size: var(--fs-lg);
+}
+
+.drawer__list a {
+  display: block;
+  padding: var(--s3) var(--s2);
+  border-radius: var(--r-sm);
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.drawer__sub {
+  display: grid;
+  gap: var(--s1);
+  margin: var(--s1) 0 var(--s2);
+  padding: 0 0 0 var(--s4);
+  list-style: none;
+  font-size: var(--fs-sm);
+}
+
+.drawer__sub a {
+  padding: var(--s2);
+  font-weight: 500;
+  color: var(--ink-soft);
+}
+
+.drawer__foot {
+  display: grid;
+  gap: var(--s3);
+  margin-block-start: auto;
+  padding-block-start: var(--s8);
+}

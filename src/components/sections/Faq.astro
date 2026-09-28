@@ -1,0 +1,53 @@
+---
+import type { Locale } from '../../i18n/config';
+import { faq as allFaq } from '../../data/faq';
+import { useUI } from '../../i18n/ui';
+
+import SectionHead from './SectionHead.astro';
+
+/**
+ * FAQ на нативных <details>.
+ *
+ * Ни одной строки JS: браузер сам обрабатывает раскрытие, клавиатуру
+ * и скринридер. Раньше такие блоки писали на div+aria-expanded, но
+ * сейчас это лишний код ради того же результата.
+ */
+
+interface Props {
+  locale: Locale;
+  withHead?: boolean;
+  limit?: number;
+  /** Показывать только вопросы, основанные на публичных условиях клиента. */
+  clientTermsOnly?: boolean;
+  id?: string;
+  surface?: boolean;
+}
+
+const {
+  locale,
+  withHead = true,
+  limit,
+  clientTermsOnly = false,
+  id = 'faq',
+  surface = false,
+} = Astro.props;
+const ui = useUI(locale);
+
+const items = (clientTermsOnly ? allFaq.filter((item) => item.fromClientTerms) : allFaq)
+  .slice(0, limit ?? allFaq.length);
+---
+
+<section class={`section ${surface ? 'section--surface' : ''}`.trim()} id={id}>
+  <div class="container">
+    {withHead && <SectionHead title={ui.home.faqTitle} lead={ui.home.faqLead} />}
+
+    <div class="faq">
+      {items.map((item) => (
+        <details class="faq__item">
+          <summary class="faq__question">{item.question[locale]}</summary>
+          <div class="faq__answer">{item.answer[locale]}</div>
+        </details>
+      ))}
+    </div>
+  </div>
+</section>

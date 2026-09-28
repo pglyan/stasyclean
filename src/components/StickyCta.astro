@@ -1,0 +1,34 @@
+---
+import type { Locale } from '../i18n/config';
+import { href } from '../i18n/routes';
+import { useUI } from '../i18n/ui';
+import { site } from '../data/site';
+
+import Icon from './ui/Icon.astro';
+
+/**
+ * Закреплённая панель действий для телефона.
+ *
+ * На мобильных это самый важный конверсионный элемент: пользователь
+ * не должен искать кнопку в футере. Скрывается на широких экранах
+ * и при `data-sticky="off"` из демо-панели.
+ */
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const ui = useUI(locale);
+---
+
+<div class="sticky-cta">
+  <a class="btn" href={site.telegramUrl} target="_blank" rel="noopener noreferrer">
+    <Icon name="telegram" class="btn__icon" />
+    {ui.cta.book}
+  </a>
+  <a class="btn btn--ghost" href={`${href(locale, 'prices')}#calculator`}>
+    <Icon name="calculator" class="btn__icon" />
+    {ui.cta.calculate}
+  </a>
+</div>

@@ -1,0 +1,166 @@
+/**
+ * Слой разметки: контейнер, секции, сетки.
+ * Никаких утилитарных классов «на каждый чих» — только те примитивы,
+ * которые действительно повторяются в блоках.
+ */
+
+.container {
+  inline-size: 100%;
+  max-inline-size: var(--container);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.section {
+  padding-block: var(--section-y);
+}
+
+/* Секция без верхнего отступа — когда предыдущая уже дала воздух */
+.section--flush-top {
+  padding-block-start: 0;
+}
+
+/* Визуально отделённая секция (например, прайс на сером фоне) */
+.section--surface {
+  background: var(--surface);
+}
+
+.section--surface-2 {
+  background: var(--surface-2);
+}
+
+.section--dark {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+.section--dark h2,
+.section--dark h3,
+.section--dark h4 {
+  color: var(--bg);
+}
+
+/* ---------- Заголовок секции ---------- */
+
+.section-head {
+  max-inline-size: var(--measure);
+  margin-block-end: var(--s10);
+}
+
+.section-head--center {
+  margin-inline: auto;
+  text-align: center;
+}
+
+.section-head__lead {
+  margin-block-start: var(--s3);
+  font-size: var(--fs-lg);
+  color: var(--ink-soft);
+}
+
+/* Надзаголовок: маленькая метка над h2 */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  margin-block-end: var(--s3);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--brand-strong);
+}
+
+.eyebrow::before {
+  content: '';
+  inline-size: 1.5rem;
+  block-size: 2px;
+  background: currentColor;
+  border-radius: var(--r-pill);
+}
+
+/* ---------- Сетки ---------- */
+
+.grid {
+  display: grid;
+  gap: var(--s6);
+}
+
+.grid--2 {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+}
+
+.grid--3 {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+}
+
+.grid--4 {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+}
+
+/* Сайдбар + основное содержимое: типично для страниц услуг */
+.split {
+  display: grid;
+  gap: clamp(var(--s6), 4vw, var(--s12));
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 62rem) {
+  .split {
+    grid-template-columns: minmax(0, 1.6fr) minmax(18rem, 1fr);
+    align-items: start;
+  }
+}
+
+/* ---------- Вертикальный ритм текста ---------- */
+
+.prose > * + * {
+  margin-block-start: var(--s4);
+}
+
+.prose {
+  max-inline-size: var(--measure);
+}
+
+.measure {
+  max-inline-size: var(--measure);
+}
+
+.lead {
+  font-size: var(--fs-lg);
+  color: var(--ink-soft);
+}
+
+.muted {
+  color: var(--ink-soft);
+}
+
+.small {
+  font-size: var(--fs-sm);
+}
+
+/* ---------- Пометка о предварительных данных ---------- */
+/* Используется в демо-стенде там, где контент или цена не подтверждены клиентом. */
+
+.provisional {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  padding: 0.15em 0.6em;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--brand-strong);
+  background: var(--brand-soft);
+  border-radius: var(--r-pill);
+  white-space: nowrap;
+}
+
+/* Лента-предупреждение в начале демо-страницы */
+.demo-ribbon {
+  padding-block: var(--s2);
+  background: var(--surface-2);
+  border-block-end: var(--bw) solid var(--line);
+  font-size: var(--fs-xs);
+  color: var(--ink-soft);
+  text-align: center;
+}

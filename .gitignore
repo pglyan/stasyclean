@@ -1,0 +1,33 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+dist-demo/
+
+# OG-картинки генерируются на сборке (scripts/make-og.mjs)
+public/og/
+
+# generated types
+.astro/
+
+# environment
+.env
+.env.local
+.env.*.local
+# .env.demo — не секрет: в нём только PUBLIC_DEMO=on для демо-сборки,
+# и он нужен CI, поэтому коммитится.
+!.env.demo
+!.env.example
+
+# tooling
+*.log
+npm-debug.log*
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# temp
+*.tmp
+.cache/

@@ -1,0 +1,195 @@
+---
+import { LOCALE_META, DEFAULT_LOCALE, type Locale } from '../i18n/config';
+import { asset, href, localeSwitchLinks, type PageKey } from '../i18n/routes';
+import { getPageMeta } from '../i18n/pagemeta';
+import { useUI } from '../i18n/ui';
+import { site } from '../data/site';
+
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import StickyCta from '../components/StickyCta.astro';
+import CookieNotice from '../components/CookieNotice.astro';
+import JsonLd from '../components/seo/JsonLd.astro';
+
+/**
+ * Шрифты подключаем сами: файлы лежат в репозитории, правила @font-face —
+ * в fonts.css. Сборка не ходит в сеть, а браузер скачивает только те
+ * субсеты, символы которых реально есть на странице.
+ */
+import '../styles/fonts.css';
+import '../styles/tokens.css';
+import '../styles/themes.css';
+import '../styles/base.css';
+import '../styles/layout.css';
+import '../styles/components-core.css';
+import '../styles/components-chrome.css';
+import '../styles/components-footer.css';
+import '../styles/components-blocks-a.css';
+import '../styles/components-blocks-b.css';
+import '../styles/components-blocks-c.css';
+import '../styles/components-blocks-d.css';
+import '../styles/components-blocks-e.css';
+
+/* ?url отдаёт готовый адрес ассета: Vite сам добавит base демо-сборки
+   в подпапке /stasyclean/ и хеш содержимого для вечного кеша. */
+import manropeLatin from '../assets/fonts/manrope-latin.woff2?url';
+import manropeLatinExt from '../assets/fonts/manrope-latin-ext.woff2?url';
+import manropeCyrillic from '../assets/fonts/manrope-cyrillic.woff2?url';
+
+interface Props {
+  locale: Locale;
+  routeKey: PageKey;
+  /** Без title берётся общий заголовок бренда. */
+  title?: string;
+  description?: string;
+  /** true для служебных страниц (404, демо-библиотека блоков). */
+  noindex?: boolean;
+  /** Основная сущность страницы для JSON-LD. */
+  jsonLd?: Record<string, unknown>[];
+}
+
+const {
+  locale,
+  routeKey,
+  title,
+  description,
+  noindex = false,
+  jsonLd = [],
+} = Astro.props;
+
+const meta = LOCALE_META[locale];
+const ui = useUI(locale);
+
+/**
+ * Заголовок и описание страницы.
+ *
+ * Раньше все внутренние страницы отдавали общий заголовок бренда — это
+ * и плохой SEO-сигнал, и непонятная выдача в поиске. Теперь заголовок
+ * собирается под конкретную страницу (см. src/i18n/pagemeta.ts),
+ * а вызвавшая страница может передать своё значение напрямую.
+ */
+const pageMeta = getPageMeta(locale, routeKey);
+const pageTitle = title ?? pageMeta.title;
+const pageDescription = description ?? pageMeta.description;
+
+/**
+ * Абсолютные адреса для canonical и hreflang.
+ *
+ * Берём origin из конфига (import.meta.env.SITE) — это надёжнее, чем
+ * Astro.site, и одинаково работает на пререндере и в dev-режиме.
+ * href() уже учитывает base, поэтому демо-сборка на GitHub Pages
+ * отдаёт корректные адреса внутри подпапки /stasyclean/.
+ */
+const origin = import.meta.env.SITE || `https://${site.domain}`;
+const absolute = (value: string) => new URL(value, origin).href;
+const canonical = absolute(href(locale, routeKey));
+
+const alternates = localeSwitchLinks(locale, routeKey).map((link) => ({
+  hreflang: LOCALE_META[link.locale].htmlLang,
+  href: absolute(link.href),
+}));
+
+/**
+ * Предзагружаем РОВНО ОДИН файл — субсет шрифта заголовков, соответствующий
+ * алфавиту локали. Заголовок почти всегда является элементом LCP, поэтому
+ * один предзагруженный файл ускоряет первую отрисовку и не конкурирует
+ * за канал с остальными ресурсами. Остальные субсеты подтянутся сами,
+ * когда браузер встретит их символы.
+ */
+const headingFontByLocale: Record<Locale, string> = {
+  sr: manropeLatinExt, // č ć ž š đ живут в расширенной латинице
+  en: manropeLatin,
+  ru: manropeCyrillic,
+};
+const preloadFont = headingFontByLocale[locale];
+
+/**
+ * Пока в проекте нет фотографий, вместо og:image используется
+ * сгенерированная на сборке картинка (scripts/make-og.mjs).
+ *
+ * Путь собираем через asset(): склейка `${import.meta.env.BASE_URL}og/...`
+ * в демо-сборке давала '/stasycleanog/sr.png' — base приходит без слэша.
+ */
+const ogImage = absolute(asset(`og/${locale}.png`));
+
+const demoMode = import.meta.env.PUBLIC_DEMO === 'on';
+
+const DemoPanel = demoMode
+  ? (await import('../components/demo/DemoPanel.astro')).default
+  : null;
+---
+
+<!doctype html>
+<html
+  lang={meta.htmlLang}
+  data-theme="mint"
+  data-font="display"
+  data-density="normal"
+  data-card="outline"
+  data-button="solid"
+  data-container="normal"
+  data-hero="split"
+  data-sticky="on"
+>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>{pageTitle}</title>
+    <meta name="description" content={pageDescription} />
+    <link rel="canonical" href={canonical} />
+
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+
+    {/* Языковые альтернативы. x-default ведёт на язык по умолчанию. */}
+    {alternates.map((alternate) => (
+      <link rel="alternate" hreflang={alternate.hreflang} href={alternate.href} />
+    ))}
+    <link rel="alternate" hreflang="x-default" href={absolute(href(DEFAULT_LOCALE, routeKey))} />
+
+    {/* Open Graph */}
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.brand} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={pageDescription} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content={meta.ogLocale} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    {localeSwitchLinks(locale, routeKey)
+      .filter((link) => !link.isCurrent)
+      .map((link) => (
+        <meta property="og:locale:alternate" content={LOCALE_META[link.locale].ogLocale} />
+      ))}
+
+    <meta name="twitter:card" content="summary_large_image" />
+
+    {/* Иконки и манифест */}
+    <link rel="icon" href={asset('favicon.svg')} type="image/svg+xml" />
+    <link rel="apple-touch-icon" href={asset('favicon.svg')} />
+    <link rel="manifest" href={asset('manifest.webmanifest')} />
+    <meta name="theme-color" content="#12a87b" />
+
+    {/* Один предзагруженный файл шрифта: субсет заголовков для этой локали */}
+    <link rel="preload" href={preloadFont} as="font" type="font/woff2" crossorigin />
+
+    <JsonLd locale={locale} routeKey={routeKey} extra={jsonLd} />
+  </head>
+
+  <body>
+    <a class="skip-link" href="#main">{ui.cta.menu === 'Menu' ? 'Skip to content' : 'К содержанию'}</a>
+
+    <Header locale={locale} routeKey={routeKey} />
+
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+
+    <Footer locale={locale} />
+    <StickyCta locale={locale} />
+    <CookieNotice locale={locale} />
+
+    {DemoPanel && <DemoPanel locale={locale} />}
+  </body>
+</html>

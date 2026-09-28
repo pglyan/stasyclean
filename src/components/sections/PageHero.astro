@@ -1,0 +1,61 @@
+---
+import type { Locale } from '../../i18n/config';
+import { href, type PageKey } from '../../i18n/routes';
+import { useUI } from '../../i18n/ui';
+
+import Photo from '../ui/Photo.astro';
+
+/**
+ * Компактный заголовок внутренней страницы.
+ *
+ * На главной роль первого экрана выполняет Hero, а внутренним страницам
+ * нужен короткий «шапка + хлебные крошки»: пользователь должен понимать,
+ * где он, и уметь вернуться. Крошки дублируются в JSON-LD (BreadcrumbList),
+ * поэтому поисковик видит ту же иерархию.
+ */
+
+interface Props {
+  locale: Locale;
+  routeKey: PageKey;
+  title: string;
+  lead?: string;
+  /** Родительская страница для крошек. */
+  parentKey?: PageKey;
+  /** Подпись для фото-слота; без неё блок фото не выводится. */
+  photoHint?: string;
+}
+
+const { locale, title, lead, parentKey, photoHint } = Astro.props;
+const ui = useUI(locale);
+---
+
+<section class="hero" style="padding-block:var(--s12) var(--s10)">
+  <div class="container hero__inner">
+    <div>
+      <nav aria-label="breadcrumb" style="margin-block-end:var(--s4)">
+        <ol
+          style="display:flex;flex-wrap:wrap;gap:var(--s2);list-style:none;padding:0;margin:0;font-size:var(--fs-xs);color:var(--ink-soft)"
+        >
+          <li><a href={href(locale, 'home')}>{ui.nav.home}</a></li>
+          {parentKey && (
+            <>
+              <li aria-hidden="true">/</li>
+              <li><a href={href(locale, parentKey)}>{ui.nav.services}</a></li>
+            </>
+          )}
+          <li aria-hidden="true">/</li>
+          <li aria-current="page">{title}</li>
+        </ol>
+      </nav>
+
+      <h1 class="hero__title" style="font-size:var(--fs-h1)">{title}</h1>
+      {lead && <p class="hero__lead">{lead}</p>}
+    </div>
+
+    {photoHint && (
+      <div class="hero__media">
+        <Photo alt={title} hint={photoHint} ratio="4 / 3" priority />
+      </div>
+    )}
+  </div>
+</section>

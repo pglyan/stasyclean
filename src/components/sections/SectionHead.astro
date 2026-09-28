@@ -1,0 +1,29 @@
+---
+/**
+ * Заголовок секции: надзаголовок, h2 и лид.
+ * Один компонент на все блоки — поэтому ритм заголовков одинаков
+ * по всему сайту и меняется в одном месте.
+ */
+
+interface Props {
+  /** Надзаголовок моноширинным капслоком. Необязателен. */
+  eyebrow?: string;
+  title: string;
+  lead?: string;
+  /** По центру — для коротких секций вроде «Как мы работаем». */
+  center?: boolean;
+  /** Уровень заголовка: на странице услуги это h2, в подблоках h3. */
+  level?: 2 | 3;
+  id?: string;
+}
+
+const { eyebrow, title, lead, center = false, level = 2, id } = Astro.props;
+const Tag = level === 2 ? 'h2' : 'h3';
+---
+
+<div class={`section-head ${center ? 'section-head--center' : ''}`.trim()}>
+  {eyebrow && <p class="eyebrow">{eyebrow}</p>}
+  <Tag id={id}>{title}</Tag>
+  {lead && <p class="section-head__lead">{lead}</p>}
+  <slot />
+</div>

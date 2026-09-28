@@ -1,0 +1,261 @@
+---
+import type { Locale } from '../../i18n/config';
+import { href } from '../../i18n/routes';
+import { useUI } from '../../i18n/ui';
+import { site } from '../../data/site';
+
+import Icon from '../ui/Icon.astro';
+import SectionHead from './SectionHead.astro';
+
+/**
+ * Форма заявки.
+ *
+ * Бэкенда нет и не планируется: сайт статический, отдаётся nginx.
+ * Поэтому заявка не «отправляется», а собирается в готовое сообщение
+ * и открывается в Telegram — заказчик жмёт «Отправить» уже в мессенджере.
+ * Так работает и на GitHub Pages, и не требует ни почтового сервиса,
+ * ни базы данных, ни согласия на обработку данных третьей стороной.
+ *
+ * Форма валидируется на клиенте и остаётся рабочей без JS: тогда поля
+ * просто отправляются в Telegram как есть через ссылку-фолбэк.
+ */
+
+interface Props {
+  locale: Locale;
+  withHead?: boolean;
+  surface?: boolean;
+  id?: string;
+}
+
+const { locale, withHead = true, surface = false, id = 'booking' } = Astro.props;
+const ui = useUI(locale);
+
+const times = [ui.form.timeMorning, ui.form.timeAfternoon, ui.form.timeEvening];
+
+const whatsappUrl = site.phone
+  ? `https://wa.me/${site.phone.replace(/[^0-9]/g, '')}`
+  : null;
+---
+
+<section class={`section ${surface ? 'section--surface' : ''}`.trim()} id={id}>
+  <div class="container">
+    {withHead && <SectionHead title={ui.home.formTitle} lead={ui.home.formLead} />}
+
+    <form
+      class="form"
+      data-booking
+      novalidate
+      data-tg={site.telegramUrl}
+      data-labels={JSON.stringify({
+        name: ui.form.name,
+        contact: ui.form.contact,
+        district: ui.form.address,
+        date: ui.form.date,
+        time: ui.form.time,
+        comment: ui.form.comment,
+      })}
+      data-errors={JSON.stringify({
+        name: ui.form.errorName,
+        contact: ui.form.errorContact,
+        consent: ui.form.errorConsent,
+      })}
+    >
+      <div class="form__row">
+        <div class="form__field">
+          <label class="form__label" for="booking-name">{ui.form.name}</label>
+          <input
+            class="form__input"
+            id="booking-name"
+            name="name"
+            type="text"
+            autocomplete="name"
+            required
+            data-field="name"
+          />
+          <p class="form__error" data-error="name" hidden></p>
+        </div>
+
+        <div class="form__field">
+          <label class="form__label" for="booking-contact">{ui.form.contact}</label>
+          <input
+            class="form__input"
+            id="booking-contact"
+            name="contact"
+            type="text"
+            autocomplete="tel"
+            required
+            data-field="contact"
+          />
+          <p class="field__hint">{ui.form.contactHint}</p>
+          <p class="form__error" data-error="contact" hidden></p>
+        </div>
+      </div>
+
+      <div class="form__row">
+        <div class="form__field">
+          <label class="form__label" for="booking-district">{ui.form.address}</label>
+          <input
+            class="form__input"
+            id="booking-district"
+            name="district"
+            type="text"
+            placeholder={ui.form.addressPlaceholder}
+            data-field="district"
+          />
+        </div>
+
+        <div class="form__field">
+          <label class="form__label" for="booking-date">{ui.form.date}</label>
+          <input class="form__input" id="booking-date" name="date" type="date" data-field="date" />
+        </div>
+
+        <div class="form__field">
+          <label class="form__label" for="booking-time">{ui.form.time}</label>
+          <select class="form__select" id="booking-time" name="time" data-field="time">
+            {times.map((slot) => <option value={slot}>{slot}</option>)}
+          </select>
+        </div>
+      </div>
+
+      <div class="form__field">
+        <label class="form__label" for="booking-comment">{ui.form.comment}</label>
+        <textarea
+          class="form__textarea"
+          id="booking-comment"
+          name="comment"
+          placeholder={ui.form.commentPlaceholder}
+          data-field="comment"
+        ></textarea>
+      </div>
+
+      <label class="form__consent">
+        <input type="checkbox" name="consent" required data-field="consent" />
+        <span>
+          {ui.form.consent} — <a href={href(locale, 'privacy')}>{ui.footer.privacy}</a>
+        </span>
+      </label>
+      <p class="form__error" data-error="consent" hidden></p>
+
+      <div class="form__actions">
+        <button class="btn btn--lg btn--block" type="submit">
+          <Icon name="telegram" class="btn__icon" />
+          {ui.form.submit}
+        </button>
+
+        <p class="form__divider">{ui.form.orDirect}</p>
+
+        <div class="form__alternatives">
+          {whatsappUrl && (
+            <a class="btn btn--ghost" href={whatsappUrl} target="_blank" rel="noopener noreferrer">
+              <Icon name="whatsapp" class="btn__icon" />
+              {ui.cta.whatsapp}
+            </a>
+          )}
+          <a class="btn btn--ghost" href={site.telegramUrl} target="_blank" rel="noopener noreferrer">
+            <Icon name="phone" class="btn__icon" />
+            @{site.telegram}
+          </a>
+        </div>
+      </div>
+
+      <p class="form__success" data-success hidden>
+        <strong>{ui.form.successTitle}.</strong> {ui.form.successText}
+      </p>
+    </form>
+  </div>
+</section>
+
+<script>
+  /**
+   * Валидация заявки и передача её в Telegram.
+   *
+   * Заявка не уходит на сервер: сайт статический. Мы собираем готовое
+   * сообщение и открываем чат с менеджером — так заявка доходит даже
+   * с GitHub Pages, где серверной логики нет вообще.
+   */
+  const formElement = document.querySelector<HTMLFormElement>('[data-booking]');
+
+  /*
+   * Тело вынесено в функцию с параметром-элементом: внутри вложенных функций
+   * TypeScript теряет сужение типа и считает `form` «возможно null».
+   * У параметра тип уже не nullable, поведение не меняется.
+   */
+  if (formElement) initBookingForm(formElement);
+
+  function initBookingForm(form: HTMLFormElement) {
+    const labels = JSON.parse(form.dataset.labels ?? '{}') as Record<string, string>;
+    const errors = JSON.parse(form.dataset.errors ?? '{}') as Record<string, string>;
+
+    const field = <T extends HTMLElement>(name: string) =>
+      form.querySelector<T>(`[data-field="${name}"]`);
+
+    function showError(name: string, message?: string) {
+      const box = form.querySelector<HTMLElement>(`[data-error="${name}"]`);
+      const input = field<HTMLInputElement>(name);
+      if (!box) return;
+
+      if (message) {
+        box.textContent = message;
+        box.hidden = false;
+        input?.setAttribute('aria-invalid', 'true');
+      } else {
+        box.hidden = true;
+        input?.removeAttribute('aria-invalid');
+      }
+    }
+
+    // Ошибка снимается, как только пользователь начал исправлять поле
+    form.querySelectorAll<HTMLElement>('[data-field]').forEach((input) => {
+      input.addEventListener('input', () => showError(input.dataset.field ?? ''));
+      input.addEventListener('change', () => showError(input.dataset.field ?? ''));
+    });
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+
+      const values = {
+        name: field<HTMLInputElement>('name')?.value.trim() ?? '',
+        contact: field<HTMLInputElement>('contact')?.value.trim() ?? '',
+        district: field<HTMLInputElement>('district')?.value.trim() ?? '',
+        date: field<HTMLInputElement>('date')?.value ?? '',
+        time: field<HTMLSelectElement>('time')?.value ?? '',
+        comment: field<HTMLTextAreaElement>('comment')?.value.trim() ?? '',
+        consent: field<HTMLInputElement>('consent')?.checked ?? false,
+      };
+
+      let firstInvalid: HTMLElement | null = null;
+
+      const check = (condition: boolean, name: string, message: string) => {
+        if (condition) return;
+        showError(name, message);
+        const input = field<HTMLElement>(name);
+        if (!firstInvalid && input) firstInvalid = input;
+      };
+
+      check(Boolean(values.name), 'name', errors.name ?? '');
+      check(Boolean(values.contact), 'contact', errors.contact ?? '');
+      check(values.consent, 'consent', errors.consent ?? '');
+
+      if (firstInvalid) {
+        (firstInvalid as HTMLElement).focus();
+        return;
+      }
+
+      // Собираем сообщение: только заполненные строки, без пустых подписей
+      const lines = [
+        `${labels.name}: ${values.name}`,
+        `${labels.contact}: ${values.contact}`,
+        values.district && `${labels.district}: ${values.district}`,
+        values.date && `${labels.date}: ${values.date}`,
+        `${labels.time}: ${values.time}`,
+        values.comment && `${labels.comment}: ${values.comment}`,
+      ].filter(Boolean) as string[];
+
+      const url = `${form.dataset.tg}?text=${encodeURIComponent(lines.join('\n'))}`;
+      window.open(url, '_blank', 'noopener');
+
+      const success = form.querySelector<HTMLElement>('[data-success]');
+      if (success) success.hidden = false;
+    });
+  }
+</script>

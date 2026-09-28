@@ -1,0 +1,357 @@
+---
+import { AREA_TIERS, areaOver, areaUnit, areaUpTo, hourlyRate, plans } from '../../data/prices';
+import { extraServices } from '../../data/extras';
+import { services } from '../../data/services';
+import { LOCALE_META, formatNumber, type Locale } from '../../i18n/config';
+import { useUI } from '../../i18n/ui';
+import { site } from '../../data/site';
+
+import Icon from '../ui/Icon.astro';
+import SectionHead from './SectionHead.astro';
+
+/**
+ * Калькулятор стоимости.
+ *
+ * Считает ТОЛЬКО по опубликованным ценам клиента, поэтому ничего не выдумывает:
+ * тарифы по площади берутся из prices.ts и встраиваются в data-атрибуты,
+ * Смарт Клининг считается как ставка × часы, доп. услуги с фиксированной
+ * ценой прибавляются к сумме.
+ *
+ * Позиции с расчётом за м² или за единицу (обеспыливание стен, уборка внутри
+ * шкафов) в калькулятор сознательно не попадают: без количества они дали бы
+ * неверную цифру. Итог всегда подписан как предварительный — ровно так же,
+ * как в публичном прайсе клиента.
+ */
+
+interface Props {
+  locale: Locale;
+  withHead?: boolean;
+  surface?: boolean;
+  id?: string;
+}
+
+const { locale, withHead = true, surface = true, id = 'calculator' } = Astro.props;
+const ui = useUI(locale);
+
+/** Опции формата уборки: для каждой услуги — её тарифы. */
+const serviceOptions = services.map((service) => ({
+  service,
+  plans: plans.filter((plan) => plan.serviceKey === service.key),
+  hourly: service.priceUnit === 'hour' ? hourlyRate.price : null,
+}));
+
+/** Доп. услуги с фиксированной или «от»-ценой — считаются без уточнений. */
+const calcExtras = extraServices.filter((line) => line.unit === 'flat');
+---
+
+<section class={`section ${surface ? 'section--surface' : ''}`.trim()} id={id}>
+  <div class="container">
+    {withHead && <SectionHead title={ui.home.calculatorTitle} lead={ui.home.calculatorLead} />}
+
+    <div
+      class="calc"
+      data-calculator
+      data-locale={LOCALE_META[locale].intl}
+      data-currency={LOCALE_META[locale].currencyLabel}
+      data-tg={site.telegramUrl}
+      data-msg-service={ui.calc.planLabel}
+      data-msg-area={ui.calc.areaLabel}
+      data-msg-extras={ui.calc.extrasLabel}
+      data-msg-total={ui.price.total}
+      data-msg-none={ui.calc.noExtras}
+      data-msg-over={ui.calc.overLimit}
+    >
+      <div class="calc__controls">
+        <div class="field">
+          <span class="field__label">{ui.calc.planLabel}</span>
+          <div class="chips">
+            {serviceOptions.map((option, index) => (
+              <button
+                class="chip"
+                type="button"
+                data-service={option.service.key}
+                data-plans={JSON.stringify(
+                  option.plans.map((plan) => [plan.id, plan.name[locale], plan.tiers]),
+                )}
+                data-hourly={option.hourly ?? ''}
+                aria-pressed={index === 0 ? 'true' : 'false'}
+              >
+                {option.service.name[locale]}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div class="field" data-plans-field hidden>
+          <span class="field__label">{ui.price.included}</span>
+          <div class="chips" data-plans-list></div>
+        </div>
+
+        <div class="field" data-hours-field hidden>
+          <span class="field__label">{ui.calc.hoursLabel}</span>
+          <input
+            class="range"
+            type="range"
+            min={hourlyRate.minimumHours}
+            max={hourlyRate.minimumHours + 7}
+            step="1"
+            value={hourlyRate.minimumHours}
+            data-hours
+            aria-label={ui.calc.hoursLabel}
+          />
+          <span class="field__hint" data-hours-output></span>
+        </div>
+
+        <div class="field" data-area-field>
+          <span class="field__label">{ui.calc.areaLabel}</span>
+          <div class="chips">
+            {AREA_TIERS.map((tier, index) => (
+              <button
+                class="chip"
+                type="button"
+                data-area={index}
+                aria-pressed={index === 0 ? 'true' : 'false'}
+              >
+                {areaUpTo[locale]} {formatNumber(tier, locale)} {areaUnit[locale]}
+              </button>
+            ))}
+            <button class="chip" type="button" data-area="over" aria-pressed="false">
+              {areaOver[locale]} 150 {areaUnit[locale]}
+            </button>
+          </div>
+        </div>
+
+        <div class="field">
+          <span class="field__label">{ui.calc.extrasLabel}</span>
+          <div class="calc__extras">
+            {calcExtras.map((line) => (
+              <label class="check">
+                <input
+                  type="checkbox"
+                  data-extra
+                  data-price={line.price ?? line.priceFrom ?? 0}
+                  data-name={line.name[locale]}
+                />
+                <span>
+                  <span class="check__name">{line.name[locale]}</span>
+                  <span class="check__price">
+                    + {line.price !== undefined ? '' : `${ui.price.from} `}
+                    {formatNumber(line.price ?? line.priceFrom ?? 0, locale)}
+                    {' '}
+                    {LOCALE_META[locale].currencyLabel}
+                  </span>
+                </span>
+              </label>
+            ))}
+          </div>
+          <p class="field__hint">{ui.calc.overLimit}</p>
+        </div>
+      </div>
+
+      <div class="calc__result">
+        <span class="calc__result-label">{ui.price.total}</span>
+        <strong class="calc__total" data-total>—</strong>
+        <ul class="calc__lines" data-lines></ul>
+        <p class="calc__note">{ui.price.totalNote}</p>
+        <a
+          class="btn btn--block"
+          href={site.telegramUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          data-tg-link
+        >
+          <Icon name="telegram" class="btn__icon" />
+          {ui.cta.telegram}
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  /**
+   * Калькулятор: пересчёт на клиенте, без запросов к серверу.
+   *
+   * Все цены уже лежат в data-атрибутах (посчитаны при сборке), поэтому
+   * скрипту не нужны ни справочники, ни словари — только арифметика
+   * и Intl.NumberFormat. Ссылка на Telegram обновляется вместе с выбором,
+   * так что менеджер получает заявку с готовым составом работ.
+   */
+  const rootElement = document.querySelector<HTMLElement>('[data-calculator]');
+
+  /*
+   * Тело вынесено в функцию с параметром-элементом, а не в `if (root) { ... }`:
+   * внутри вложенных функций TypeScript теряет сужение типа и объявляет
+   * `root` «возможно null». У параметра тип уже не nullable — `npm run check`
+   * проходит без ошибок, а поведение не меняется.
+   */
+  if (rootElement) initCalculator(rootElement);
+
+  function initCalculator(root: HTMLElement) {
+    const currency = root.dataset.currency ?? 'RSD';
+    const money = new Intl.NumberFormat(root.dataset.locale ?? 'ru-RU', {
+      maximumFractionDigits: 0,
+    });
+
+    const serviceChips = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-service]'));
+    const areaChips = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-area]'));
+    const results = root.querySelector<HTMLElement>('[data-total]');
+    const lines = root.querySelector<HTMLElement>('[data-lines]');
+    const plansField = root.querySelector<HTMLElement>('[data-plans-field]');
+    const plansList = root.querySelector<HTMLElement>('[data-plans-list]');
+    const hoursField = root.querySelector<HTMLElement>('[data-hours-field]');
+    const hoursInput = root.querySelector<HTMLInputElement>('[data-hours]');
+    const hoursOutput = root.querySelector<HTMLElement>('[data-hours-output]');
+    const areaField = root.querySelector<HTMLElement>('[data-area-field]');
+    const tgLink = root.querySelector<HTMLAnchorElement>('[data-tg-link]');
+
+    type PlanRow = [string, string, number[]];
+
+    let plan = { name: '', tiers: [] as number[] };
+    let areaIndex: number | 'over' = 0;
+
+    const activeChip = (chips: HTMLButtonElement[]) =>
+      chips.find((chip) => chip.getAttribute('aria-pressed') === 'true');
+
+    const setPressed = (chips: HTMLButtonElement[], chosen: HTMLButtonElement | null) => {
+      chips.forEach((chip) => chip.setAttribute('aria-pressed', String(chip === chosen)));
+    };
+
+    function readPlans(chip?: HTMLButtonElement): PlanRow[] {
+      if (!chip?.dataset.plans) return [];
+      try {
+        return JSON.parse(chip.dataset.plans) as PlanRow[];
+      } catch {
+        return [];
+      }
+    }
+
+    function selectedExtras() {
+      return Array.from(root.querySelectorAll<HTMLInputElement>('[data-extra]:checked')).map(
+        (input) => ({ name: input.dataset.name ?? '', price: Number(input.dataset.price ?? 0) }),
+      );
+    }
+
+    /** Кнопки вариантов строим на клиенте: заранее неизвестно, у какой услуги их две. */
+    function renderPlans(rows: PlanRow[]) {
+      if (!plansList) return;
+
+      plansList.replaceChildren();
+
+      if (rows.length <= 1) {
+        plansField?.setAttribute('hidden', '');
+        plan = { name: rows[0]?.[1] ?? '', tiers: rows[0]?.[2] ?? [] };
+        return;
+      }
+
+      plansField?.removeAttribute('hidden');
+      plan = { name: rows[0][1], tiers: rows[0][2] };
+
+      rows.forEach(([, name, tiers], index) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'chip';
+        button.textContent = name;
+        button.setAttribute('aria-pressed', String(index === 0));
+        button.addEventListener('click', () => {
+          setPressed(Array.from(plansList.querySelectorAll<HTMLButtonElement>('.chip')), button);
+          plan = { name, tiers };
+          update();
+        });
+        plansList.appendChild(button);
+      });
+    }
+
+    function update() {
+      const activeService = activeChip(serviceChips);
+      const hourly = Number(activeService?.dataset.hourly ?? 0) || 0;
+      const extras = selectedExtras();
+      const rows: string[] = [];
+      let total = 0;
+
+      if (areaIndex === 'over' && !hourly) {
+        if (results) results.textContent = '—';
+        lines?.replaceChildren();
+        const note = document.createElement('li');
+        note.textContent = root.dataset.msgOver ?? '';
+        lines?.appendChild(note);
+        return;
+      }
+
+      if (hourly) {
+        const hours = Number(hoursInput?.value ?? 1);
+        total = hourly * hours;
+        rows.push(`${hours} × ${money.format(hourly)} ${currency}`);
+        if (hoursOutput) hoursOutput.textContent = `${hours} × ${money.format(hourly)} ${currency}`;
+      } else if (plan.tiers.length) {
+        total = plan.tiers[areaIndex as number] ?? 0;
+        rows.push(`${plan.name} — ${money.format(total)} ${currency}`);
+      }
+
+      for (const extra of extras) {
+        rows.push(`${extra.name} — +${money.format(extra.price)} ${currency}`);
+        total += extra.price;
+      }
+
+      if (results) results.textContent = `${money.format(total)} ${currency}`;
+
+      if (lines) {
+        lines.replaceChildren();
+        for (const row of rows) {
+          const item = document.createElement('li');
+          item.textContent = row;
+          lines.appendChild(item);
+        }
+      }
+
+      // Готовое сообщение в Telegram: менеджер сразу видит состав заявки
+      if (tgLink) {
+        const areaLabel =
+          areaIndex === 'over'
+            ? root.dataset.msgOver ?? ''
+            : areaChips[areaIndex as number]?.textContent?.trim() ?? '';
+
+        const parts = [
+          `${root.dataset.msgService}: ${activeService?.textContent?.trim() ?? ''}${hourly ? '' : ` / ${plan.name}`}`,
+          `${root.dataset.msgArea}: ${areaLabel}`,
+          `${root.dataset.msgExtras}: ${
+            extras.length ? extras.map((extra) => extra.name).join(', ') : root.dataset.msgNone ?? ''
+          }`,
+          `${root.dataset.msgTotal}: ${money.format(total)} ${currency}`,
+        ];
+
+        tgLink.href = `${root.dataset.tg}?text=${encodeURIComponent(parts.join('\n'))}`;
+      }
+    }
+
+    function selectService(chip: HTMLButtonElement) {
+      setPressed(serviceChips, chip);
+      const isHourly = Boolean(chip.dataset.hourly);
+
+      hoursField?.toggleAttribute('hidden', !isHourly);
+      areaField?.toggleAttribute('hidden', isHourly);
+      renderPlans(readPlans(chip));
+      update();
+    }
+
+    serviceChips.forEach((chip) => chip.addEventListener('click', () => selectService(chip)));
+
+    areaChips.forEach((chip) => {
+      chip.addEventListener('click', () => {
+        setPressed(areaChips, chip);
+        const value = chip.dataset.area;
+        areaIndex = value === 'over' ? 'over' : Number(value);
+        update();
+      });
+    });
+
+    root.querySelectorAll<HTMLInputElement>('[data-extra]').forEach((input) => {
+      input.addEventListener('change', update);
+    });
+
+    hoursInput?.addEventListener('input', update);
+
+    // Стартовое состояние: первая услуга, её первый тариф, первая площадь
+    if (serviceChips[0]) selectService(serviceChips[0]);
+  }
+</script>

@@ -1,0 +1,22 @@
+---
+import Base from '../layouts/Base.astro';
+import PageBody from '../components/PageBody.astro';
+import { DEFAULT_LOCALE } from '../i18n/config';
+
+/**
+ * Главная страница языка по умолчанию — сербский (латиница).
+ *
+ * Живёт в корне домена: так локальный поиск получает самый сильный сигнал,
+ * и ровно так устроены сайты основных конкурентов (uborka.rs, cleanhouse.rs,
+ * shinecleaning.rs) — сербский в корне, остальные языки в подпапках.
+ *
+ * Эта же страница служит витриной демо-стенда: она собирает все блоки
+ * из src/data/pages.ts, чтобы заказчик оценивал стиль целиком.
+ */
+const locale = DEFAULT_LOCALE;
+const routeKey = 'home' as const;
+---
+
+<Base locale={locale} routeKey={routeKey}>
+  <PageBody locale={locale} routeKey={routeKey} />
+</Base>

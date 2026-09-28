@@ -1,0 +1,38 @@
+{
+  "name": "stasyclean",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "StasyClean — статический сайт клининговой компании (RU / EN / SR). Демо-стенд + прод-сборка для nginx.",
+  "engines": {
+    "node": ">=22.18.0",
+    "npm": ">=9.6.5"
+  },
+  "scripts": {
+    "dev": "node scripts/make-og.mjs && PUBLIC_DEMO=on astro dev",
+    "build:demo": "node scripts/make-og.mjs && PUBLIC_DEMO=on astro build --mode demo && npm run minify:demo",
+    "build:prod": "node scripts/make-og.mjs && astro build --mode production && npm run minify:prod",
+    "minify:demo": "node scripts/minify-html.mjs dist-demo",
+    "minify:prod": "node scripts/minify-html.mjs dist",
+    "preview:demo": "astro preview --outDir dist-demo",
+    "preview:prod": "astro preview",
+    "check": "astro check",
+    "check:i18n": "node scripts/check-i18n.mjs dist",
+    "check:i18n:demo": "node scripts/check-i18n.mjs dist-demo /stasyclean/",
+    "check:size": "node scripts/check-size.mjs",
+    "make:og": "node scripts/make-og.mjs",
+    "serve:prod": "node scripts/serve.mjs dist"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.7.4",
+    "astro": "^7.3.5",
+    "sharp": "^0.35.4"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@fontsource-variable/lora": "^5.3.0",
+    "@fontsource-variable/manrope": "^5.3.0",
+    "html-minifier-terser": "^7.2.0",
+    "typescript": "^6.0.3"
+  }
+}

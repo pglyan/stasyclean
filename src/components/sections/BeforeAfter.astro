@@ -1,0 +1,86 @@
+---
+import type { Locale } from '../../i18n/config';
+
+import SectionHead from './SectionHead.astro';
+
+/**
+ * Сравнение «до / после».
+ *
+ * Механика: два слоя изображений, верхний обрезается через clip-path по
+ * положению ползунка. Работает на инлайновом <input type="range">, поэтому
+ * доступно с клавиатуры и скринридером без единой строки JS.
+ *
+ * Пока фотографий нет, слои показываются разными заглушками — механизм
+ * и вёрстку видно, а заказчик понимает, какие фото нужны.
+ */
+
+interface Props {
+  locale: Locale;
+  /** Реальные фотографии: появятся — компонент переключится на них. */
+  before?: string;
+  after?: string;
+  /** Подпись сюжета: «Генеральная уборка, Санузел». */
+  caption?: string;
+  withHead?: boolean;
+  id?: string;
+}
+
+const { locale, before, after, caption, withHead = true, id = 'before-after' } = Astro.props;
+
+const labels = {
+  sr: { title: 'Pre i posle', lead: 'Isti ugao snimljen pre i posle čišćenja.', before: 'Pre', after: 'Posle', hint: 'Foto: isto mesto pre i posle uklanjanja' },
+  en: { title: 'Before and after', lead: 'The same spot photographed before and after cleaning.', before: 'Before', after: 'After', hint: 'Photos: the same spot before and after cleaning' },
+  ru: { title: 'До и после', lead: 'Один и тот же угол до и после уборки.', before: 'До', after: 'После', hint: 'Фото: одно и то же место до и после уборки' },
+}[locale];
+---
+
+<section class="section" id={id}>
+  <div class="container">
+    {withHead && <SectionHead title={labels.title} lead={labels.lead} />}
+
+    <div class="ba__grid">
+      <div class="ba" data-before-after>
+        <div class="ba__layer photo photo--before">
+          {before && <img src={before} alt={labels.hint} loading="lazy" decoding="async" />}
+        </div>
+        <div class="ba__layer ba__after photo photo--after">
+          {after && <img src={after} alt={labels.hint} loading="lazy" decoding="async" />}
+        </div>
+
+        <span class="ba__label ba__label--before">{labels.before}</span>
+        <span class="ba__label ba__label--after">{labels.after}</span>
+
+        <input
+          class="ba__range"
+          type="range"
+          min="0"
+          max="100"
+          value="50"
+          step="1"
+          aria-label={`${labels.before} / ${labels.after}`}
+          data-ba-range
+        />
+      </div>
+
+      {caption && <p class="small muted">{caption}</p>}
+    </div>
+  </div>
+</section>
+
+<script>
+  /**
+   * Ползунок «до/после».
+   *
+   * Скрипт только перекладывает значение input в CSS-переменную --pos:
+   * сам эффект делает clip-path в CSS. Никаких обработчиков перетаскивания —
+   * <input type="range"> уже умеет всё это, включая клавиатуру и тач.
+   */
+  document.querySelectorAll<HTMLElement>('[data-before-after]').forEach((widget) => {
+    const range = widget.querySelector<HTMLInputElement>('[data-ba-range]');
+    if (!range) return;
+
+    const apply = (value: string) => widget.style.setProperty('--pos', `${value}%`);
+    apply(range.value);
+    range.addEventListener('input', () => apply(range.value));
+  });
+</script>

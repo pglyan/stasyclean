@@ -1,0 +1,34 @@
+---
+import type { Locale } from '../../i18n/config';
+import { useUI } from '../../i18n/ui';
+import { steps } from '../../data/steps';
+
+/** «Как мы работаем» — четыре шага с нумерацией. */
+import SectionHead from './SectionHead.astro';
+
+interface Props {
+  locale: Locale;
+  /** Заголовок секции выводить или нет (на странице услуги он уже есть). */
+  withHead?: boolean;
+}
+
+const { locale, withHead = true } = Astro.props;
+const ui = useUI(locale);
+---
+
+<section class="section" id="steps">
+  <div class="container">
+    {withHead && (
+      <SectionHead title={ui.home.stepsTitle} lead={ui.home.stepsLead} />
+    )}
+    <div class="steps">
+      {steps.map((step, index) => (
+        <div class="step">
+          <span class="step__num">{String(index + 1).padStart(2, '0')}</span>
+          <h3 class="step__title">{step.title[locale]}</h3>
+          <p class="step__text">{step.text[locale]}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

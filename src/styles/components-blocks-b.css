@@ -1,0 +1,182 @@
+/**
+ * Блоки страниц, часть 2: карточки услуг, таблица цен, табы чек-листа.
+ */
+
+.service-card {
+  position: relative;
+}
+
+.service-card__name {
+  margin: 0;
+  font-size: var(--fs-h4);
+}
+
+.service-card__lead {
+  font-size: var(--fs-sm);
+  color: var(--ink-soft);
+}
+
+.service-card__highlights {
+  display: grid;
+  gap: var(--s2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--fs-sm);
+  color: var(--ink-soft);
+}
+
+.service-card__highlights li {
+  display: grid;
+  grid-template-columns: 1rem 1fr;
+  gap: var(--s2);
+}
+
+.service-card__highlights svg {
+  inline-size: 1rem;
+  block-size: 1rem;
+  margin-block-start: 0.3em;
+  color: var(--brand);
+}
+
+.service-card__foot {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s3);
+  margin-block-start: auto;
+  padding-block-start: var(--s4);
+  border-block-start: var(--bw) solid var(--line);
+}
+
+.service-card__price {
+  font-family: var(--font-heading);
+  font-size: var(--fs-h3);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==================== Таблица цен ==================== */
+
+.price-table-wrap {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  border: var(--bw) solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+}
+
+.price-table {
+  inline-size: 100%;
+  min-inline-size: 42rem;
+  border-collapse: collapse;
+  font-size: var(--fs-sm);
+}
+
+.price-table th,
+.price-table td {
+  padding: var(--s3) var(--s4);
+  text-align: start;
+  border-block-end: var(--bw) solid var(--line);
+}
+
+.price-table thead th {
+  background: var(--surface-2);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.price-table tbody th {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.price-table td {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.price-table tbody tr:last-child th,
+.price-table tbody tr:last-child td {
+  border-block-end: 0;
+}
+
+.price-table tr[data-popular] {
+  background: var(--brand-soft);
+}
+
+/* Подсветка колонки популярного тарифа */
+.price-table [data-popular] {
+  background: var(--brand-soft);
+}
+
+.price-table__caption {
+  padding: var(--s3) var(--s4);
+  font-size: var(--fs-xs);
+  color: var(--ink-soft);
+}
+
+/* Заголовок группы внутри таблицы доп. услуг */
+.price-table__group th {
+  background: var(--surface);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--brand-strong);
+}
+
+/* ==================== Табы чек-листа ==================== */
+
+.tabs__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+  margin-block-end: var(--s6);
+}
+
+.tabs__tab {
+  padding: var(--s2) var(--s4);
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  color: var(--ink-soft);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  transition:
+    background-color var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease);
+}
+
+.tabs__tab:hover {
+  border-color: var(--brand-ring);
+  color: var(--ink);
+}
+
+.tabs__tab[aria-selected='true'] {
+  border-color: var(--brand);
+  background: var(--brand);
+  color: var(--brand-ink);
+}
+
+.tabs__panel[hidden] {
+  display: none;
+}
+
+.tabs__panel {
+  padding: var(--s6);
+  border: var(--bw) solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+}
+
+.tabs__panel-note {
+  margin-block-start: var(--s4);
+  font-size: var(--fs-sm);
+  color: var(--ink-soft);
+}

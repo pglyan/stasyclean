@@ -1,0 +1,122 @@
+---
+import type { Locale } from '../../i18n/config';
+import type { Checklist as ChecklistData } from '../../data/checklists';
+import { useUI } from '../../i18n/ui';
+
+import Icon from '../ui/Icon.astro';
+import SectionHead from './SectionHead.astro';
+
+/**
+ * Чек-лист работ с табами по зонам квартиры.
+ *
+ * Разметка — табы по ARIA (role=tablist/tab/tabpanel). Управление:
+ * клик и стрелки влево/вправо, как ожидает скринридер.
+ * Активная вкладка передаётся через скрытый input-а нет: состояние
+ * держит JS, а без JS видны все панели сразу — контент не теряется.
+ */
+
+interface Props {
+  locale: Locale;
+  checklist: ChecklistData;
+  title?: string;
+  lead?: string;
+  id?: string;
+  withHead?: boolean;
+  surface?: boolean;
+}
+
+const {
+  locale,
+  checklist,
+  title,
+  lead,
+  id,
+  withHead = true,
+  surface = false,
+} = Astro.props;
+const ui = useUI(locale);
+const listId = id ?? `checklist-${checklist.serviceKey}`;
+---
+
+<section class={`section ${surface ? 'section--surface' : ''}`.trim()} id={listId}>
+  <div class="container">
+    {withHead && <SectionHead title={title ?? ui.home.includedTitle} lead={lead ?? ui.home.includedLead} />}
+
+    <div class="tabs" data-tabs>
+      <div class="tabs__list" role="tablist" aria-label={title ?? ui.home.includedTitle}>
+        {checklist.groups.map((group, index) => (
+          <button
+            class="tabs__tab"
+            type="button"
+            role="tab"
+            id={`${listId}-tab-${group.id}`}
+            aria-controls={`${listId}-panel-${group.id}`}
+            aria-selected={index === 0 ? 'true' : 'false'}
+            tabindex={index === 0 ? 0 : -1}
+          >
+            {group.title[locale]}
+          </button>
+        ))}
+      </div>
+
+      {checklist.groups.map((group, index) => (
+        <div
+          class="tabs__panel"
+          role="tabpanel"
+          id={`${listId}-panel-${group.id}`}
+          aria-labelledby={`${listId}-tab-${group.id}`}
+          tabindex={0}
+          hidden={index !== 0}
+        >
+          <ul class="check-list">
+            {group.items[locale].map((item) => (
+              <li>
+                <Icon name="check" />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+          {group.note && <p class="tabs__panel-note">{group.note[locale]}</p>}
+        </div>
+      ))}
+    </div>
+
+    {checklist.note && <p class="tabs__panel-note">{checklist.note[locale]}</p>}
+  </div>
+</section>
+
+<script>
+  /**
+   * Табы чек-листа: переключение мышью и стрелками.
+   * Логика общая для всех наборов табов на странице.
+   */
+  document.querySelectorAll<HTMLElement>('[data-tabs]').forEach((tabs) => {
+    const list = tabs.querySelector<HTMLElement>('[role="tablist"]');
+    const buttons = Array.from(tabs.querySelectorAll<HTMLButtonElement>('[role="tab"]'));
+    const panels = Array.from(tabs.querySelectorAll<HTMLElement>('[role="tabpanel"]'));
+
+    function select(index: number) {
+      buttons.forEach((button, position) => {
+        const active = position === index;
+        button.setAttribute('aria-selected', String(active));
+        button.tabIndex = active ? 0 : -1;
+        panels[position].hidden = !active;
+      });
+      buttons[index]?.focus();
+    }
+
+    buttons.forEach((button, index) => {
+      button.addEventListener('click', () => select(index));
+    });
+
+    list?.addEventListener('keydown', (event) => {
+      const current = buttons.findIndex((button) => button.getAttribute('aria-selected') === 'true');
+      if (current < 0) return;
+
+      if (event.key === 'ArrowRight') select((current + 1) % buttons.length);
+      else if (event.key === 'ArrowLeft') select((current - 1 + buttons.length) % buttons.length);
+      else if (event.key === 'Home') select(0);
+      else if (event.key === 'End') select(buttons.length - 1);
+    });
+  });
+</script>

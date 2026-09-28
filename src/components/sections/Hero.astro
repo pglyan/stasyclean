@@ -1,0 +1,82 @@
+---
+import type { Locale } from '../../i18n/config';
+import { href, type PageKey } from '../../i18n/routes';
+import { useUI } from '../../i18n/ui';
+import { site, siteText } from '../../data/site';
+import { planPriceFrom, plansForService } from '../../data/prices';
+import { formatPriceFrom } from '../../i18n/config';
+
+import Icon from '../ui/Icon.astro';
+import Photo from '../ui/Photo.astro';
+
+/**
+ * Первый экран.
+ *
+ * Три варианта раскладки переключаются атрибутом data-hero на <html>
+ * (см. components-blocks-a.css): «текст + фото», «по центру» и «фото на всю
+ * ширину». Разметка при этом одна — меняется только CSS.
+ *
+ * Оффер построен на реальном отличии клиента от конкурентов: StasyClean
+ * привозит всё своё, включая пылесос, тогда как uborka.rs требует
+ * наличие пылесоса и швабры у заказчика.
+ */
+
+interface Props {
+  locale: Locale;
+  routeKey: PageKey;
+}
+
+const { locale } = Astro.props;
+const ui = useUI(locale);
+
+/** Самая низкая цена среди тарифов поддерживающей уборки — честное «от». */
+const cheapest = Math.min(
+  ...plansForService('regular').map((plan) => planPriceFrom(plan)),
+);
+---
+
+<section class="hero">
+  <div class="container hero__inner">
+    <div class="hero__content">
+      <p class="eyebrow">{siteText.tagline[locale]}</p>
+      <h1 class="hero__title">{siteText.heroTitle[locale]}</h1>
+      <p class="hero__lead">{siteText.heroLead[locale]}</p>
+
+      <div class="hero__actions">
+        <a class="btn btn--lg" href={site.telegramUrl} target="_blank" rel="noopener noreferrer">
+          <Icon name="telegram" class="btn__icon" />
+          {ui.cta.book}
+        </a>
+        <a class="btn btn--ghost btn--lg" href={`${href(locale, 'prices')}#calculator`}>
+          <Icon name="calculator" class="btn__icon" />
+          {ui.cta.calculate}
+        </a>
+      </div>
+
+      <p class="hero__promise">
+        <Icon name="check-circle" />
+        {ui.price.from} {formatPriceFrom(cheapest, locale)} · {siteText.footerNote[locale]}
+      </p>
+
+      <div class="hero__badges">
+        <span class="badge badge--brand">
+          <Icon name="clock" class="icon--sm" />
+          {siteText.responsePromise[locale]}
+        </span>
+        <span class="badge">
+          <Icon name="tag" class="icon--sm" />
+          {ui.price.minimum}: {formatPriceFrom(6000, locale)}
+        </span>
+      </div>
+    </div>
+
+    <div class="hero__media">
+      <Photo
+        alt={`${site.brand} — ${siteText.tagline[locale]}`}
+        hint="Фото: клинер с оборудованием"
+        ratio="4 / 3"
+        priority
+      />
+    </div>
+  </div>
+</section>

@@ -1,0 +1,25 @@
+---
+import type { Locale } from '../../i18n/config';
+import { usps } from '../../data/steps';
+import Icon from '../ui/Icon.astro';
+
+/** Полоса ключевых отличий. Содержимое — из публичного описания клиента. */
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+---
+
+<div class="container">
+  <div class="usp">
+    {usps.map((item) => (
+      <div class="usp__item">
+        <span class="icon-box"><Icon name={item.icon} /></span>
+        <h3 class="usp__title">{item.title[locale]}</h3>
+        <p class="usp__text">{item.text[locale]}</p>
+      </div>
+    ))}
+  </div>
+</div>

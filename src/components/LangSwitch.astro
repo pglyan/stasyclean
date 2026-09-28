@@ -1,0 +1,39 @@
+---
+import { LOCALE_META } from '../i18n/config';
+import { localeSwitchLinks, type PageKey } from '../i18n/routes';
+import type { Locale } from '../i18n/config';
+
+/**
+ * Переключатель языка.
+ *
+ * Ключевое требование: ссылка ведёт на ТУ ЖЕ страницу в другой локали,
+ * а не на главную. Это обеспечивает реестр маршрутов, где у каждой
+ * страницы есть переведённый слаг (/cene → /en/prices → /ru/ceny).
+ *
+ * Сделано обычными ссылками: поисковики видят все локали, JS не нужен,
+ * вес — ноль. Атрибут aria-current помогает скринридеру.
+ */
+
+interface Props {
+  locale: Locale;
+  routeKey: PageKey;
+}
+
+const { locale, routeKey } = Astro.props;
+const links = localeSwitchLinks(locale, routeKey);
+---
+
+<nav class="lang" aria-label={LOCALE_META[locale].label}>
+  {links.map((link) => (
+    <a
+      class="lang__item"
+      href={link.href}
+      hreflang={LOCALE_META[link.locale].htmlLang}
+      lang={LOCALE_META[link.locale].htmlLang}
+      aria-current={link.isCurrent ? 'true' : undefined}
+      title={LOCALE_META[link.locale].label}
+    >
+      {LOCALE_META[link.locale].short}
+    </a>
+  ))}
+</nav>

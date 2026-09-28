@@ -1,0 +1,40 @@
+---
+import { formatDate, type Locale } from '../../i18n/config';
+import { legalDocs, type LegalDocKey } from '../../data/legal';
+
+/**
+ * Юридическая страница (политика конфиденциальности, условия оказания услуг).
+ *
+ * Тексты лежат в src/data/legal.ts для трёх локалей. Это ШАБЛОНЫ:
+ * их должен утвердить юрист, поэтому внизу страницы выводится дата
+ * обновления и напоминание об этом.
+ */
+
+interface Props {
+  locale: Locale;
+  doc: LegalDocKey;
+}
+
+const { locale, doc } = Astro.props;
+const content = legalDocs[doc][locale];
+---
+
+<section class="section">
+  <div class="container">
+    <p class="legal__updated">{content.updatedLabel}: {formatDate(content.updated, locale)}</p>
+
+    <div class="legal">
+      {content.sections.map((section) => (
+        <>
+          <h2>{section.title}</h2>
+          {section.paragraphs.map((paragraph) => <p>{paragraph}</p>)}
+          {section.list && (
+            <ul>
+              {section.list.map((item) => <li>{item}</li>)}
+            </ul>
+          )}
+        </>
+      ))}
+    </div>
+  </div>
+</section>

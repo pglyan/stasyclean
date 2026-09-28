@@ -1,0 +1,102 @@
+---
+import { LOCALE_META, type Locale } from '../../i18n/config';
+import { BASE, href, type PageKey } from '../../i18n/routes';
+import { useUI } from '../../i18n/ui';
+import { site, siteText } from '../../data/site';
+import { services } from '../../data/services';
+
+/**
+ * Структурированные данные.
+ *
+ * ВАЖНО: разметка собирается только из подтверждённых данных.
+ * Мы НЕ выдумываем postalAddress, telephone, PIB и aggregateRating —
+ * если их нет, поля просто отсутствуют, а не заполняются заглушкой.
+ * Некорректный JSON-LD хуже, чем его отсутствие.
+ */
+
+interface Props {
+  locale: Locale;
+  routeKey: PageKey;
+  extra?: Record<string, unknown>[];
+}
+
+const { locale, routeKey, extra = [] } = Astro.props;
+const ui = useUI(locale);
+
+const origin = import.meta.env.SITE || `https://${site.domain}`;
+/**
+ * Абсолютный адрес страницы для JSON-LD.
+ * origin берём из конфига, а не из Astro.site: на пререндере последний
+ * может быть не определён, из-за чего new URL() падал с «Invalid URL».
+ */
+const url = (key: PageKey) => new URL(href(locale, key), origin).href;
+
+/**
+ * Корень сайта с учётом base — он же стабильный @id организации.
+ * Без base получалось `https://pglyan.github.io/#business`, что не совпадало
+ * с url страницы (`https://pglyan.github.io/stasyclean/`) в демо-сборке.
+ */
+const siteRoot = new URL(BASE, origin).href;
+
+const business = {
+  '@type': ['LocalBusiness', 'ProfessionalService'],
+  '@id': `${siteRoot}#business`,
+  name: site.brand,
+  url: url('home'),
+  description: siteText.metaDescription[locale],
+  areaServed: site.cities.map((city) => ({ '@type': 'City', name: city })),
+  availableLanguage: Object.values(LOCALE_META).map((item) => item.label),
+  knowsLanguage: Object.values(LOCALE_META).map((item) => item.htmlLang),
+  ...(site.phone ? { telephone: site.phone } : {}),
+  ...(site.email ? { email: site.email } : {}),
+  ...(site.legal.address
+    ? {
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: site.legal.address,
+          addressCountry: 'RS',
+        },
+      }
+    : {}),
+  sameAs: [site.telegramUrl, site.instagramUrl],
+  makesOffer: services.map((service) => ({
+    '@type': 'Offer',
+    itemOffered: {
+      '@type': 'Service',
+      name: service.name[locale],
+      description: service.lead[locale],
+    },
+  })),
+};
+
+const graph: Record<string, unknown>[] = [business];
+
+// Хлебные крошки для всех страниц, кроме главной
+if (routeKey !== 'home') {
+  const trail: Record<string, unknown>[] = [
+    { '@type': 'ListItem', position: 1, name: useUI(locale).nav.home, item: url('home') },
+  ];
+  if (routeKey === 'general' || routeKey === 'regular' || routeKey === 'smart' || routeKey === 'reno') {
+    trail.push({
+      '@type': 'ListItem',
+      position: 2,
+      name: ui.nav.services,
+      item: url('services'),
+    });
+  }
+  trail.push({
+    '@type': 'ListItem',
+    position: trail.length + 1,
+    name: ui.nav[routeKey as keyof typeof ui.nav] ?? routeKey,
+    item: url(routeKey),
+  });
+  graph.push({ '@type': 'BreadcrumbList', itemListElement: trail });
+}
+
+const json = {
+  '@context': 'https://schema.org',
+  '@graph': [...graph, ...extra],
+};
+---
+
+<script type="application/ld+json" set:html={JSON.stringify(json)} />

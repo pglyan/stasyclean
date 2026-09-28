@@ -1,0 +1,202 @@
+/**
+ * Демонстрационная панель настроек.
+ *
+ * Стили существуют в обеих сборках (это ~2 КБ сжатого CSS), но сам компонент
+ * панели и её скрипт рендерятся только при `__DEMO_MODE__ === true`,
+ * поэтому в прод-сборку разметка и JS панели не попадают вообще.
+ */
+
+.panel-toggle {
+  position: fixed;
+  inset-block-end: var(--s4);
+  inset-inline-end: var(--s4);
+  z-index: 70;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  padding: var(--s3) var(--s4);
+  border-radius: var(--r-pill);
+  background: var(--ink);
+  color: var(--bg);
+  box-shadow: var(--shadow-lg);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+
+.panel-toggle:hover {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+@media (max-width: 61.999rem) {
+  .panel-toggle {
+    inset-block-end: 5.25rem;
+  }
+}
+
+.panel {
+  position: fixed;
+  inset-block: 0;
+  inset-inline-end: 0;
+  z-index: 80;
+  inline-size: min(23rem, 92vw);
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  border-inline-start: var(--bw) solid var(--line);
+  box-shadow: var(--shadow-lg);
+  translate: 100% 0;
+  visibility: hidden;
+  transition:
+    translate var(--dur-slow) var(--ease),
+    visibility var(--dur-slow);
+}
+
+.panel.is-open {
+  translate: 0 0;
+  visibility: visible;
+}
+
+.panel__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s4);
+  padding: var(--s5) var(--s5) var(--s3);
+  border-block-end: var(--bw) solid var(--line);
+}
+
+.panel__title {
+  font-size: var(--fs-h4);
+}
+
+.panel__subtitle {
+  margin-block-start: var(--s1);
+  font-size: var(--fs-xs);
+  color: var(--ink-soft);
+}
+
+.panel__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--s5);
+}
+
+.panel__foot {
+  display: grid;
+  gap: var(--s2);
+  padding: var(--s4) var(--s5) var(--s5);
+  border-block-start: var(--bw) solid var(--line);
+}
+
+.panel__group + .panel__group {
+  margin-block-start: var(--s6);
+  padding-block-start: var(--s6);
+  border-block-start: var(--bw) solid var(--line);
+}
+
+.panel__label {
+  display: block;
+  margin-block-end: var(--s3);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.panel__themes {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--s2);
+}
+
+.panel__theme {
+  display: grid;
+  gap: var(--s2);
+  padding: var(--s3);
+  text-align: start;
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  transition: border-color var(--dur-fast) var(--ease);
+}
+
+.panel__theme:hover {
+  border-color: var(--brand-ring);
+}
+
+.panel__theme[aria-pressed='true'] {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+}
+
+.panel__theme-swatch {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.panel__theme-swatch span {
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  border-radius: 50%;
+  border: var(--bw) solid rgb(0 0 0 / 0.12);
+}
+
+.panel__theme-name {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.panel__options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s1);
+}
+
+.panel__option {
+  padding: var(--s2) var(--s3);
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  color: var(--ink-soft);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  transition:
+    border-color var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease);
+}
+
+.panel__option:hover {
+  border-color: var(--brand-ring);
+  color: var(--ink);
+}
+
+.panel__option[aria-pressed='true'] {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+  color: var(--brand-strong);
+  font-weight: 600;
+}
+
+.panel__notice {
+  padding: var(--s3);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  color: var(--ink-soft);
+  font-size: var(--fs-xs);
+}
+
+.panel__toast {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  text-align: center;
+  color: var(--brand-strong);
+  opacity: 0;
+  transition: opacity var(--dur) var(--ease);
+}
+
+.panel__toast.is-visible {
+  opacity: 1;
+}

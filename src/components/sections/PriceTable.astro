@@ -1,0 +1,94 @@
+---
+import { AREA_TIERS, areaOver, areaUnit, areaUpTo, plans } from '../../data/prices';
+import { getService } from '../../data/services';
+import { SERVICE_KEYS } from '../../i18n/routes';
+import { formatNumber, formatPrice, type Locale } from '../../i18n/config';
+import { useUI } from '../../i18n/ui';
+
+import SectionHead from './SectionHead.astro';
+
+/**
+ * Прайс по площади.
+ *
+ * Таблица собрана из данных, а не написана руками: строки — диапазоны
+ * площади, колонки — тарифы. Так цены на главной и на странице «Цены»
+ * физически не могут разойтись.
+ *
+ * На телефоне таблица прокручивается по горизонтали внутри своего
+ * контейнера (overflow-x), поэтому страница вбок не уезжает.
+ */
+
+interface Props {
+  locale: Locale;
+  withHead?: boolean;
+  /** Показывать пометку «предварительные данные» — для демо-стенда. */
+  provisional?: boolean;
+}
+
+const { locale, withHead = true, provisional = false } = Astro.props;
+const ui = useUI(locale);
+
+/** Только тарифы, которые считаются по метражу. */
+const groups = SERVICE_KEYS.map((key) => ({
+  service: getService(key),
+  plans: plans.filter((plan) => plan.serviceKey === key),
+})).filter((group) => group.plans.length > 0 && group.service.priceUnit === 'area');
+
+const columns = groups.flatMap((group) => group.plans);
+---
+
+<section class="section section--surface" id="prices">
+  <div class="container">
+    {withHead && (
+      <SectionHead title={ui.home.pricesTitle} lead={ui.home.pricesLead}>
+        {provisional && <span class="provisional">{ui.common.provisional}</span>}
+      </SectionHead>
+    )}
+
+    <div class="price-table-wrap">
+      <table class="price-table">
+        <caption class="visually-hidden">{ui.home.pricesTitle}</caption>
+        <thead>
+          <tr>
+            <th rowspan="2" scope="col">{ui.price.area}, {areaUnit[locale]}</th>
+            {groups.map((group) => (
+              <th colspan={group.plans.length} scope="colgroup">
+                {group.service.name[locale]}
+              </th>
+            ))}
+          </tr>
+          <tr>
+            {columns.map((plan) => (
+              <th scope="col" data-popular={plan.popular ? '' : undefined}>
+                {plan.name[locale]}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {AREA_TIERS.map((tier, index) => (
+            <tr>
+              <th scope="row">{areaUpTo[locale]} {formatNumber(tier, locale)} {areaUnit[locale]}</th>
+              {columns.map((plan) => (
+                <td data-popular={plan.popular ? '' : undefined}>
+                  {formatPrice(plan.tiers[index], locale)}
+                </td>
+              ))}
+            </tr>
+          ))}
+          <tr>
+            <th scope="row">{areaOver[locale]} 150 {areaUnit[locale]}</th>
+            {columns.map(() => (
+              <td>{ui.cta.details}</td>
+            ))}
+          </tr>
+        </tbody>
+      </table>
+      <p class="price-table__caption">
+        {columns.find((plan) => plan.popular)?.name[locale]} — {ui.price.popular.toLowerCase()}.
+        {' '}
+        {ui.calc.resultHint}
+      </p>
+    </div>
+  </div>
+</section>

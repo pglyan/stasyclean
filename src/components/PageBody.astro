@@ -1,0 +1,170 @@
+---
+import type { Locale } from '../i18n/config';
+import type { PageKey } from '../i18n/routes';
+import { useUI } from '../i18n/ui';
+import { pageBlocks, type BlockId } from '../data/pages';
+import { getService } from '../data/services';
+import { checklists } from '../data/checklists';
+import { extraServices, windowServices } from '../data/extras';
+import { siteText } from '../data/site';
+
+import Hero from './sections/Hero.astro';
+import PageHero from './sections/PageHero.astro';
+import Usp from './sections/Usp.astro';
+import Services from './sections/Services.astro';
+import PriceTable from './sections/PriceTable.astro';
+import Calculator from './sections/Calculator.astro';
+import Checklist from './sections/Checklist.astro';
+import PriceList from './sections/PriceList.astro';
+import Steps from './sections/Steps.astro';
+import BeforeAfter from './sections/BeforeAfter.astro';
+import Reviews from './sections/Reviews.astro';
+import Areas from './sections/Areas.astro';
+import Faq from './sections/Faq.astro';
+import BookingForm from './sections/BookingForm.astro';
+import CtaBand from './sections/CtaBand.astro';
+import ServiceDetail from './sections/ServiceDetail.astro';
+import Legal from './sections/Legal.astro';
+
+/**
+ * Рендерер содержимого страницы.
+ *
+ * Собирает страницу из блоков, перечисленных в src/data/pages.ts.
+ * Один блок — один компонент, поэтому одинаковый блок на разных страницах
+ * выглядит одинаково и правится в одном месте.
+ *
+ * Заголовок и лид внутренней страницы формируются из данных:
+ * для страниц услуг это название и описание самой услуги, для остальных —
+ * подписи из словаря интерфейса.
+ */
+
+interface Props {
+  locale: Locale;
+  routeKey: PageKey;
+}
+
+const { locale, routeKey } = Astro.props;
+const ui = useUI(locale);
+
+const isDemo = import.meta.env.PUBLIC_DEMO === 'on';
+
+type Entry = { Component: any; props: Record<string, unknown> };
+
+/** Порядок блоков и их опции для конкретной страницы. */
+function buildBlocks(): Entry[] {
+  const service = ['general', 'regular', 'smart', 'reno'].includes(routeKey)
+    ? getService(routeKey as 'general' | 'regular' | 'smart' | 'reno')
+    : null;
+
+  const parentKey: PageKey | undefined = service ? 'services' : undefined;
+
+  const head = service
+    ? { title: service.name[locale], lead: service.lead[locale] }
+    : {
+        prices: { title: ui.nav.prices, lead: ui.home.pricesLead },
+        services: { title: ui.nav.services, lead: ui.home.servicesLead },
+        about: { title: ui.home.aboutTitle, lead: ui.home.aboutLead },
+        reviews: { title: ui.home.reviewsTitle, lead: ui.home.reviewsLead },
+        faq: { title: ui.home.faqTitle, lead: ui.home.faqLead },
+        contact: { title: ui.home.contactTitle, lead: ui.home.contactLead },
+        privacy: { title: ui.footer.privacy, lead: '' },
+        terms: { title: ui.footer.terms, lead: '' },
+      }[routeKey as string] ?? { title: siteText.tagline[locale], lead: '' };
+
+  const registry: Record<BlockId, Entry> = {
+    hero: { Component: Hero, props: { locale, routeKey } },
+    pageHero: {
+      Component: PageHero,
+      props: {
+        locale,
+        routeKey,
+        title: head.title,
+        lead: head.lead || undefined,
+        parentKey,
+        photoHint: routeKey === 'privacy' || routeKey === 'terms' ? undefined : ui.cta.book,
+      },
+    },
+    usp: { Component: Usp, props: { locale } },
+    services: {
+      Component: Services,
+      props: { locale, withHead: routeKey !== 'home', limit: undefined },
+    },
+    priceTable: {
+      Component: PriceTable,
+      props: { locale, withHead: routeKey !== 'home', provisional: isDemo },
+    },
+    calculator: { Component: Calculator, props: { locale, withHead: routeKey !== 'home' } },
+    checklist: {
+      Component: Checklist,
+      props: {
+        locale,
+        // На главной показываем генеральную уборку — самый содержательный список
+        checklist: checklists.general!,
+        withHead: true,
+        surface: true,
+      },
+    },
+    extras: {
+      Component: PriceList,
+      props: {
+        locale,
+        title: ui.home.extrasTitle,
+        lead: ui.home.extrasLead,
+        lines: extraServices,
+        id: 'extras',
+        withHead: true,
+      },
+    },
+    windows: {
+      Component: PriceList,
+      props: {
+        locale,
+        title: ui.home.windowsTitle,
+        lead: ui.home.windowsLead,
+        lines: windowServices,
+        id: 'windows',
+        surface: true,
+      },
+    },
+    steps: { Component: Steps, props: { locale, withHead: true } },
+    beforeAfter: { Component: BeforeAfter, props: { locale } },
+    reviews: { Component: Reviews, props: { locale, withHead: routeKey === 'home', limit: 4 } },
+    areas: { Component: Areas, props: { locale } },
+    faq: {
+      Component: Faq,
+      props: {
+        locale,
+        withHead: routeKey !== 'faq' ? true : false,
+        limit: routeKey === 'home' ? 6 : undefined,
+        surface: routeKey !== 'home',
+      },
+    },
+    bookingForm: { Component: BookingForm, props: { locale, withHead: true } },
+    ctaBand: {
+      Component: CtaBand,
+      props: {
+        locale,
+        title: routeKey === 'home' ? undefined : ui.home.contactTitle,
+        text: routeKey === 'home' ? undefined : ui.home.contactLead,
+      },
+    },
+    serviceDetail: {
+      Component: ServiceDetail,
+      props: { locale, serviceKey: service?.key },
+    },
+    legal: {
+      Component: Legal,
+      props: {
+        locale,
+        doc: routeKey === 'terms' ? 'terms' : 'privacy',
+      },
+    },
+  };
+
+  return pageBlocks[routeKey].map((id) => registry[id]);
+}
+
+const blocks = buildBlocks();
+---
+
+{blocks.map(({ Component, props }) => <Component {...props} />)}

@@ -1,0 +1,78 @@
+---
+import type { Locale } from '../i18n/config';
+import { href } from '../i18n/routes';
+import { useUI } from '../i18n/ui';
+
+/**
+ * Баннер cookie.
+ *
+ * Сайт не подключает стороннюю аналитику по умолчанию, поэтому в прод-сборке
+ * баннер не показывается (нечего согласовывать). Он появляется, только если
+ * включена аналитика через PUBLIC_ANALYTICS=on, а также всегда в демо-сборке —
+ * чтобы заказчик видел, как это выглядит.
+ *
+ * Текст — заготовка: юридическую формулировку должен утвердить юрист
+ * (в Сербии действует ZZPL, «Сл. гласник РС» 87/2018).
+ */
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const ui = useUI(locale);
+
+const analyticsEnabled = import.meta.env.PUBLIC_ANALYTICS === 'on';
+const shouldRender = import.meta.env.PUBLIC_DEMO === 'on' || analyticsEnabled;
+
+const text: Record<Locale, string> = {
+  sr: 'Koristimo tehničke kolačiće za rad sajta. Analitičke kolačiće uvodimo samo uz vašu saglasnost.',
+  en: 'We use technical cookies to run the site. Analytics cookies are only set with your consent.',
+  ru: 'Мы используем технические cookie для работы сайта. Аналитические cookie подключаем только с вашего согласия.',
+};
+---
+
+{shouldRender && (
+  <div class="cookie" data-cookie data-visible="false" role="region" aria-label="Cookie">
+    <p>{text[locale]}</p>
+    <div class="cookie__actions">
+      <button class="btn btn--sm" type="button" data-cookie-accept>
+        {locale === 'ru' ? 'Принять' : locale === 'sr' ? 'Prihvati' : 'Accept'}
+      </button>
+      <a class="btn btn--ghost btn--sm" href={href(locale, 'privacy')}>
+        {ui.footer.privacy}
+      </a>
+    </div>
+  </div>
+)}
+
+<script>
+  /**
+   * Показываем баннер только если согласие ещё не сохранено.
+   * Демо-панель умеет сбрасывать это состояние, чтобы баннер
+   * можно было показать заказчику повторно.
+   */
+  const banner = document.querySelector<HTMLElement>('[data-cookie]');
+
+  if (banner) {
+    const KEY = 'stasyclean:cookie-consent';
+
+    try {
+      if (!window.localStorage.getItem(KEY)) {
+        banner.dataset.visible = 'true';
+      }
+    } catch {
+      // Приватный режим: показываем баннер, но не навязываемся
+      banner.dataset.visible = 'true';
+    }
+
+    banner.querySelector('[data-cookie-accept]')?.addEventListener('click', () => {
+      banner.dataset.visible = 'false';
+      try {
+        window.localStorage.setItem(KEY, 'accepted');
+      } catch {
+        /* хранилище недоступно — просто скрываем баннер */
+      }
+    });
+  }
+</script>

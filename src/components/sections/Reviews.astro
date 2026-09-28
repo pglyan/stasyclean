@@ -1,0 +1,70 @@
+---
+import { formatDate, type Locale } from '../../i18n/config';
+import { useUI } from '../../i18n/ui';
+import { reviews, reviewsAreSample } from '../../data/reviews';
+import { getService } from '../../data/services';
+
+import Icon from '../ui/Icon.astro';
+import SectionHead from './SectionHead.astro';
+
+/**
+ * Отзывы.
+ *
+ * ВАЖНО: у клиента нет опубликованных отзывов на сайте — они живут
+ * в Instagram и Telegram. Выдумывать реальные отзывы нельзя, поэтому
+ * блок помечен как образец оформления: заказчик видит, как это будет
+ * выглядеть, и понимает, что тексты нужно передать.
+ *
+ * Разметка Review не отдаётся в JSON-LD: разметка без настоящих отзывов
+ * нарушала бы правила поисковиков.
+ */
+
+interface Props {
+  locale: Locale;
+  withHead?: boolean;
+  limit?: number;
+  surface?: boolean;
+  id?: string;
+}
+
+const { locale, withHead = true, limit, surface = false, id = 'reviews' } = Astro.props;
+const ui = useUI(locale);
+const items = reviews.slice(0, limit ?? reviews.length);
+---
+
+<section class={`section ${surface ? 'section--surface' : ''}`.trim()} id={id}>
+  <div class="container">
+    {withHead && <SectionHead title={ui.home.reviewsTitle} lead={ui.home.reviewsLead} />}
+
+    <div class="grid grid--2">
+      {items.map((review) => (
+        <article class="card review">
+          <div class="review__head">
+            <span class="review__avatar" aria-hidden="true">{review.initials}</span>
+            <div>
+              <div class="review__name">{review.name}</div>
+              <div class="review__meta">
+                {getService(review.serviceKey).name[locale]} · {formatDate(review.date, locale)}
+              </div>
+            </div>
+          </div>
+
+          <div class="review__stars" role="img" aria-label={`${review.rating} / 5`}>
+            {Array.from({ length: 5 }).map((_, index) => (
+              <Icon name="star" class={index < review.rating ? '' : 'review__star--off'} />
+            ))}
+          </div>
+
+          <p class="review__text">{review.text[locale]}</p>
+        </article>
+      ))}
+    </div>
+
+    {reviewsAreSample && (
+      <p class="provisional reviews__sample-note">
+        <Icon name="info" class="icon--sm" />
+        {ui.common.provisional}
+      </p>
+    )}
+  </div>
+</section>

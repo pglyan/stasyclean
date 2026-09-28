@@ -1,0 +1,51 @@
+---
+/**
+ * Фото-слот.
+ *
+ * Пока клиент не передал фотографии, вместо снимка показывается
+ * тематический градиент с подписью: демо не притворяется, что фото есть,
+ * и заказчик видит, где именно они встанут.
+ *
+ * Когда появится файл, достаточно передать `src` — компонент сам
+ * переключится на <img> с правильным loading/fetchpriority,
+ * а размеры заданы через aspect-ratio, поэтому сдвига макета (CLS) не будет.
+ */
+
+interface Props {
+  /** Путь к изображению. Без него рендерится слот-заглушка. */
+  src?: string;
+  alt: string;
+  /** Соотношение сторон: '4 / 3', '16 / 10', '1 / 1'. */
+  ratio?: string;
+  /** Подпись на заглушке — что именно нужно снять. */
+  hint?: string;
+  /** true для изображения первого экрана: грузится сразу и с высоким приоритетом. */
+  priority?: boolean;
+  class?: string;
+}
+
+const {
+  src,
+  alt,
+  ratio = '4 / 3',
+  hint,
+  priority = false,
+  class: className = '',
+} = Astro.props;
+---
+
+<div class={`photo ${className}`.trim()} style={`--photo-ratio:${ratio}`}>
+  {src ? (
+    <img
+      src={src}
+      alt={alt}
+      loading={priority ? 'eager' : 'lazy'}
+      decoding={priority ? 'sync' : 'async'}
+      fetchpriority={priority ? 'high' : 'auto'}
+    />
+  ) : (
+    <>
+      <span class="photo__hint">{hint ?? alt}</span>
+    </>
+  )}
+</div>

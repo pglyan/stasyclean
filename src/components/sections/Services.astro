@@ -1,0 +1,79 @@
+---
+import { formatPriceFrom, type Locale } from '../../i18n/config';
+import { href } from '../../i18n/routes';
+import { useUI } from '../../i18n/ui';
+import { services } from '../../data/services';
+import { hourlyRate, planPriceFrom, plansForService } from '../../data/prices';
+
+import Icon from '../ui/Icon.astro';
+import SectionHead from './SectionHead.astro';
+
+/**
+ * Карточки услуг.
+ *
+ * Цена «от» считается из прайса, а не пишется руками: если клиент поднимет
+ * цены в src/data/prices.ts, карточки обновятся сами — расхождение
+ * между главной и прайсом невозможно.
+ */
+
+interface Props {
+  locale: Locale;
+  withHead?: boolean;
+  /** Ограничить набор услуг — например, для страницы-хаба. */
+  limit?: number;
+}
+
+const { locale, withHead = true, limit } = Astro.props;
+const ui = useUI(locale);
+
+const items = (limit ? services.slice(0, limit) : services).map((service) => {
+  const priceFrom =
+    service.priceUnit === 'hour'
+      ? hourlyRate.price
+      : Math.min(...plansForService(service.key).map(planPriceFrom));
+
+  return { service, priceFrom };
+});
+---
+
+<section class="section" id="services">
+  <div class="container">
+    {withHead && (
+      <SectionHead title={ui.home.servicesTitle} lead={ui.home.servicesLead} />
+    )}
+
+    <div class="grid grid--2">
+      {items.map(({ service, priceFrom }) => (
+        <article class="card card--interactive service-card">
+          <span class="icon-box"><Icon name={service.icon} /></span>
+          <h3 class="service-card__name">
+            <a href={href(locale, service.key)} style="text-decoration:none;color:inherit">
+              {service.name[locale]}
+            </a>
+          </h3>
+          <p class="service-card__lead">{service.lead[locale]}</p>
+
+          <ul class="service-card__highlights">
+            {service.highlights[locale].slice(0, 3).map((item) => (
+              <li>
+                <Icon name="check" />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+
+          <div class="service-card__foot">
+            <span class="service-card__price">
+              {formatPriceFrom(priceFrom, locale)}
+              {service.priceUnit === 'hour' && <span class="price-row__unit"> / {ui.price.hour}</span>}
+            </span>
+            <a class="btn btn--ghost btn--sm" href={href(locale, service.key)}>
+              {ui.cta.details}
+              <Icon name="arrowRight" class="btn__icon" />
+            </a>
+          </div>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>

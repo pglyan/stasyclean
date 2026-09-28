@@ -1,0 +1,278 @@
+/**
+ * Блоки страниц, часть 3: калькулятор, шаги, слайдер «до/после».
+ */
+
+/* ==================== Калькулятор ==================== */
+
+.calc {
+  display: grid;
+  gap: clamp(var(--s6), 4vw, var(--s10));
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+}
+
+@media (min-width: 62rem) {
+  .calc {
+    grid-template-columns: minmax(0, 1.5fr) minmax(19rem, 1fr);
+  }
+}
+
+.calc__controls {
+  display: grid;
+  gap: var(--s8);
+}
+
+.field {
+  display: grid;
+  gap: var(--s3);
+}
+
+.field__label {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+
+.field__hint {
+  font-size: var(--fs-xs);
+  color: var(--ink-soft);
+}
+
+/* Чипы выбора */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+}
+
+.chip {
+  padding: var(--s2) var(--s4);
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  color: var(--ink-soft);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  transition:
+    border-color var(--dur-fast) var(--ease),
+    background-color var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease);
+}
+
+.chip:hover {
+  border-color: var(--brand-ring);
+  color: var(--ink);
+}
+
+.chip[aria-pressed='true'] {
+  border-color: var(--brand);
+  background: var(--brand);
+  color: var(--brand-ink);
+}
+
+/* Доп. задачи в калькуляторе */
+.calc__extras {
+  display: grid;
+  gap: var(--s2);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+}
+
+.check {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--s3);
+  align-items: start;
+  padding: var(--s3);
+  border: var(--bw) solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease);
+}
+
+.check:hover {
+  border-color: var(--brand-ring);
+}
+
+.check:has(input:checked) {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+}
+
+.check input {
+  inline-size: 1.125rem;
+  block-size: 1.125rem;
+  margin-block-start: 0.15em;
+  accent-color: var(--brand);
+}
+
+.check__name {
+  display: block;
+}
+
+.check__price {
+  display: block;
+  margin-block-start: 0.15em;
+  font-size: var(--fs-xs);
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Ползунок часов для Смарт Клининга */
+.range {
+  inline-size: 100%;
+  accent-color: var(--brand);
+}
+
+/* Панель результата */
+.calc__result {
+  display: grid;
+  gap: var(--s3);
+  padding: var(--s6);
+  background: var(--surface);
+  border: var(--bw) solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+@media (min-width: 62rem) {
+  .calc__result {
+    position: sticky;
+    inset-block-start: 6rem;
+  }
+}
+
+.calc__result-label {
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.calc__total {
+  font-family: var(--font-heading);
+  font-size: var(--fs-h2);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.calc__lines {
+  display: grid;
+  gap: var(--s2);
+  margin: 0;
+  padding: var(--s3) 0 0;
+  list-style: none;
+  border-block-start: var(--bw) solid var(--line);
+  font-size: var(--fs-sm);
+  color: var(--ink-soft);
+}
+
+.calc__lines li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s3);
+}
+
+.calc__lines b {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.calc__note {
+  font-size: var(--fs-xs);
+  color: var(--ink-soft);
+}
+
+/* ==================== Шаги ==================== */
+
+.steps {
+  display: grid;
+  gap: var(--s8);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  counter-reset: step;
+}
+
+.step {
+  position: relative;
+  display: grid;
+  gap: var(--s3);
+  align-content: start;
+}
+
+.step__num {
+  font-family: var(--font-heading);
+  font-size: var(--fs-h4);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--brand);
+}
+
+.step__title {
+  margin: 0;
+  font-size: var(--fs-h4);
+}
+
+.step__text {
+  font-size: var(--fs-sm);
+  color: var(--ink-soft);
+}
+
+/* ==================== Слайдер «до / после» ==================== */
+
+.ba {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--r-lg);
+  aspect-ratio: 16 / 10;
+  isolation: isolate;
+}
+
+.ba__layer {
+  position: absolute;
+  inset: 0;
+}
+
+/* «После» открывается справа от ползунка */
+.ba__after {
+  clip-path: inset(0 0 0 var(--pos, 50%));
+}
+
+.ba__label {
+  position: absolute;
+  inset-block-start: var(--s3);
+  padding: 0.2em 0.7em;
+  border-radius: var(--r-pill);
+  background: color-mix(in oklab, var(--bg) 82%, transparent);
+  color: var(--ink);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+
+.ba__label--before {
+  inset-inline-start: var(--s3);
+}
+
+.ba__label--after {
+  inset-inline-end: var(--s3);
+}
+
+.ba__range {
+  position: absolute;
+  inset-block-end: var(--s4);
+  inset-inline: var(--s4);
+  z-index: 2;
+  inline-size: auto;
+  accent-color: var(--brand);
+}
+
+.ba__grid {
+  display: grid;
+  gap: var(--s6);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+}

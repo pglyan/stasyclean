@@ -1,0 +1,140 @@
+/**
+ * Подвал, закреплённая мобильная кнопка и баннер cookie.
+ */
+
+.site-footer {
+  padding-block: var(--s16) var(--s8);
+  background: var(--surface);
+  border-block-start: var(--bw) solid var(--line);
+}
+
+.footer__grid {
+  display: grid;
+  gap: var(--s10);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+}
+
+.footer__col h3 {
+  margin-block-end: var(--s4);
+  font-family: var(--font-body);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.footer__col ul {
+  display: grid;
+  gap: var(--s2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.footer__col a {
+  color: var(--ink);
+  font-size: var(--fs-sm);
+  text-decoration: none;
+}
+
+.footer__col a:hover {
+  color: var(--brand);
+  text-decoration: underline;
+}
+
+.footer__about {
+  max-inline-size: 34ch;
+  margin-block-start: var(--s4);
+  font-size: var(--fs-sm);
+  color: var(--ink-soft);
+}
+
+.footer__bottom {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s4);
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-block-start: var(--s10);
+  padding-block-start: var(--s6);
+  border-block-start: var(--bw) solid var(--line);
+  font-size: var(--fs-xs);
+  color: var(--ink-soft);
+}
+
+.footer__disclaimer {
+  max-inline-size: 46ch;
+}
+
+.footer__legal-pending {
+  font-weight: 600;
+  color: var(--brand-strong);
+}
+
+/* ==================== Закреплённая кнопка на телефоне ==================== */
+
+.sticky-cta {
+  position: fixed;
+  inset-block-end: 0;
+  inset-inline: 0;
+  z-index: 35;
+  display: flex;
+  gap: var(--s2);
+  padding: var(--s3) var(--gutter) calc(var(--s3) + env(safe-area-inset-bottom, 0px));
+  background: color-mix(in oklab, var(--bg) 92%, transparent);
+  backdrop-filter: blur(14px);
+  border-block-start: var(--bw) solid var(--line);
+}
+
+.sticky-cta .btn {
+  flex: 1;
+}
+
+@media (min-width: 62rem) {
+  .sticky-cta {
+    display: none;
+  }
+}
+
+:root[data-sticky='off'] .sticky-cta {
+  display: none;
+}
+
+/* Закреплённая кнопка не должна закрывать подвал на телефоне */
+@media (max-width: 61.999rem) {
+  body {
+    padding-block-end: 4.5rem;
+  }
+
+  :root[data-sticky='off'] body {
+    padding-block-end: 0;
+  }
+}
+
+/* ==================== Баннер cookie ==================== */
+
+.cookie {
+  position: fixed;
+  inset-block-end: var(--s4);
+  inset-inline-start: var(--s4);
+  z-index: 45;
+  display: none;
+  max-inline-size: 26rem;
+  padding: var(--s4);
+  background: var(--surface);
+  border: var(--bw) solid var(--line);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-lg);
+  font-size: var(--fs-sm);
+}
+
+.cookie[data-visible='true'] {
+  display: block;
+}
+
+.cookie__actions {
+  display: flex;
+  gap: var(--s2);
+  margin-block-start: var(--s3);
+}

@@ -1,0 +1,17 @@
+{
+  "name": "StasyClean — čišćenje stanova u Beogradu",
+  "short_name": "StasyClean",
+  "description": "Profesionalno generalno i redovno čišćenje stanova u Beogradu.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#12a87b",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

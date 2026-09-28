@@ -1,0 +1,436 @@
+---
+import type { Locale } from '../../i18n/config';
+import { LOCALE_META } from '../../i18n/config';
+import { href, type PageKey } from '../../i18n/routes';
+import { useUI } from '../../i18n/ui';
+import {
+  accentOptions,
+  buttonOptions,
+  cardOptions,
+  containerOptions,
+  densityOptions,
+  displayOptions,
+  heroOptions,
+  radiusOptions,
+  themePresets,
+} from '../../data/themes';
+
+import Icon from '../ui/Icon.astro';
+
+/**
+ * Стили панели подключаем как текст и вставляем в <style> прямо в компоненте.
+ * Так они появляются только на страницах, где рендерится панель (то есть
+ * в демо-сборке), и не попадают ни в прод-CSS, ни в общий файл стилей.
+ */
+import panelCss from '../../styles/components-panel.css?raw';
+
+/**
+ * Панель демонстрационных настроек.
+ *
+ * Рендерится только в демо-сборке: Base.astro импортирует компонент
+ * динамически под условием `__DEMO_MODE__`, поэтому в прод-версию
+ * ни разметка, ни скрипт панели не попадают вообще.
+ *
+ * Настройки применяются двумя способами:
+ *   attr:data-*    — атрибут на <html> (тема, шрифт, плотность, карточки);
+ *   style:--token  — inline CSS-переменная (акцентный тон, радиус).
+ * Поэтому акцент комбинируется с любой темой, а не переопределяет её.
+ */
+
+interface Props {
+  locale: Locale;
+  routeKey?: PageKey;
+}
+
+const { locale, routeKey = 'home' } = Astro.props;
+const ui = useUI(locale);
+
+const defaults = {
+  theme: 'mint',
+  accent: '',
+  radius: '',
+  font: 'display',
+  density: 'normal',
+  card: 'outline',
+  button: 'solid',
+  container: 'normal',
+  hero: 'split',
+  motion: 'on',
+  sticky: 'on',
+};
+
+interface Option {
+  value: string;
+  label: string;
+  /** Тон (H) для цветового кружка в панели. */
+  hue?: number;
+}
+
+interface Group {
+  label: string;
+  setting: string;
+  apply: string;
+  options: Option[];
+}
+
+/** Группы настроек описываются данными — разметка остаётся компактной. */
+const groups: Group[] = [
+  {
+    label: ui.panel.accent,
+    setting: 'accent',
+    apply: 'style:--brand-h',
+    options: accentOptions.map((option) => ({
+      value: String(option.value),
+      label: option.label,
+      hue: option.value,
+    })),
+  },
+  {
+    label: ui.panel.radius,
+    setting: 'radius',
+    apply: 'style:--radius:px',
+    options: radiusOptions.map((option) => ({ value: String(option.value), label: option.label })),
+  },
+  {
+    label: ui.panel.font,
+    setting: 'font',
+    apply: 'attr:data-font',
+    options: displayOptions.map((option) => ({ value: option.value, label: option.label })),
+  },
+  {
+    label: ui.panel.density,
+    setting: 'density',
+    apply: 'attr:data-density',
+    options: densityOptions.map((option) => ({ value: option.value, label: option.label })),
+  },
+  {
+    label: ui.panel.card,
+    setting: 'card',
+    apply: 'attr:data-card',
+    options: cardOptions.map((option) => ({ value: option.value, label: option.label })),
+  },
+  {
+    label: ui.panel.button,
+    setting: 'button',
+    apply: 'attr:data-button',
+    options: buttonOptions.map((option) => ({ value: option.value, label: option.label })),
+  },
+  {
+    label: ui.panel.width,
+    setting: 'container',
+    apply: 'attr:data-container',
+    options: containerOptions.map((option) => ({ value: option.value, label: option.label })),
+  },
+  {
+    label: ui.panel.hero,
+    setting: 'hero',
+    apply: 'attr:data-hero',
+    options: heroOptions.map((option) => ({ value: option.value, label: option.label })),
+  },
+  {
+    label: ui.panel.motion,
+    setting: 'motion',
+    apply: 'attr:data-motion',
+    options: [
+      { value: 'on', label: ui.panel.motionOn },
+      { value: 'off', label: ui.panel.motionOff },
+    ],
+  },
+  {
+    label: ui.panel.sticky,
+    setting: 'sticky',
+    apply: 'attr:data-sticky',
+    options: [
+      { value: 'on', label: ui.panel.stickyOn },
+      { value: 'off', label: ui.panel.stickyOff },
+    ],
+  },
+];
+---
+
+<style is:inline set:html={panelCss}></style>
+
+<button
+  class="panel-toggle"
+  type="button"
+  data-panel-open
+  aria-expanded="false"
+  aria-controls="demo-panel"
+>
+  <Icon name="sliders" class="icon--sm" />
+  {ui.panel.open}
+</button>
+
+<aside class="panel" id="demo-panel" data-panel data-defaults={JSON.stringify(defaults)} hidden>
+  <div class="panel__head">
+    <div>
+      <h2 class="panel__title">{ui.panel.title}</h2>
+      <p class="panel__subtitle">{ui.panel.subtitle}</p>
+    </div>
+    <button class="burger" type="button" data-panel-close aria-label={ui.cta.close}>
+      <Icon name="close" width={2} />
+    </button>
+  </div>
+
+  <div class="panel__body">
+    <div class="panel__group">
+      <span class="panel__label">{ui.panel.presets}</span>
+      <div class="panel__themes">
+        {themePresets.map((preset) => (
+          <button
+            class="panel__theme"
+            type="button"
+            data-setting="theme"
+            data-value={preset.id}
+            data-apply="attr:data-theme"
+            data-meta-radius={String(preset.radius)}
+            data-meta-font={preset.display}
+            title={preset.description}
+          >
+            <span class="panel__theme-swatch" aria-hidden="true">
+              {preset.swatch.map((color) => <span style={`background:${color}`}></span>)}
+            </span>
+            <span class="panel__theme-name">{preset.name}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+
+    {groups.map((group) => (
+      <div class="panel__group">
+        <span class="panel__label">{group.label}</span>
+        <div class="panel__options">
+          {group.options.map((option) => (
+            <button
+              class="panel__option"
+              type="button"
+              data-setting={group.setting}
+              data-value={option.value}
+              data-apply={group.apply}
+            >
+              {option.hue !== undefined && (
+                <span
+                  aria-hidden="true"
+                  style={`display:inline-block;inline-size:.7em;block-size:.7em;border-radius:50%;margin-inline-end:.4em;background:hsl(${option.hue} 72% 40%)`}
+                ></span>
+              )}
+              {option.label}
+            </button>
+          ))}
+        </div>
+      </div>
+    ))}
+    <div class="panel__group">
+      <span class="panel__label">{ui.panel.language}</span>
+      <div class="panel__options">
+        {Object.values(LOCALE_META).map((item) => (
+          <a
+            class="panel__option"
+            href={href(item.code, routeKey)}
+            aria-current={item.code === locale ? 'true' : undefined}
+          >
+            {item.label}
+          </a>
+        ))}
+      </div>
+    </div>
+  </div>
+
+  <div class="panel__foot">
+    <button class="btn btn--sm" type="button" data-panel-export>
+      <Icon name="copy" class="btn__icon" />
+      {ui.panel.export}
+    </button>
+    <button class="btn btn--ghost btn--sm" type="button" data-panel-random>
+      <Icon name="dice" class="btn__icon" />
+      {ui.panel.random}
+    </button>
+    <button class="btn btn--ghost btn--sm" type="button" data-panel-reset>
+      <Icon name="refresh" class="btn__icon" />
+      {ui.panel.reset}
+    </button>
+    <p class="panel__toast" data-panel-toast role="status">{ui.panel.exported}</p>
+    <p class="panel__notice">{ui.panel.notice}</p>
+  </div>
+</aside>
+
+<script>
+  /**
+   * Логика демо-панели.
+   *
+   * Любая настройка — это либо атрибут на <html>, либо inline CSS-переменная.
+   * Никаких перерисовок: браузер сам пересчитывает стили, поэтому смена темы
+   * мгновенная. Состояние живёт в localStorage, поэтому выбор заказчика
+   * сохраняется между страницами и перезагрузками.
+   *
+   * Ссылка с ?panel=0 открывается без кнопки панели — удобно, когда нужно
+   * отправить заказчику «чистый» вид без настроек.
+   */
+  const root = document.documentElement;
+  const panel = document.querySelector<HTMLElement>('[data-panel]');
+  const openBtn = document.querySelector<HTMLButtonElement>('[data-panel-open]');
+  const closeBtn = document.querySelector<HTMLButtonElement>('[data-panel-close]');
+  const toast = document.querySelector<HTMLElement>('[data-panel-toast]');
+
+  const STORAGE_KEY = 'stasyclean:demo-settings';
+  const defaults: Record<string, string> = JSON.parse(panel?.dataset.defaults ?? '{}');
+
+  if (new URLSearchParams(window.location.search).get('panel') === '0') openBtn?.remove();
+
+  /** Карта «настройка → как её применить», берётся прямо из разметки. */
+  const APPLY: Record<string, string> = {};
+  document.querySelectorAll<HTMLElement>('[data-setting]').forEach((element) => {
+    const setting = element.dataset.setting;
+    if (setting && element.dataset.apply) APPLY[setting] = element.dataset.apply;
+  });
+
+  /** Настройки, заданные вручную: тема их не перезаписывает. */
+  let touched: string[] = [];
+  let settings: Record<string, string> = { ...defaults };
+
+  function applyOne(setting: string, value: string) {
+    const rule = APPLY[setting];
+    if (!rule || !value) return;
+
+    if (rule.startsWith('attr:')) {
+      root.setAttribute(rule.slice(5), value);
+      return;
+    }
+    const [variable, unit = ''] = rule.slice(6).split(':');
+    root.style.setProperty(variable, unit ? `${value}${unit}` : value);
+  }
+
+  function syncPressed() {
+    document.querySelectorAll<HTMLElement>('[data-setting]').forEach((element) => {
+      element.setAttribute(
+        'aria-pressed',
+        String(settings[element.dataset.setting ?? ''] === element.dataset.value),
+      );
+    });
+  }
+
+  function save() {
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ settings, touched }));
+    } catch {
+      /* приватный режим — просто не сохраняем */
+    }
+  }
+
+  function set(setting: string, value: string) {
+    settings[setting] = value;
+    applyOne(setting, value);
+
+    if (setting === 'theme') {
+      // Тема приносит свои радиус и шрифт заголовков...
+      const themeButton = document.querySelector<HTMLElement>(
+        `[data-setting="theme"][data-value="${value}"]`,
+      );
+      if (!touched.includes('radius') && themeButton?.dataset.metaRadius) {
+        settings.radius = themeButton.dataset.metaRadius;
+        applyOne('radius', settings.radius);
+      }
+      if (!touched.includes('font') && themeButton?.dataset.metaFont) {
+        settings.font = themeButton.dataset.metaFont;
+        applyOne('font', settings.font);
+      }
+    } else if (!touched.includes(setting)) {
+      // ...но ручной выбор пользователя всегда приоритетнее
+      touched.push(setting);
+    }
+
+    syncPressed();
+    save();
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-setting]').forEach((element) => {
+    element.addEventListener('click', () => {
+      set(element.dataset.setting ?? '', element.dataset.value ?? '');
+    });
+  });
+
+  function openPanel(open: boolean) {
+    if (!panel) return;
+    panel.hidden = false;
+    panel.classList.toggle('is-open', open);
+    openBtn?.setAttribute('aria-expanded', String(open));
+    if (open) closeBtn?.focus();
+  }
+
+  openBtn?.addEventListener('click', () => openPanel(true));
+  closeBtn?.addEventListener('click', () => openPanel(false));
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && panel?.classList.contains('is-open')) openPanel(false);
+  });
+
+  /** Возврат стенда к исходному состоянию. */
+  document.querySelector('[data-panel-reset]')?.addEventListener('click', () => {
+    settings = { ...defaults };
+    delete settings.accent;
+    delete settings.radius;
+    touched = [];
+    root.style.removeProperty('--brand-h');
+    root.style.removeProperty('--radius');
+    Object.entries(settings).forEach(([key, value]) => applyOne(key, value));
+    syncPressed();
+    save();
+  });
+
+  /** Случайная комбинация — помогает найти неожиданное удачное сочетание. */
+  document.querySelector('[data-panel-random]')?.addEventListener('click', () => {
+    const movable = ['theme', 'accent', 'radius', 'font', 'density', 'card', 'button', 'hero'];
+
+    for (const setting of movable) {
+      const options = document.querySelectorAll<HTMLElement>(`[data-setting="${setting}"]`);
+      if (!options.length) continue;
+      const chosen = options[Math.floor(Math.random() * options.length)];
+      set(setting, chosen.dataset.value ?? '');
+    }
+  });
+
+  /** Экспорт выбора: заказчик отправляет его менеджеру как есть. */
+  document.querySelector('[data-panel-export]')?.addEventListener('click', async () => {
+    const report = JSON.stringify(
+      {
+        theme: settings.theme,
+        accentHue: settings.accent || null,
+        radius: settings.radius || null,
+        headingFont: settings.font,
+        density: settings.density,
+        card: settings.card,
+        button: settings.button,
+        container: settings.container,
+        hero: settings.hero,
+        motion: settings.motion,
+        stickyCta: settings.sticky,
+      },
+      null,
+      2,
+    );
+
+    try {
+      await navigator.clipboard.writeText(report);
+      if (toast) {
+        toast.classList.add('is-visible');
+        window.setTimeout(() => toast.classList.remove('is-visible'), 1800);
+      }
+    } catch {
+      window.prompt('Настройки демо-стенда:', report);
+    }
+  });
+
+  // Восстанавливаем прошлый выбор заказчика и применяем его
+  try {
+    const stored = window.localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored) as { settings?: Record<string, string>; touched?: string[] };
+      settings = { ...defaults, ...(parsed.settings ?? {}) };
+      touched = parsed.touched ?? [];
+    }
+  } catch {
+    settings = { ...defaults };
+  }
+
+  Object.entries(settings).forEach(([key, value]) => applyOne(key, value));
+  syncPressed();
+</script>

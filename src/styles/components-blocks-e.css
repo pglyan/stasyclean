@@ -1,0 +1,201 @@
+/**
+ * Блоки страниц, часть 5: форма заявки, CTA-полоса, юридические страницы.
+ */
+
+.form {
+  display: grid;
+  gap: var(--s5);
+  padding: clamp(var(--s6), 3vw, var(--s10));
+  background: var(--surface);
+  border: var(--bw) solid var(--line);
+  border-radius: var(--r-lg);
+}
+
+.form__row {
+  display: grid;
+  gap: var(--s5);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+}
+
+.form__field {
+  display: grid;
+  gap: var(--s2);
+}
+
+.form__label {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+
+.form__input,
+.form__textarea,
+.form__select {
+  padding: var(--s3) var(--s4);
+  border: var(--bw) solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--bg);
+  font-size: var(--fs-sm);
+  transition: border-color var(--dur-fast) var(--ease);
+}
+
+.form__input:focus,
+.form__textarea:focus,
+.form__select:focus {
+  border-color: var(--brand);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--brand-ring);
+}
+
+.form__textarea {
+  min-block-size: 5.5rem;
+  resize: vertical;
+}
+
+.form__consent {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--s3);
+  align-items: start;
+  font-size: var(--fs-xs);
+  color: var(--ink-soft);
+}
+
+.form__consent input {
+  inline-size: 1.125rem;
+  block-size: 1.125rem;
+  margin-block-start: 0.1em;
+  accent-color: var(--brand);
+}
+
+.form__error {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: #c0392b;
+}
+
+.form__actions {
+  display: grid;
+  gap: var(--s3);
+}
+
+.form__divider {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  font-size: var(--fs-xs);
+  color: var(--ink-soft);
+}
+
+.form__divider::before,
+.form__divider::after {
+  content: '';
+  flex: 1;
+  block-size: var(--bw);
+  background: var(--line);
+}
+
+.form__alternatives {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+}
+
+.form__success {
+  padding: var(--s4);
+  border-radius: var(--r-sm);
+  background: var(--brand-soft);
+  color: var(--brand-strong);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+
+.form__success[hidden] {
+  display: none;
+}
+
+/* ==================== CTA-полоса ==================== */
+
+.cta-band {
+  display: grid;
+  gap: var(--s6);
+  align-items: center;
+  padding: clamp(var(--s8), 4vw, var(--s12));
+  background: var(--brand);
+  color: var(--brand-ink);
+  border-radius: var(--r-xl);
+}
+
+@media (min-width: 62rem) {
+  .cta-band {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+}
+
+.cta-band__title {
+  margin: 0;
+  font-size: var(--fs-h2);
+  color: var(--brand-ink);
+}
+
+.cta-band__text {
+  margin-block-start: var(--s3);
+  max-inline-size: 46ch;
+  color: var(--brand-ink);
+  opacity: 0.9;
+}
+
+.cta-band__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s3);
+}
+
+.cta-band .btn {
+  background: var(--brand-ink);
+  border-color: var(--brand-ink);
+  color: var(--brand);
+}
+
+.cta-band .btn--ghost {
+  background: transparent;
+  border-color: color-mix(in oklab, var(--brand-ink) 45%, transparent);
+  color: var(--brand-ink);
+}
+
+.cta-band .btn--ghost:hover {
+  background: color-mix(in oklab, var(--brand-ink) 14%, transparent);
+  color: var(--brand-ink);
+}
+
+/* ==================== Юридические страницы ==================== */
+
+.legal {
+  max-inline-size: var(--measure);
+}
+
+.legal h2 {
+  margin-block-start: var(--s10);
+  font-size: var(--fs-h3);
+}
+
+.legal h2:first-child {
+  margin-block-start: 0;
+}
+
+.legal h3 {
+  margin-block-start: var(--s6);
+  font-size: var(--fs-h4);
+}
+
+.legal p,
+.legal ul,
+.legal ol {
+  margin-block-start: var(--s4);
+  color: var(--ink-soft);
+}
+
+.legal__updated {
+  margin-block-start: var(--s4);
+  font-size: var(--fs-sm);
+  color: var(--ink-soft);
+}

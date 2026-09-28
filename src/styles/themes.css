@@ -1,0 +1,117 @@
+/**
+ * Пять пресетов тем.
+ *
+ * Тема задаёт только палитру и базовый радиус — вся геометрия, типографика
+ * и состояния живут в tokens.css. Поэтому настройки из панели (акцент,
+ * плотность, шрифт заголовков) комбинируются с любой темой.
+ *
+ * Диакритика сербской латиницы (č ć ž š đ) присутствует во всех трёх
+ * шрифтовых семействах — проверено по субсету latin-ext.
+ */
+
+/* Тема по умолчанию — «Свежая мята». Значения совпадают с [data-theme='mint']. */
+:root,
+:root[data-theme='mint'] {
+  --brand-h: 162;
+  --brand-s: 72%;
+  --brand-l: 34%;
+  --brand-ink: #ffffff;
+
+  --bg: #ffffff;
+  --surface: #f5faf7;
+  --surface-2: #e8f4ee;
+  --ink: #0b2b22;
+  --ink-soft: #4c6862;
+  --line: #d9e8e0;
+
+  --shadow-color: 165 25% 18%;
+
+  --radius: 16px;
+  color-scheme: light;
+}
+
+/* «Глубокий синий» — надёжность и сервис. */
+:root[data-theme='trust'] {
+  --brand-h: 210;
+  --brand-s: 78%;
+  --brand-l: 36%;
+  --brand-ink: #ffffff;
+
+  --bg: #ffffff;
+  --surface: #f3f7fc;
+  --surface-2: #e6eff9;
+  --ink: #0b2138;
+  --ink-soft: #4a6076;
+  --line: #d8e3ef;
+
+  --shadow-color: 214 35% 20%;
+
+  --radius: 12px;
+  color-scheme: light;
+}
+
+/* «Цитрусовая энергия» — плотные заголовки и яркий акцент. */
+:root[data-theme='citrus'] {
+  --brand-h: 28;
+  --brand-s: 88%;
+  --brand-l: 36%;
+  --brand-ink: #ffffff;
+
+  --bg: #ffffff;
+  --surface: #fdf8f1;
+  --surface-2: #faeede;
+  --ink: #1a1a1a;
+  --ink-soft: #5c5750;
+  --line: #ebe3d7;
+
+  --shadow-color: 28 25% 18%;
+
+  --radius: 8px;
+  color-scheme: light;
+}
+
+/* «Тёплый песок» — спокойный премиальный тон, засечный шрифт заголовков. */
+:root[data-theme='sand'] {
+  --brand-h: 18;
+  --brand-s: 52%;
+  --brand-l: 42%;
+  --brand-ink: #fffaf6;
+
+  --bg: #faf6f1;
+  --surface: #ffffff;
+  --surface-2: #f3ebe3;
+  --ink: #2b2620;
+  --ink-soft: #6d6156;
+  --line: #e5dbd0;
+
+  --shadow-color: 24 22% 22%;
+
+  --radius: 4px;
+  color-scheme: light;
+}
+
+/* «Северная ночь» — тёмная тема для современных проектов. */
+:root[data-theme='nordic'] {
+  --brand-h: 174;
+  --brand-s: 62%;
+  --brand-l: 52%;
+  --brand-ink: #06231f;
+
+  --bg: #0e1216;
+  --surface: #171e25;
+  --surface-2: #1f2831;
+  --ink: #e9eff4;
+  --ink-soft: #9db0be;
+  --line: #2a3541;
+
+  --shadow-color: 210 45% 3%;
+
+  --radius: 12px;
+  color-scheme: dark;
+}
+
+/* Первый экран «фото на всю ширину» требует светлого текста поверх снимка. */
+:root[data-hero='full'] {
+  --on-photo: #ffffff;
+  --on-photo-soft: rgb(255 255 255 / 0.82);
+}

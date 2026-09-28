@@ -1,0 +1,43 @@
+---
+import type { Locale } from '../../i18n/config';
+import { useUI } from '../../i18n/ui';
+import { site } from '../../data/site';
+
+import Icon from '../ui/Icon.astro';
+import SectionHead from './SectionHead.astro';
+
+/**
+ * География работы.
+ *
+ * Список районов выведен данными (src/data/site.ts) — клиенту нужно
+ * только подтвердить или поправить его. Это ещё и локальный SEO-сигнал:
+ * поисковик видит названия општин текстом.
+ */
+
+interface Props {
+  locale: Locale;
+  withHead?: boolean;
+  id?: string;
+  surface?: boolean;
+}
+
+const { locale, withHead = true, id = 'areas', surface = true } = Astro.props;
+const ui = useUI(locale);
+---
+
+<section class={`section ${surface ? 'section--surface' : ''}`.trim()} id={id}>
+  <div class="container">
+    {withHead && <SectionHead title={ui.home.areasTitle} lead={ui.home.areasLead} />}
+
+    <ul class="areas">
+      {site.districts.map((district) => (
+        <li>{district}</li>
+      ))}
+    </ul>
+
+    <p class="small muted" style="margin-block-start:var(--s6);display:flex;align-items:center;gap:var(--s2)">
+      <Icon name="info" class="icon--sm" />
+      {ui.common.provisional}: {ui.home.areasLead}
+    </p>
+  </div>
+</section>
