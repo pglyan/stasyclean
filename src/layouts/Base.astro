@@ -179,7 +179,11 @@ const DemoPanel = demoMode
 >
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    {/* viewport-fit=cover включает переменные safe-area (вырез камеры,
+        скруглённые углы). Без него на iPhone в ландшафте контент уходит под
+        вырез, а отступ под индикатор «домой» в закреплённой панели действий
+        становится нулевым. Сами отступы — в base.css и components-footer.css. */}
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 
     <title>{pageTitle}</title>
     <meta name="description" content={pageDescription} />

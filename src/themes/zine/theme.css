@@ -130,10 +130,18 @@
   letter-spacing: 0.08em;
 }
 
-[data-skin='zine'] .nav__link:hover,
 [data-skin='zine'] .nav__link[aria-current='page'] {
   background: var(--brand);
   color: var(--brand-ink);
+}
+
+/* Наведение — только там, где есть указатель (см. base.css): на тач-экране
+   :hover остаётся после тапа и пункт меню выглядит «залипшим». */
+@media (hover: hover) {
+  [data-skin='zine'] .nav__link:hover {
+    background: var(--brand);
+    color: var(--brand-ink);
+  }
 }
 
 [data-skin='zine'] .nav__menu {
@@ -182,11 +190,13 @@
    Там, где база красит в --brand ссылки, иконки и «плюсы», берём --brand-strong
    (жёлтый, подмешанный к чернилам) — он держит контраст и остаётся «своим». */
 
-[data-skin='zine'] a:hover,
-[data-skin='zine'] .footer__col a:hover {
-  color: var(--ink);
-  text-decoration: underline;
-  text-decoration-thickness: 2px;
+@media (hover: hover) {
+  [data-skin='zine'] a:hover,
+  [data-skin='zine'] .footer__col a:hover {
+    color: var(--ink);
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+  }
 }
 
 [data-skin='zine'] .check-list svg,

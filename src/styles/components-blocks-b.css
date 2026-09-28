@@ -130,6 +130,131 @@
   color: var(--brand-strong);
 }
 
+/* ==================== Таблица цен на телефоне: карточки ==================== */
+/**
+ * На 320–412px таблица из 7 колонок не читается: видно 326px из 695px, то
+ * есть больше половины цен скрыто за горизонтальным свайпом, а метки
+ * диапазонов площадей уезжают из виду вместе с первой колонкой.
+ *
+ * Поэтому на телефоне таблица превращается в карточки — БЕЗ второй разметки.
+ * Заголовки столбцов переезжают в атрибут data-label (их подставляет
+ * ::before), поэтому:
+ *   • поисковик видит те же данные и ту же таблицу;
+ *   • семантику таблицы браузер сохраняет и при display: block — проверено
+ *     через Accessibility.getFullAXTree в Chromium: на 360px и на 1280px
+ *     дерево доступности одинаковое (table: 1, row: 9, cell: 35,
+ *     rowheader: 7, columnheader: 9). Поэтому дублировать роли в разметке
+ *     не нужно — она остаётся одной на все ширины;
+ *   • правка данных остаётся в одном месте — src/data/prices.ts.
+ *
+ * Порядок описания — mobile first: карточки описаны как база, а «настоящая»
+ * таблица включается от 48rem. Правила ниже сгруппированы в max-width: они
+ * отменяют табличную раскладку ровно на телефоне.
+ */
+@media (max-width: 47.999rem) {
+  /* Обёртка больше не скролл-контейнер: карточки не шире экрана */
+  .price-table-wrap {
+    overflow-x: visible;
+    border: 0;
+    border-radius: 0;
+    background: none;
+  }
+
+  .price-table {
+    display: block;
+    min-inline-size: 0;
+  }
+
+  /* Шапка таблицы скрыта визуально, но остаётся в дереве доступности:
+     нужна тем, кто читает таблицу как таблицу (роли расставлены в разметке) */
+  .price-table thead {
+    display: block;
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .price-table tbody,
+  .price-table tr,
+  .price-table th,
+  .price-table td {
+    display: block;
+  }
+
+  .price-table tr {
+    padding: var(--s4) var(--s5);
+    border: var(--bw) solid var(--line);
+    border-radius: var(--r-md);
+    background: var(--surface);
+  }
+
+  .price-table tr + tr {
+    margin-block-start: var(--s3);
+  }
+
+  .price-table tbody tr:last-child th,
+  .price-table tbody tr:last-child td {
+    border-block-end: 0;
+  }
+
+  /* Заголовок карточки: диапазон площади или название тарифа */
+  .price-table tbody th {
+    margin-block-end: var(--s3);
+    padding: 0 0 var(--s3);
+    border-block-end: var(--bw) solid var(--line);
+    font-size: var(--fs-base);
+    white-space: normal;
+  }
+
+  /* Строка «тариф — цена»: подпись из data-label слева, цена справа.
+     Подпись мельче цены (fs-xs против fs-sm) и не жирная: только так
+     длинное «Redovno održavanje · Standard» укладывается в одну строку с
+     ценой, и карточка остаётся компактной (325px высоты против 190px). */
+  .price-table td {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--s3);
+    padding-block: var(--s1);
+    border-block-end: 0;
+    text-align: end;
+    font-weight: 700;
+  }
+
+  .price-table td::before {
+    content: attr(data-label);
+    flex: 1;
+    min-inline-size: 0;
+    overflow-wrap: break-word;
+    color: var(--ink-soft);
+    font-size: var(--fs-xs);
+    font-weight: 400;
+    line-height: 1.45;
+    text-align: start;
+  }
+
+  .price-table td:not([data-label])::before {
+    content: none;
+  }
+
+  /* Подсветка популярного тарифа: в таблице это была колонка, в карточке —
+     строка, поэтому красим подпись, а не ячейку целиком. */
+  .price-table td[data-popular]::before {
+    color: var(--brand-strong);
+    font-weight: 700;
+  }
+
+  .price-table [data-popular] {
+    background: none;
+  }
+
+  .price-table tr[data-popular] {
+    background: var(--brand-soft);
+  }
+}
+
 /* ==================== Табы чек-листа ==================== */
 
 .tabs__list {
@@ -153,9 +278,11 @@
     color var(--dur-fast) var(--ease);
 }
 
-.tabs__tab:hover {
-  border-color: var(--brand-ring);
-  color: var(--ink);
+@media (hover: hover) {
+  .tabs__tab:hover {
+    border-color: var(--brand-ring);
+    color: var(--ink);
+  }
 }
 
 .tabs__tab[aria-selected='true'] {

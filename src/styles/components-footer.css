@@ -14,6 +14,21 @@
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
 }
 
+/* На телефоне пять секций подвала в одну колонку давали 1104px высоты.
+   Две колонки для списков ссылок сокращают это почти вдвое, а блок с
+   логотипом и описанием занимает всю ширину — так подвал читается как
+   оглавление, а не как длинная лента. */
+@media (max-width: 47.999rem) {
+  .footer__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--s8) var(--s6);
+  }
+
+  .footer__col:first-child {
+    grid-column: 1 / -1;
+  }
+}
+
 .footer__col h3 {
   margin-block-end: var(--s4);
   font-family: var(--font-body);
@@ -38,9 +53,11 @@
   text-decoration: none;
 }
 
-.footer__col a:hover {
-  color: var(--brand);
-  text-decoration: underline;
+@media (hover: hover) {
+  .footer__col a:hover {
+    color: var(--brand);
+    text-decoration: underline;
+  }
 }
 
 .footer__about {
@@ -80,8 +97,17 @@
   inset-inline: 0;
   z-index: 35;
   display: flex;
+  align-items: center;
   gap: var(--s2);
-  padding: var(--s3) var(--gutter) calc(var(--s3) + env(safe-area-inset-bottom, 0px));
+  /* Высота задана токеном --sticky-h (tokens.css), и из того же числа
+     считается резерв под панель у body. Поэтому панель физически не может
+     оказаться выше отведённого ей места — а раньше могла: перенос подписи
+     на вторую строку делал бар 87px при резерве 72px.
+     env(safe-area-inset-bottom) добавляется к высоте, а не к паддингу:
+     так строка контента остаётся над индикатором «домой» на iPhone. */
+  block-size: calc(var(--sticky-h) + env(safe-area-inset-bottom, 0px));
+  padding-block: var(--s2);
+  padding-inline: var(--gutter);
   background: color-mix(in oklab, var(--bg) 92%, transparent);
   backdrop-filter: blur(14px);
   border-block-start: var(--bw) solid var(--line);
@@ -89,6 +115,7 @@
 
 .sticky-cta .btn {
   flex: 1;
+  min-inline-size: 0;
 }
 
 @media (min-width: 62rem) {
@@ -104,8 +131,14 @@
 
 .cookie {
   position: fixed;
-  inset-block-end: var(--s4);
-  inset-inline-start: var(--s4);
+  /* Баннер поднимается НАД закреплённой панелью действий: раньше он стоял в
+     16px от низа и накрывал её на 71px — то есть пока показывался баннер,
+     главная кнопка сайта была недоступна. */
+  inset-block-end: calc(var(--sticky-h) + var(--s3));
+  /* Обе горизонтальные привязки: на телефоне баннер растягивается по ширине
+     с одинаковыми полями (раньше при одной привязке он упирался в правый
+     край экрана без отступа). */
+  inset-inline: var(--s4);
   z-index: 45;
   display: none;
   max-inline-size: 26rem;
@@ -115,6 +148,26 @@
   border-radius: var(--r-md);
   box-shadow: var(--shadow-lg);
   font-size: var(--fs-sm);
+}
+
+/* От планшета и шире баннер возвращается в левый нижний угол, как в макете */
+@media (min-width: 48rem) {
+  .cookie {
+    inset-inline-end: auto;
+  }
+}
+
+/* С 62rem панель действий скрыта — подниматься над ней не нужно.
+   При выключенной панели (data-sticky='off') баннер у нижнего края на любом
+   экране, поэтому правило вынесено из media query. */
+@media (min-width: 62rem) {
+  .cookie {
+    inset-block-end: var(--s4);
+  }
+}
+
+[data-sticky='off'] .cookie {
+  inset-block-end: var(--s4);
 }
 
 .cookie[data-visible='true'] {

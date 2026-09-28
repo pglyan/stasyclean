@@ -38,6 +38,19 @@
   transition: border-color var(--dur-fast) var(--ease);
 }
 
+/* iOS Safari зумит страницу, когда фокус попадает в поле со шрифтом меньше
+   16px: страница «прыгает», часть формы уезжает за край экрана, а обратно
+   масштаб не возвращается. Поэтому на телефоне кегль полей — минимум 1rem.
+   max() оставляет запас: если тема поднимет --fs-sm, поле вырастет вместе
+   с ним, а не останется прибитым к 16px. */
+@media (max-width: 47.999rem) {
+  .form__input,
+  .form__textarea,
+  .form__select {
+    font-size: max(1rem, var(--fs-sm));
+  }
+}
+
 .form__input:focus,
 .form__textarea:focus,
 .form__select:focus {
@@ -162,9 +175,11 @@
   color: var(--brand-ink);
 }
 
-.cta-band .btn--ghost:hover {
-  background: color-mix(in oklab, var(--brand-ink) 14%, transparent);
-  color: var(--brand-ink);
+@media (hover: hover) {
+  .cta-band .btn--ghost:hover {
+    background: color-mix(in oklab, var(--brand-ink) 14%, transparent);
+    color: var(--brand-ink);
+  }
 }
 
 /* ==================== Юридические страницы ==================== */

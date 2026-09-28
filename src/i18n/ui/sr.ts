@@ -27,6 +27,9 @@ export const sr = {
     back: 'Na početnu',
     menu: 'Meni',
     close: 'Zatvori',
+    /** Kratke oznake za fiksiranu traku na telefonu (vidi ru.ts). */
+    bookShort: 'Zakaži',
+    calcShort: 'Izračunaj',
   },
 
   price: {

@@ -29,9 +29,11 @@
     transform var(--dur-fast) var(--ease);
 }
 
-.btn:hover {
-  background: var(--btn-bg-hover);
-  color: var(--btn-ink);
+@media (hover: hover) {
+  .btn:hover {
+    background: var(--btn-bg-hover);
+    color: var(--btn-ink);
+  }
 }
 
 .btn:active {
@@ -55,10 +57,14 @@
   color: var(--ink);
 }
 
-.btn--ghost:hover {
-  background: var(--surface-2);
-  border-color: var(--ink-soft);
-  color: var(--ink);
+/* Вторичная кнопка при наведении — только там, где есть указатель: на тач-
+   экране :hover остаётся после тапа. См. base.css. */
+@media (hover: hover) {
+  .btn--ghost:hover {
+    background: var(--surface-2);
+    border-color: var(--ink-soft);
+    color: var(--ink);
+  }
 }
 
 .btn--block {
@@ -68,6 +74,16 @@
 .btn__icon {
   inline-size: 1.125em;
   block-size: 1.125em;
+}
+
+/* Подпись кнопки отдельным элементом: только блочный контейнер умеет
+   многоточие, а текст-узел — нет. Нужно там, где место ограничено жёстко —
+   в закреплённой панели на телефоне, где ширина кнопки задана барышем. */
+.btn__label {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ==================== Карточки ==================== */
@@ -87,10 +103,14 @@
     transform var(--dur) var(--ease);
 }
 
-.card--interactive:hover {
-  border-color: var(--card-line-hover);
-  box-shadow: var(--card-shadow-hover);
-  transform: translateY(var(--card-lift));
+/* Карточка «поднимается» только под указателем. На тач-экране этот подъём
+   оставался после тапа — выглядело как застрявшее состояние. */
+@media (hover: hover) {
+  .card--interactive:hover {
+    border-color: var(--card-line-hover);
+    box-shadow: var(--card-shadow-hover);
+    transform: translateY(var(--card-lift));
+  }
 }
 
 .card__title {
@@ -172,9 +192,14 @@
 
 .price-row {
   display: flex;
+  /* Перенос строки — страховка для 320px: «1 500 – 3 000 RSD» не влезает
+     рядом с наименованием («Обеспыливание стен»), и без wrap цена уезжала
+     за край экрана, давая горизонтальный скролл всей странице. На широких
+     экранах места хватает, и перенос не срабатывает. */
+  flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
-  gap: var(--s4);
+  gap: var(--s2) var(--s4);
   padding-block: var(--s3);
   border-block-end: var(--bw) dashed var(--line);
 }
@@ -184,6 +209,9 @@
 }
 
 .price-row__name {
+  /* Наименование сжимается и переносится по словам, а не выталкивает цену */
+  min-inline-size: 0;
+  overflow-wrap: break-word;
   color: var(--ink);
 }
 
@@ -196,6 +224,19 @@
   font-family: var(--font-heading);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+  text-align: end;
+  /* Если значение всё-таки перенеслось на свою строку (узкий экран),
+     прижимаем его вправо — как в табличном прайсе. */
+  margin-inline-start: auto;
+}
+
+/* Числовые значения (цены) не переносим никогда: «12.000 RSD», разорванное
+   на две строки, читается хуже и ломает сравнение по вертикали.
+   Текстовые значения (например «4–8 sati, zavisno od stanja i kvadrature»)
+   наоборот обязаны переноситься: с nowrap они давали 315px при ширине
+   карточки 288px и уезжали за край экрана — horizontal scroll на всех
+   страницах услуг. Поэтому nowrap теперь опционален и ставится модификатором. */
+.price-row__value--num {
   white-space: nowrap;
 }
 
@@ -259,4 +300,82 @@
   background: var(--brand-soft);
   color: var(--ink);
   font-size: var(--fs-sm);
+}
+
+/* ==================== Минимумы для тач-ввода ==================== */
+/**
+ * Одно место на все компактные элементы сайта.
+ *
+ * Правило: на телефоне любая цель нажатия не меньше 44×44px (Apple HIG,
+ * Material Design, WCAG 2.5.8 «Target Size»). Держим его здесь, а не в
+ * каждом блоке отдельно: иначе «Подробнее» в карточке услуги становилось
+ * 34px, переключатель языка — 38×29px, а ссылки подвала — 21px высотой.
+ *
+ * Почему min-width 48rem: на десктопе плотная сетка выглядит собраннее,
+ * и курсор точнее пальца, поэтому размеры остаются прежними.
+ *
+ * Почему min-block-size, а не padding: высота не зависит от длины подписи
+ * и от плотности (data-density), значит цель гарантированно не «сдуется»
+ * при compact.
+ */
+@media (max-width: 47.999rem) {
+  .btn,
+  .chip,
+  .tabs__tab,
+  .lang__item,
+  .footer__col a,
+  .service-card__name a,
+  /* Логотип в шапке — ссылка на главную: 158×36px, то есть по высоте меньше
+     нормы. Правим высоту, не трогая размер знака и текста. */
+  a.brand,
+  /* Согласие на обработку данных — это <label>, внутри которого чекбокс
+     18×18px. Реальная цель нажатия — весь label, поэтому высоту задаём ему,
+     а не чекбоксу (увеличивать сам квадрат нельзя: он сломает сетку полей). */
+  .form__consent {
+    min-block-size: 2.75rem;
+  }
+
+  /* У строчных ссылок min-block-size не работает — их нужно сделать
+     flex-контейнером, иначе высота остаётся по строке текста.
+     display: flex (а не inline-flex) — потому что inline-flex ужимается по
+     содержимому: длинное слово в узкой колонке подвала (в русской версии
+     колонка всего 132px) выталкивало её за край экрана и давало скролл всей
+     странице. Блочный flex всегда равен колонке. */
+  .lang__item,
+  .footer__col a,
+  .service-card__name a {
+    display: flex;
+    align-items: center;
+  }
+
+  /* Длинные слова в подвале переносим: anywhere, в отличие от break-word,
+     уменьшает и минимальную ширину содержимого, поэтому ссылка действительно
+     ужимается, а не уезжает за край. */
+  .footer__col a {
+    overflow-wrap: anywhere;
+  }
+
+  .chip,
+  .tabs__tab {
+    padding-inline: var(--s4);
+  }
+
+  /* Ссылки на услуги внутри меню: 41px по высоте из-за padding s2.
+     Поднимаем до нормы — это самые частые переходы в мобильном меню. */
+  .drawer__sub a {
+    min-block-size: 2.75rem;
+  }
+
+  /* Ползунки: сама полоса тонкая, но зона захвата должна быть палец-размером,
+     иначе «поймать» бегунок часов или границу «до/после» невозможно. */
+  .range,
+  .ba__range {
+    block-size: 2.75rem;
+  }
+
+  /* Ссылки в подвале растут за счёт высоты, поэтому вертикальный зазор между
+     ними уменьшаем — иначе подвал становится вдвое длиннее. */
+  .footer__col ul {
+    gap: var(--s1);
+  }
 }

@@ -3,7 +3,7 @@ import { formatPrice, type Locale } from '../../i18n/config';
 import { href } from '../../i18n/routes';
 import { useUI } from '../../i18n/ui';
 import { getService } from '../../data/services';
-import { hourlyRate, plansForService } from '../../data/prices';
+import { AREA_TIERS, areaUnit, hourlyRate, plansForService } from '../../data/prices';
 import { getChecklist } from '../../data/checklists';
 import type { ServiceKey } from '../../i18n/routes';
 
@@ -31,6 +31,16 @@ const service = getService(serviceKey);
 const servicePlans = plansForService(serviceKey);
 const checklist = getChecklist(serviceKey);
 const isHourly = service.priceUnit === 'hour';
+
+/**
+ * Подписи колонок по площади — один источник на две задачи: заголовок
+ * столбца в таблице (планшет и десктоп) и подпись строки в мобильной
+ * карточке (data-label, см. components-blocks-b.css).
+ *
+ * Раньше это были шесть захардкоженных <th> вида «40 m²»: при правке
+ * AREA_TIERS они расходились с данными, а локаль не учитывалась вовсе.
+ */
+const areaLabels = AREA_TIERS.map((tier) => `${tier} ${areaUnit[locale]}`);
 ---
 
 <section class="section">
@@ -59,12 +69,15 @@ const isHourly = service.priceUnit === 'hour';
           <div class="price-list">
             <div class="price-row">
               <span class="price-row__name">{ui.calc.hoursLabel}</span>
+              {/* Длительность — текст, а не число: на 360px фраза вида
+                  «4–8 sati, zavisno od stanja i kvadrature» в одну строку
+                  шире карточки, поэтому значение переносится по словам. */}
               <span class="price-row__value">{service.duration[locale]}</span>
             </div>
             {service.minOrder !== null && (
               <div class="price-row">
                 <span class="price-row__name">{ui.price.minimum}</span>
-                <span class="price-row__value">
+                <span class="price-row__value price-row__value--num">
                   {isHourly
                     ? `${hourlyRate.minimumHours} × ${formatPrice(hourlyRate.price, locale)}`
                     : formatPrice(service.minOrder, locale)}
@@ -115,20 +128,17 @@ const isHourly = service.priceUnit === 'hour';
           <thead>
             <tr>
               <th scope="col">{ui.price.included}</th>
-              <th scope="col">40 m²</th>
-              <th scope="col">60 m²</th>
-              <th scope="col">80 m²</th>
-              <th scope="col">100 m²</th>
-              <th scope="col">120 m²</th>
-              <th scope="col">150 m²</th>
+              {areaLabels.map((label) => (
+                <th scope="col">{label}</th>
+              ))}
             </tr>
           </thead>
           <tbody>
             {servicePlans.map((plan) => (
               <tr data-popular={plan.popular ? '' : undefined}>
                 <th scope="row">{plan.name[locale]}</th>
-                {plan.tiers.map((price) => (
-                  <td>{formatPrice(price, locale)}</td>
+                {plan.tiers.map((price, index) => (
+                  <td data-label={areaLabels[index]}>{formatPrice(price, locale)}</td>
                 ))}
               </tr>
             ))}

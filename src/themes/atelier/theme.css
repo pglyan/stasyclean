@@ -72,12 +72,20 @@
   letter-spacing: 0.12em;
 }
 
-[data-skin='atelier'] .nav__link:hover,
 [data-skin='atelier'] .nav__link[aria-current='page'] {
   background: transparent;
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 0.4em;
+}
+
+@media (hover: hover) {
+  [data-skin='atelier'] .nav__link:hover {
+    background: transparent;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.4em;
+  }
 }
 
 [data-skin='atelier'] .site-header,

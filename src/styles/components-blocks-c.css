@@ -59,9 +59,11 @@
     color var(--dur-fast) var(--ease);
 }
 
-.chip:hover {
-  border-color: var(--brand-ring);
-  color: var(--ink);
+@media (hover: hover) {
+  .chip:hover {
+    border-color: var(--brand-ring);
+    color: var(--ink);
+  }
 }
 
 .chip[aria-pressed='true'] {
@@ -91,8 +93,10 @@
   transition: border-color var(--dur-fast) var(--ease);
 }
 
-.check:hover {
-  border-color: var(--brand-ring);
+@media (hover: hover) {
+  .check:hover {
+    border-color: var(--brand-ring);
+  }
 }
 
 .check:has(input:checked) {
@@ -275,4 +279,42 @@
   display: grid;
   gap: var(--s6);
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+}
+
+/* ==================== Калькулятор на телефоне ==================== */
+/**
+ * Панель результата «едет» вместе с прокруткой опций.
+ *
+ * Без этого после каждой правки чипа нужно было прокручивать экран вниз,
+ * чтобы увидеть новую сумму: список дополнительных задач сам занимает около
+ * экрана, а панель стоит после него.
+ *
+ * display: block у .calc — обязательное условие: в одноколоночной сетке
+ * строка равна высоте самого элемента, и «прилипать» ему некуда. Подвал
+ * от этого не съезжает: второй колонки на телефоне всё равно нет.
+ *
+ * Правила стоят В КОНЦЕ файла, а не рядом с описанием .calc: при равной
+ * специфичности выигрывает то, что ниже, и мобильные переопределения
+ * (padding, кегль итога) должны идти после базовых.
+ */
+@media (max-width: 47.999rem) {
+  .calc {
+    display: block;
+  }
+
+  .calc__result {
+    position: sticky;
+    inset-block-end: calc(var(--sticky-h) + var(--s2));
+    z-index: 1;
+    margin-block-start: var(--s8);
+    box-shadow: var(--shadow-lg);
+    /* Компактнее, чем на десктопе: прилипшая панель занимает место на
+       экране, и каждые лишние 40px высоты — это минус карточка опций
+       на виду (панель была 275px, стала ~230px). */
+    padding: var(--s4) var(--s5);
+  }
+
+  .calc__total {
+    font-size: var(--fs-h3);
+  }
 }

@@ -69,6 +69,8 @@ const whatsappUrl = site.phone
             name="name"
             type="text"
             autocomplete="name"
+            autocapitalize="words"
+            enterkeyhint="next"
             required
             data-field="name"
           />
@@ -77,12 +79,19 @@ const whatsappUrl = site.phone
 
         <div class="form__field">
           <label class="form__label" for="booking-contact">{ui.form.contact}</label>
+          {/*
+            type остаётся text, хотя поле и принимает телефон: в него можно
+            написать и ник в Telegram, а tel-клавиатура на телефоне показывает
+            только цифры и «+». Подсказка ниже прямо говорит об этом.
+            enterkeyhint — чтобы клавиатура предлагала «Далее», а не «Готово».
+          */}
           <input
             class="form__input"
             id="booking-contact"
             name="contact"
             type="text"
             autocomplete="tel"
+            enterkeyhint="next"
             required
             data-field="contact"
           />
@@ -100,13 +109,15 @@ const whatsappUrl = site.phone
             name="district"
             type="text"
             placeholder={ui.form.addressPlaceholder}
+            autocapitalize="sentences"
+            enterkeyhint="next"
             data-field="district"
           />
         </div>
 
         <div class="form__field">
           <label class="form__label" for="booking-date">{ui.form.date}</label>
-          <input class="form__input" id="booking-date" name="date" type="date" data-field="date" />
+          <input class="form__input" id="booking-date" name="date" type="date" enterkeyhint="next" data-field="date" />
         </div>
 
         <div class="form__field">
@@ -124,6 +135,7 @@ const whatsappUrl = site.phone
           id="booking-comment"
           name="comment"
           placeholder={ui.form.commentPlaceholder}
+          enterkeyhint="done"
           data-field="comment"
         ></textarea>
       </div>

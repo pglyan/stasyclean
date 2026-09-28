@@ -27,8 +27,22 @@
 .site-header__inner {
   display: flex;
   align-items: center;
-  gap: var(--s6);
+  /* На 320px шапка — самое узкое место страницы: логотип (158px), кнопки
+     (44px) и паддинги давали 392px контента при 320px экрана, из-за чего
+     страница получала горизонтальный скролл, а мобильный браузер показывал
+     её уменьшенной. Поэтому зазор здесь s3, и он же остаётся на всех
+     ширинах: лишние пиксели между логотипом и действиями не нужны нигде. */
+  gap: var(--s3);
   min-block-size: 4.5rem;
+}
+
+/* Переключатель языка переезжает в меню-«шторку» на всём мобильном диапазоне.
+   Причина: на 360px он занимал 122px — треть шапки, — хотя те же три ссылки
+   есть в .drawer__foot и в подвале. Экономия места уходит кнопке меню. */
+@media (max-width: 47.999rem) {
+  .site-header .lang {
+    display: none;
+  }
 }
 
 .site-header__actions {
@@ -53,8 +67,10 @@
   white-space: nowrap;
 }
 
-.brand:hover {
-  color: var(--ink);
+@media (hover: hover) {
+  .brand:hover {
+    color: var(--ink);
+  }
 }
 
 .brand__mark {
@@ -70,6 +86,17 @@
 .brand__mark svg {
   inline-size: 1.25rem;
   block-size: 1.25rem;
+}
+
+/* Имя бренда — единственный «резиновый» элемент шапки: если места не хватит
+   (узкий экран, крупный системный шрифт, увеличенный кегль в настройках
+   телефона), оно ужимается с многоточием, а не выталкивает кнопку меню
+   за пределы экрана и не создаёт горизонтальный скролл. */
+.brand__name {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ---------- Навигация ---------- */
@@ -106,9 +133,11 @@
   transition: background-color var(--dur-fast) var(--ease);
 }
 
-.nav__link:hover {
-  background: var(--surface-2);
-  color: var(--ink);
+@media (hover: hover) {
+  .nav__link:hover {
+    background: var(--surface-2);
+    color: var(--ink);
+  }
 }
 
 .nav__link[aria-current='page'] {
@@ -169,9 +198,11 @@
   text-decoration: none;
 }
 
-.nav__menu a:hover {
-  background: var(--surface-2);
-  color: var(--ink);
+@media (hover: hover) {
+  .nav__menu a:hover {
+    background: var(--surface-2);
+    color: var(--ink);
+  }
 }
 
 /* ---------- Переключатель языка ---------- */
@@ -195,9 +226,11 @@
   text-decoration: none;
 }
 
-.lang__item:hover {
-  background: var(--surface-2);
-  color: var(--ink);
+@media (hover: hover) {
+  .lang__item:hover {
+    background: var(--surface-2);
+    color: var(--ink);
+  }
 }
 
 .lang__item[aria-current='true'] {
@@ -238,12 +271,16 @@
 .drawer {
   position: fixed;
   inset: 0;
-  z-index: 60;
+  /* Выше кнопки демо-панели (70) и ниже самой панели (80): открытое меню не
+     должно перекрываться «шестерёнкой» настройки — раньше она висела поверх. */
+  z-index: 75;
   display: flex;
   flex-direction: column;
   background: var(--bg);
   padding: var(--s6) var(--gutter) var(--gutter);
   overflow-y: auto;
+  /* Прокрутка меню не должна «пробиваться» на страницу под ним */
+  overscroll-behavior: contain;
   translate: 0 -100%;
   visibility: hidden;
   transition:

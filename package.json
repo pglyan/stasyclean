@@ -23,6 +23,8 @@
     "check:size": "node scripts/check-size.mjs",
     "check:clean": "node scripts/check-clean.mjs dist",
     "check:clean:demo": "node scripts/check-clean.mjs dist-demo",
+    "check:mobile": "node scripts/check-mobile.mjs dist",
+    "check:mobile:demo": "node scripts/check-mobile.mjs dist-demo /stasyclean/",
     "design": "node scripts/design.mjs",
     "make:og": "node scripts/make-og.mjs",
     "serve:prod": "node scripts/serve.mjs dist"

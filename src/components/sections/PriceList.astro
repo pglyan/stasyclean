@@ -39,7 +39,7 @@ const { locale, title, lead, lines, id, surface = false, withHead = true } = Ast
               <span class="price-row__unit"> · {unitLabels[line.unit][locale]}</span>
             )}
           </span>
-          <span class="price-row__value">
+          <span class="price-row__value price-row__value--num">
             {line.price !== undefined && formatPrice(line.price, locale)}
             {line.price === undefined && line.priceFrom !== undefined && line.priceTo !== undefined &&
               formatPriceRange(line.priceFrom, line.priceTo, locale)}

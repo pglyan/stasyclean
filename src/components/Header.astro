@@ -37,7 +37,7 @@ const isServicePage = ['general', 'regular', 'smart', 'reno', 'services'].includ
   <div class="container site-header__inner">
     <a class="brand" href={href(locale, 'home')}>
       <span class="brand__mark" aria-hidden="true"><Icon name="sparkles" /></span>
-      <span>{site.brand}</span>
+      <span class="brand__name">{site.brand}</span>
     </a>
 
     <nav class="nav" aria-label={ui.cta.menu}>
@@ -101,11 +101,19 @@ const isServicePage = ['general', 'regular', 'smart', 'reno', 'services'].includ
   </div>
 </header>
 
-<div class="drawer" id="mobile-menu" data-drawer hidden>
+<div
+  class="drawer"
+  id="mobile-menu"
+  data-drawer
+  role="dialog"
+  aria-modal="true"
+  aria-label={ui.cta.menu}
+  hidden
+>
   <div class="drawer__head">
     <span class="brand">
       <span class="brand__mark" aria-hidden="true"><Icon name="sparkles" /></span>
-      <span>{site.brand}</span>
+      <span class="brand__name">{site.brand}</span>
     </span>
     <button class="burger" type="button" aria-label={ui.cta.close} data-menu-close>
       <Icon name="close" width={2} />
@@ -171,11 +179,44 @@ const isServicePage = ['general', 'regular', 'smart', 'reno', 'services'].includ
       return;
     }
 
+    // Возвращаем фокус на кнопку меню: иначе после закрытия он остаётся
+    // «в никуда», и клавиатура со скринридером теряют место на странице.
+    openBtn.focus();
+
     // После анимации убираем панель из дерева доступности
     hideTimer = window.setTimeout(() => {
       if (!drawer.classList.contains('is-open')) drawer.hidden = true;
     }, 450);
   }
+
+  /**
+   * Ловушка фокуса внутри меню.
+   *
+   * aria-modal сообщает скринридеру, что за пределами меню ничего нет, но
+   * клавиатуру это не ограничивает: без ловушки Tab уводил фокус на ссылки
+   * страницы ПОД открытым меню. Список ссылок считаем на каждое нажатие —
+   * их состав зависит от языка и от того, с какой страницы открыто меню.
+   */
+  drawer?.addEventListener('keydown', (event) => {
+    if (event.key !== 'Tab') return;
+
+    const items = Array.from(
+      drawer.querySelectorAll<HTMLElement>('a[href], button:not([disabled])'),
+    ).filter((item) => item.getClientRects().length > 0);
+
+    if (!items.length) return;
+
+    const first = items[0];
+    const last = items[items.length - 1];
+
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  });
 
   openBtn?.addEventListener('click', () => setDrawer(true));
   closeBtn?.addEventListener('click', () => setDrawer(false));

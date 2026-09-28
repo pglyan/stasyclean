@@ -27,6 +27,9 @@ export const en = {
     back: 'Back to home',
     menu: 'Menu',
     close: 'Close',
+    /** Короткие подписи для закреплённой панели на телефоне (см. ru.ts). */
+    bookShort: 'Book',
+    calcShort: 'Calculate',
   },
 
   price: {

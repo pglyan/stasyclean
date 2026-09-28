@@ -17,6 +17,9 @@
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  /* Системная серая вспышка при тапе не нужна: роль отклика играют
+     собственные :active-состояния, а вспышка выглядит как артефакт. */
+  -webkit-tap-highlight-color: transparent;
   scroll-behavior: smooth;
   /* Фиксированная шапка не должна перекрывать якоря */
   scroll-padding-top: 6rem;
@@ -39,6 +42,10 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   min-block-size: 100dvh;
+  /* Вырез камеры и скруглённые углы: в ландшафте на «челке» контент иначе
+     уходит под вырез. Переменные непусты только вместе с viewport-fit=cover
+     (см. layouts/Base.astro), поэтому на обычных экранах это 0. */
+  padding-inline: env(safe-area-inset-left, 0px) env(safe-area-inset-right, 0px);
 }
 
 img,
@@ -62,6 +69,20 @@ select {
   color: inherit;
 }
 
+/* ---------- Тач-ввод ---------- */
+
+/* manipulation убирает задержку ~300 мс и двойной тап-зум на элементах
+   управления; щипковое масштабирование всей страницы при этом остаётся. */
+a,
+button,
+summary,
+label,
+input,
+select,
+textarea {
+  touch-action: manipulation;
+}
+
 button {
   background: none;
   border: 0;
@@ -74,8 +95,13 @@ a {
   text-underline-offset: 0.2em;
 }
 
-a:hover {
-  color: var(--brand);
+/* Ховер-состояния включаем только там, где есть настоящий указатель: на тач-
+   экране браузер оставляет :hover после тапа, и ссылка «залипает» в цвете
+   ховера до следующего касания. */
+@media (hover: hover) {
+  a:hover {
+    color: var(--brand);
+  }
 }
 
 /* ---------- Заголовки ---------- */
@@ -90,6 +116,20 @@ h4 {
   letter-spacing: var(--font-heading-tracking, var(--tracking-tight));
   text-wrap: balance;
   color: var(--ink);
+}
+
+/* Заголовок не должен выталкивать страницу за край экрана.
+   На 320px длинное слово («Конфиденциальности», «renoviranje») шире
+   колонки текста, и без переноса оно давало горизонтальный скролл всей
+   странице (замер: 361px контента при 320px экрана на юридической странице).
+   Правило включается только тогда, когда слово действительно не влезает. */
+@media (max-width: 47.999rem) {
+  h1,
+  h2,
+  h3,
+  h4 {
+    overflow-wrap: break-word;
+  }
 }
 
 h1 {

@@ -142,8 +142,10 @@
   font-weight: 800;
 }
 
-[data-skin='mila'] .btn:hover {
-  transform: translateY(2px);
+@media (hover: hover) {
+  [data-skin='mila'] .btn:hover {
+    transform: translateY(2px);
+  }
 }
 
 [data-skin='mila'] .btn--ghost {

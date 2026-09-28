@@ -34,7 +34,45 @@ const groups = SERVICE_KEYS.map((key) => ({
   plans: plans.filter((plan) => plan.serviceKey === key),
 })).filter((group) => group.plans.length > 0 && group.service.priceUnit === 'area');
 
-const columns = groups.flatMap((group) => group.plans);
+/**
+ * Колонки таблицы — тариф ВМЕСТЕ со своей услугой.
+ *
+ * Услуга нужна не самой таблице, а её виду на телефоне: там заголовки
+ * столбцов переезжают в data-label (см. components-blocks-b.css), и без
+ * названия услуги строка «Стандарт» рядом с «Премиум» из другой услуги
+ * перестала бы быть понятной.
+ */
+const columns = groups.flatMap((group) =>
+  group.plans.map((plan) => ({ plan, service: group.service })),
+);
+
+/** Подписи столбцов для мобильных карточек (см. components-blocks-b.css). */
+const columnLabel = (column: (typeof columns)[number]) => planLabel(column.plan, column.service);
+
+/**
+ * Подпись строки в мобильной карточке.
+ *
+ * На телефоне карточка — это диапазон площади, а внутри неё строки тарифов;
+ * подпись подставляется в каждую ячейку через data-label (::before), поэтому
+ * она повторяется на странице десятки раз и за её длиной стоит вес страницы.
+ *
+ * Название услуги добавляем только там, где без него тариф не опознать:
+ *   • «Стандарт» есть и в поддерживающей уборке, и в генеральной — тут
+ *     название услуги обязательно;
+ *   • «Премиум. Всё включено» в прайсе одно — хватает названия тарифа;
+ *   • «Уборка после ремонта · После ремонта» — тавтология, оставляем второе.
+ */
+function planLabel(plan: (typeof plans)[number], service: (typeof columns)[number]['service']) {
+  const name = plan.name[locale];
+  const serviceName = service.name[locale];
+
+  const collidesWithAnotherPlan = columns.some(
+    (column) => column.plan.id !== plan.id && column.plan.name[locale] === name,
+  );
+  const repeatsServiceName = serviceName.toLowerCase().includes(name.toLowerCase());
+
+  return collidesWithAnotherPlan && !repeatsServiceName ? `${serviceName} · ${name}` : name;
+}
 ---
 
 <section class="section section--surface" id="prices">
@@ -58,7 +96,7 @@ const columns = groups.flatMap((group) => group.plans);
             ))}
           </tr>
           <tr>
-            {columns.map((plan) => (
+            {columns.map(({ plan }) => (
               <th scope="col" data-popular={plan.popular ? '' : undefined}>
                 {plan.name[locale]}
               </th>
@@ -69,15 +107,23 @@ const columns = groups.flatMap((group) => group.plans);
           {AREA_TIERS.map((tier, index) => (
             <tr>
               <th scope="row">{areaUpTo[locale]} {formatNumber(tier, locale)} {areaUnit[locale]}</th>
-              {columns.map((plan) => (
-                <td data-popular={plan.popular ? '' : undefined}>
-                  {formatPrice(plan.tiers[index], locale)}
+              {columns.map((column) => (
+                <td
+                  data-label={columnLabel(column)}
+                  data-popular={column.plan.popular ? '' : undefined}
+                >
+                  {formatPrice(column.plan.tiers[index], locale)}
                 </td>
               ))}
             </tr>
           ))}
           <tr>
             <th scope="row">{areaOver[locale]} 150 {areaUnit[locale]}</th>
+            {/*
+              В этой строке все ячейки одинаковые («Подробнее»), поэтому подписи
+              для мобильных карточек не нужны: они пять раз повторяли бы одно
+              и то же и весили больше остальных строк вместе.
+            */}
             {columns.map(() => (
               <td>{ui.cta.details}</td>
             ))}
@@ -85,7 +131,7 @@ const columns = groups.flatMap((group) => group.plans);
         </tbody>
       </table>
       <p class="price-table__caption">
-        {columns.find((plan) => plan.popular)?.name[locale]} — {ui.price.popular.toLowerCase()}.
+        {columns.find(({ plan }) => plan.popular)?.plan.name[locale]} — {ui.price.popular.toLowerCase()}.
         {' '}
         {ui.calc.resultHint}
       </p>
