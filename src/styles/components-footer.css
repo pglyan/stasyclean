@@ -97,20 +97,8 @@
   }
 }
 
-:root[data-sticky='off'] .sticky-cta {
-  display: none;
-}
-
-/* Закреплённая кнопка не должна закрывать подвал на телефоне */
-@media (max-width: 61.999rem) {
-  body {
-    padding-block-end: 4.5rem;
-  }
-
-  :root[data-sticky='off'] body {
-    padding-block-end: 0;
-  }
-}
+/* Переключатель закреплённой кнопки (data-sticky) живёт в params.css:
+   это сквозной параметр оформления. Ниже — только внешний вид панели. */
 
 /* ==================== Баннер cookie ==================== */
 

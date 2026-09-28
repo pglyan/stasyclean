@@ -20,6 +20,7 @@
     "check:i18n": "node scripts/check-i18n.mjs dist",
     "check:i18n:demo": "node scripts/check-i18n.mjs dist-demo /stasyclean/",
     "check:size": "node scripts/check-size.mjs",
+    "design": "node scripts/design.mjs",
     "make:og": "node scripts/make-og.mjs",
     "serve:prod": "node scripts/serve.mjs dist"
   },

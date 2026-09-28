@@ -1,27 +1,36 @@
 /**
- * Дизайн-токены StasyClean.
+ * Дизайн-токены: инварианты.
  *
- * Принцип: у каждого визуального решения есть переменная, а у каждой переменной —
- * разумный дефолт. Всё, что заказчик может захотеть поменять, вынесено в токен,
- * поэтому демо-панель меняет ОДИН атрибут, а не переопределяет правила CSS.
+ * Принцип: у каждого визуального решения есть переменная, а у переменной —
+ * разумный дефолт. Здесь лежит то, что одинаково для ВСЕХ тем: сетка,
+ * шкала типографики, отступы, производные цвета, тени.
  *
- * Производные значения считаются через calc()/color-mix(), чтобы не дублировать
- * десятки цветов в каждой из пяти тем.
+ * Что где искать:
+ *   tokens.css (этот файл) — инварианты и дефолты;
+ *   params.css             — сквозные параметры (атрибут на <html> → переменные);
+ *   themes/<id>/theme.css  — палитра и графика конкретной темы.
+ *
+ * Производные значения считаются через calc()/color-mix(), поэтому одна
+ * смена акцента перекрашивает десятки мест без дублирования цветов.
  */
 
 :root {
   /* ---------- Типографика ---------- */
-  /* Шрифты self-hosted: 9 правил @font-face в styles/fonts.css,
-     браузер скачивает только субсеты с реально встречающимися символами. */
-  --font-sans: Manrope, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-display: Manrope, system-ui, sans-serif;
-  --font-serif: Lora, Georgia, 'Times New Roman', serif;
-  /* Вариант «без веб-шрифтов»: ноль загрузки, самый быстрый холодный старт */
+  /* Семейства объявлены здесь целиком, но @font-face для каждого подключает
+     только та тема, которой он нужен (src/fonts/<family>.css через
+     src/themes/<id>/theme.css). Поэтому «тема без веб-шрифтов» не везёт
+     ни одного woff2. */
+  --font-manrope: Manrope, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-lora: Lora, Georgia, 'Times New Roman', serif;
+  --font-playfair: 'Playfair Display', Lora, Georgia, serif;
+  --font-nunito: Nunito, Manrope, system-ui, sans-serif;
   --font-system: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-
-  --font-body: var(--font-sans);
-  --font-heading: var(--font-display);
   --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Что именно используется — задаёт параметр data-font / data-body-font
+     (params.css). Здесь только безопасные значения по умолчанию. */
+  --font-heading: var(--font-manrope);
+  --font-body: var(--font-manrope);
 
   --fs-xs: 0.8125rem;
   --fs-sm: 0.9375rem;
@@ -93,68 +102,29 @@
   --shadow-sm: 0 2px 6px hsl(var(--shadow-color) / 0.07);
   --shadow-md: 0 8px 24px -6px hsl(var(--shadow-color) / 0.14);
   --shadow-lg: 0 24px 60px -18px hsl(var(--shadow-color) / 0.24);
-}
 
-/* ==================== Настройки демо-панели ==================== */
-
-/* Шрифт заголовков */
-:root[data-font='display'] { --font-heading: var(--font-display); }
-:root[data-font='serif'] { --font-heading: var(--font-serif); }
-:root[data-font='system'] { --font-heading: var(--font-system); }
-
-/* Плотность */
-:root[data-density='compact'] { --d: 0.86; }
-:root[data-density='normal'] { --d: 1; }
-:root[data-density='spacious'] { --d: 1.18; }
-
-/* Стиль карточек */
-:root[data-card='flat'] {
-  --card-bg: transparent;
-  --card-bw: 0px;
-  --card-shadow: none;
-}
-:root[data-card='outline'] {
+  /* ---------- Карточки и кнопки ---------- */
+  /* Параметр (data-card, data-button — см. params.css) меняет только эти
+     переменные, а компоненты читают только их. Дефолты продублированы
+     здесь, чтобы разметка была валидной и без атрибутов — например,
+     в мини-превью темы внутри демо-панели. */
   --card-bg: var(--surface);
   --card-bw: 1px;
+  --card-line: var(--line);
   --card-shadow: none;
-}
-:root[data-card='shadow'] {
-  --card-bg: var(--surface);
-  --card-bw: 0px;
-  --card-shadow: var(--shadow-md);
-}
 
-/* Стиль кнопок */
-:root[data-button='solid'] {
   --btn-bg: var(--brand);
   --btn-ink: var(--brand-ink);
   --btn-bw: 0px;
+  --btn-line: var(--brand);
   --btn-bg-hover: var(--brand-hover);
-}
-:root[data-button='soft'] {
-  --btn-bg: var(--brand-soft);
-  --btn-ink: var(--brand-strong);
-  --btn-bw: 0px;
-  --btn-bg-hover: color-mix(in oklab, var(--brand) 22%, var(--surface));
-}
-:root[data-button='outline'] {
-  --btn-bg: transparent;
-  --btn-ink: var(--brand-strong);
-  --btn-bw: 1.5px;
-  --btn-bg-hover: var(--brand-soft);
+
+  /* «Жёсткие» приёмы тем-бруталистов: одна толщина и один сдвиг на тему */
+  --hard-bw: 2px;
+  --hard-shadow: 4px 4px 0;
 }
 
-/* Ширина контейнера */
-:root[data-container='normal'] { --container: 1200px; }
-:root[data-container='wide'] { --container: 1360px; }
-
-/* Отключение анимаций: из панели или по системной настройке */
-:root[data-motion='off'] {
-  --dur-fast: 0ms;
-  --dur: 0ms;
-  --dur-slow: 0ms;
-}
-
+/* Отключение анимаций по системной настройке */
 @media (prefers-reduced-motion: reduce) {
   :root {
     --dur-fast: 0ms;

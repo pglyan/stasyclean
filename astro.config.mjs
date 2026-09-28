@@ -1,5 +1,7 @@
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 
 /**
  * StasyClean — статический сайт клининговой компании (Белград).
@@ -30,6 +32,42 @@ import sitemap from '@astrojs/sitemap';
  * так демо-сборку нельзя собрать «наполовину».
  */
 const isDemo = process.env.PUBLIC_DEMO === 'on';
+
+/**
+ * Выбранный стиль для прод-сборки — design.config.json в корне.
+ *
+ * Читаем файл здесь, а не через импорт: конфиг обычный JSON, и его же
+ * читает src/data/activeDesign.ts для разметки и scripts/design.mjs для CLI.
+ * Отсюда берётся только id темы — он решает, какие CSS и шрифты попадут
+ * в сборку.
+ */
+const designConfig = JSON.parse(
+  readFileSync(new URL('./design.config.json', import.meta.url), 'utf8'),
+);
+const activeThemeId = designConfig.theme;
+
+/**
+ * Алиасы выбора темы.
+ *
+ * Задача: чтобы «много тем» было бесплатным для продакшена. В прод-сборке
+ * алиас указывает на файлы ОДНОЙ темы, поэтому в бандл попадают только её
+ * CSS и только её шрифты — остальные темы физически не существуют в dist.
+ * В демо алиас ведёт на «сводные» входы со всеми темами: стенду нужно
+ * переключать тему в браузере.
+ *
+ * Проверка, что в прод-артефактах нет чужих тем, — scripts/check-clean.mjs.
+ */
+const themeEntry = (path) => fileURLToPath(new URL(path, import.meta.url));
+
+const themeAlias = isDemo
+  ? {
+      '@skin': themeEntry('./src/themes/all.css'),
+      '@theme': themeEntry('./src/themes/entries/all.ts'),
+    }
+  : {
+      '@skin': themeEntry(`./src/themes/${activeThemeId}/theme.css`),
+      '@theme': themeEntry(`./src/themes/entries/${activeThemeId}.ts`),
+    };
 
 const PROD_ORIGIN = 'https://stasyclean.com';
 const DEMO_ORIGIN = 'https://pglyan.github.io';
@@ -115,4 +153,13 @@ export default defineConfig({
   ],
 
     devToolbar: { enabled: false },
+
+  /**
+   * Алиасы выбора темы (см. комментарий выше): @skin — CSS темы,
+   * @theme — её шрифты для предзагрузки. Оба подменяются на сборке,
+   * поэтому в прод-артефакт попадает ровно одна тема.
+   */
+  vite: {
+    resolve: { alias: themeAlias },
+  },
 });

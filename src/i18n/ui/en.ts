@@ -139,6 +139,7 @@ export const en = {
     accent: 'Accent colour',
     radius: 'Corner radius',
     font: 'Heading font',
+    bodyFont: 'Body font',
     density: 'Block density',
     card: 'Card style',
     button: 'Button style',

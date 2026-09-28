@@ -1,0 +1,14 @@
+{
+  "theme": "fresh",
+  "accentHue": null,
+  "radius": null,
+  "density": "normal",
+  "headingFont": null,
+  "bodyFont": null,
+  "card": "outline",
+  "button": "solid",
+  "container": "normal",
+  "hero": "split",
+  "motion": "on",
+  "stickyCta": "on"
+}

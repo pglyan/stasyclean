@@ -3,17 +3,19 @@ import type { Locale } from '../../i18n/config';
 import { LOCALE_META } from '../../i18n/config';
 import { href, type PageKey } from '../../i18n/routes';
 import { useUI } from '../../i18n/ui';
+import type { Localized } from '../../data/types';
+import { themePresets } from '../../data/themes';
 import {
   accentOptions,
   buttonOptions,
   cardOptions,
   containerOptions,
   densityOptions,
-  displayOptions,
+  fontOptions,
   heroOptions,
   radiusOptions,
-  themePresets,
-} from '../../data/themes';
+} from '../../data/designOptions';
+import { designForBuild } from '../../data/activeDesign';
 
 import Icon from '../ui/Icon.astro';
 
@@ -28,13 +30,18 @@ import panelCss from '../../styles/components-panel.css?raw';
  * Панель демонстрационных настроек.
  *
  * Рендерится только в демо-сборке: Base.astro импортирует компонент
- * динамически под условием `__DEMO_MODE__`, поэтому в прод-версию
+ * динамически под константным условием `PUBLIC_DEMO`, поэтому в прод-версию
  * ни разметка, ни скрипт панели не попадают вообще.
  *
  * Настройки применяются двумя способами:
- *   attr:data-*    — атрибут на <html> (тема, шрифт, плотность, карточки);
+ *   attr:data-*    — атрибут на <html> (тема, шрифты, плотность, карточки…);
  *   style:--token  — inline CSS-переменная (акцентный тон, радиус).
- * Поэтому акцент комбинируется с любой темой, а не переопределяет её.
+ * Поэтому ослабленный выбор комбинируется с любой темой, а не переопределяет её.
+ *
+ * Тема — это целый стиль оформления, а не палитра: у неё свои умолчания
+ * (радиус, шрифты, карточки, раскладка первого экрана) и свой CSS
+ * (src/themes/<id>/theme.css). При выборе темы панель подставляет её
+ * умолчания — но только для тех настроек, которые заказчик не трогал вручную.
  */
 
 interface Props {
@@ -45,18 +52,16 @@ interface Props {
 const { locale, routeKey = 'home' } = Astro.props;
 const ui = useUI(locale);
 
-const defaults = {
-  theme: 'mint',
-  accent: '',
-  radius: '',
-  font: 'display',
-  density: 'normal',
-  card: 'outline',
-  button: 'solid',
-  container: 'normal',
-  hero: 'split',
-  motion: 'on',
-  sticky: 'on',
+/**
+ * Стартовое состояние стенда — выбранный дизайн из design.config.json.
+ * Заказчик открывает стенд и видит ровно то, что уедет в прод; его правки
+ * живут в localStorage, а «Сбросить» возвращает именно этот исходный вариант.
+ */
+const baked = designForBuild;
+const defaults: Record<string, string> = {
+  ...baked.attributes,
+  accent: baked.settings.accentHue === null ? '' : String(baked.settings.accentHue),
+  radius: baked.settings.radius === null ? '' : String(baked.settings.radius),
 };
 
 interface Option {
@@ -71,7 +76,17 @@ interface Group {
   setting: string;
   apply: string;
   options: Option[];
+  /** Группу фильтруем по списку шрифтов активной темы: чего нет — не показываем. */
+  filterByTheme?: 'heading' | 'body';
 }
+
+/** Подписи вариантов локализованы — стенд смотрят на трёх языках. */
+const toOptions = (options: { value: string | number; label: Localized; hue?: number }[]): Option[] =>
+  options.map((option) => ({
+    value: String(option.value),
+    label: option.label[locale],
+    hue: option.hue,
+  }));
 
 /** Группы настроек описываются данными — разметка остаётся компактной. */
 const groups: Group[] = [
@@ -79,53 +94,57 @@ const groups: Group[] = [
     label: ui.panel.accent,
     setting: 'accent',
     apply: 'style:--brand-h',
-    options: accentOptions.map((option) => ({
-      value: String(option.value),
-      label: option.label,
-      hue: option.value,
-    })),
+    options: toOptions(accentOptions),
   },
   {
     label: ui.panel.radius,
     setting: 'radius',
     apply: 'style:--radius:px',
-    options: radiusOptions.map((option) => ({ value: String(option.value), label: option.label })),
+    options: toOptions(radiusOptions),
   },
   {
     label: ui.panel.font,
     setting: 'font',
     apply: 'attr:data-font',
-    options: displayOptions.map((option) => ({ value: option.value, label: option.label })),
+    options: toOptions(fontOptions),
+    filterByTheme: 'heading',
+  },
+  {
+    label: ui.panel.bodyFont,
+    setting: 'body-font',
+    apply: 'attr:data-body-font',
+    options: toOptions(fontOptions),
+    filterByTheme: 'body',
   },
   {
     label: ui.panel.density,
     setting: 'density',
     apply: 'attr:data-density',
-    options: densityOptions.map((option) => ({ value: option.value, label: option.label })),
+    options: toOptions(densityOptions),
   },
   {
     label: ui.panel.card,
     setting: 'card',
     apply: 'attr:data-card',
-    options: cardOptions.map((option) => ({ value: option.value, label: option.label })),
+    options: toOptions(cardOptions),
   },
   {
     label: ui.panel.button,
     setting: 'button',
     apply: 'attr:data-button',
-    options: buttonOptions.map((option) => ({ value: option.value, label: option.label })),
+    options: toOptions(buttonOptions),
   },
   {
     label: ui.panel.width,
     setting: 'container',
     apply: 'attr:data-container',
-    options: containerOptions.map((option) => ({ value: option.value, label: option.label })),
+    options: toOptions(containerOptions),
   },
   {
     label: ui.panel.hero,
     setting: 'hero',
     apply: 'attr:data-hero',
-    options: heroOptions.map((option) => ({ value: option.value, label: option.label })),
+    options: toOptions(heroOptions),
   },
   {
     label: ui.panel.motion,
@@ -182,15 +201,24 @@ const groups: Group[] = [
             type="button"
             data-setting="theme"
             data-value={preset.id}
-            data-apply="attr:data-theme"
-            data-meta-radius={String(preset.radius)}
-            data-meta-font={preset.display}
-            title={preset.description}
+            data-apply="attr:data-skin"
+            data-meta-radius={String(preset.defaults.radius)}
+            data-meta-density={preset.defaults.density}
+            data-meta-font={preset.defaults.headingFont}
+            data-meta-body-font={preset.defaults.bodyFont}
+            data-meta-card={preset.defaults.card}
+            data-meta-button={preset.defaults.button}
+            data-meta-container={preset.defaults.container}
+            data-meta-hero={preset.defaults.hero}
+            data-meta-heading={preset.available.heading.join(',')}
+            data-meta-body={preset.available.body.join(',')}
+            data-kind={preset.kind}
+            title={preset.description[locale]}
           >
             <span class="panel__theme-swatch" aria-hidden="true">
               {preset.swatch.map((color) => <span style={`background:${color}`}></span>)}
             </span>
-            <span class="panel__theme-name">{preset.name}</span>
+            <span class="panel__theme-name">{preset.name[locale]}</span>
           </button>
         ))}
       </div>
@@ -199,7 +227,7 @@ const groups: Group[] = [
     {groups.map((group) => (
       <div class="panel__group">
         <span class="panel__label">{group.label}</span>
-        <div class="panel__options">
+        <div class="panel__options" data-filter={group.filterByTheme}>
           {group.options.map((option) => (
             <button
               class="panel__option"
@@ -220,6 +248,7 @@ const groups: Group[] = [
         </div>
       </div>
     ))}
+
     <div class="panel__group">
       <span class="panel__label">{ui.panel.language}</span>
       <div class="panel__options">
@@ -254,6 +283,7 @@ const groups: Group[] = [
   </div>
 </aside>
 
+
 <script>
   /**
    * Логика демо-панели.
@@ -272,7 +302,13 @@ const groups: Group[] = [
   const closeBtn = document.querySelector<HTMLButtonElement>('[data-panel-close]');
   const toast = document.querySelector<HTMLElement>('[data-panel-toast]');
 
-  const STORAGE_KEY = 'stasyclean:demo-settings';
+  /**
+   * Ключ хранилища версионирован: до перехода на темы-скины в нём лежали
+   * другие значения (data-theme='mint'), и такие записи нужно игнорировать,
+   * а не пытаться применить.
+   */
+  const STORAGE_VERSION = 2;
+  const STORAGE_KEY = 'stasyclean:demo:v2';
   const defaults: Record<string, string> = JSON.parse(panel?.dataset.defaults ?? '{}');
 
   if (new URLSearchParams(window.location.search).get('panel') === '0') openBtn?.remove();
@@ -290,14 +326,18 @@ const groups: Group[] = [
 
   function applyOne(setting: string, value: string) {
     const rule = APPLY[setting];
-    if (!rule || !value) return;
+    if (!rule) return;
 
     if (rule.startsWith('attr:')) {
-      root.setAttribute(rule.slice(5), value);
+      const attribute = rule.slice(5);
+      if (value) root.setAttribute(attribute, value);
+      else root.removeAttribute(attribute);
       return;
     }
+
     const [variable, unit = ''] = rule.slice(6).split(':');
-    root.style.setProperty(variable, unit ? `${value}${unit}` : value);
+    if (value) root.style.setProperty(variable, unit ? `${value}${unit}` : value);
+    else root.style.removeProperty(variable);
   }
 
   function syncPressed() {
@@ -311,10 +351,66 @@ const groups: Group[] = [
 
   function save() {
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ settings, touched }));
+      window.localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ version: STORAGE_VERSION, settings, touched }),
+      );
     } catch {
       /* приватный режим — просто не сохраняем */
     }
+  }
+
+  /**
+   * Умолчания темы: ключи совпадают с именами настроек, значения приходят
+   * из data-meta-* на кнопке темы.
+   */
+  const THEME_DEFAULT_KEYS: Record<string, string> = {
+    radius: 'metaRadius',
+    density: 'metaDensity',
+    font: 'metaFont',
+    'body-font': 'metaBodyFont',
+    card: 'metaCard',
+    button: 'metaButton',
+    container: 'metaContainer',
+    hero: 'metaHero',
+  };
+
+  /**
+   * Показываем только те шрифты, которые тема везёт с собой.
+   *
+   * Это не косметика: в прод-сборку попадают файлы шрифтов только выбранной
+   * темы. Если бы заказчик выбрал «Nunito» внутри темы без Nunito, после
+   * сборки он увидел бы другой шрифт и не понял, почему.
+   */
+  function syncThemeFonts(themeButton: HTMLElement) {
+    const allowed: Record<string, string[]> = {
+      heading: (themeButton.dataset.metaHeading ?? '').split(','),
+      body: (themeButton.dataset.metaBody ?? '').split(','),
+    };
+
+    document.querySelectorAll<HTMLElement>('[data-filter]').forEach((list) => {
+      const allow = allowed[list.dataset.filter ?? ''] ?? [];
+      list.querySelectorAll<HTMLElement>('[data-setting]').forEach((option) => {
+        option.hidden = !allow.includes(option.dataset.value ?? '');
+      });
+    });
+  }
+
+  /** Подставляет умолчания темы — но только то, что заказчик не трогал. */
+  function applyThemeDefaults(themeButton: HTMLElement) {
+    for (const [setting, key] of Object.entries(THEME_DEFAULT_KEYS)) {
+      if (touched.includes(setting)) continue;
+      const value = themeButton.dataset[key];
+      if (!value) continue;
+      settings[setting] = value;
+      applyOne(setting, value);
+    }
+
+    syncThemeFonts(themeButton);
+  }
+
+  function themeButtonOf(themeId: string) {
+    return document.querySelector<HTMLElement>(`[data-setting="theme"][data-value="${themeId}"]`);
   }
 
   function set(setting: string, value: string) {
@@ -322,18 +418,9 @@ const groups: Group[] = [
     applyOne(setting, value);
 
     if (setting === 'theme') {
-      // Тема приносит свои радиус и шрифт заголовков...
-      const themeButton = document.querySelector<HTMLElement>(
-        `[data-setting="theme"][data-value="${value}"]`,
-      );
-      if (!touched.includes('radius') && themeButton?.dataset.metaRadius) {
-        settings.radius = themeButton.dataset.metaRadius;
-        applyOne('radius', settings.radius);
-      }
-      if (!touched.includes('font') && themeButton?.dataset.metaFont) {
-        settings.font = themeButton.dataset.metaFont;
-        applyOne('font', settings.font);
-      }
+      // тема приносит свои умолчания...
+      const themeButton = themeButtonOf(value);
+      if (themeButton) applyThemeDefaults(themeButton);
     } else if (!touched.includes(setting)) {
       // ...но ручной выбор пользователя всегда приоритетнее
       touched.push(setting);
@@ -363,15 +450,20 @@ const groups: Group[] = [
     if (event.key === 'Escape' && panel?.classList.contains('is-open')) openPanel(false);
   });
 
-  /** Возврат стенда к исходному состоянию. */
+  /** Возврат стенда к выбранному дизайну (design.config.json). */
   document.querySelector('[data-panel-reset]')?.addEventListener('click', () => {
     settings = { ...defaults };
-    delete settings.accent;
-    delete settings.radius;
     touched = [];
+
+    // inline-переменные сначала снимаем, затем применяем сохранённые:
+    // так сброс работает и когда у дизайна акцент/радиус не переопределены
     root.style.removeProperty('--brand-h');
     root.style.removeProperty('--radius');
     Object.entries(settings).forEach(([key, value]) => applyOne(key, value));
+
+    const themeButton = themeButtonOf(settings.theme ?? '');
+    if (themeButton) syncThemeFonts(themeButton);
+
     syncPressed();
     save();
   });
@@ -381,21 +473,29 @@ const groups: Group[] = [
     const movable = ['theme', 'accent', 'radius', 'font', 'density', 'card', 'button', 'hero'];
 
     for (const setting of movable) {
-      const options = document.querySelectorAll<HTMLElement>(`[data-setting="${setting}"]`);
+      // берём только видимые варианты: набор шрифтов ограничен активной темой
+      const options = Array.from(
+        document.querySelectorAll<HTMLElement>(`[data-setting="${setting}"]`),
+      ).filter((option) => !option.hidden);
       if (!options.length) continue;
+
       const chosen = options[Math.floor(Math.random() * options.length)];
       set(setting, chosen.dataset.value ?? '');
     }
   });
 
-  /** Экспорт выбора: заказчик отправляет его менеджеру как есть. */
+  /**
+   * Экспорт выбора: JSON совпадает по ключам с design.config.json, поэтому
+   * его можно применить как есть — `npm run design -- apply <файл>`.
+   */
   document.querySelector('[data-panel-export]')?.addEventListener('click', async () => {
     const report = JSON.stringify(
       {
         theme: settings.theme,
-        accentHue: settings.accent || null,
-        radius: settings.radius || null,
-        headingFont: settings.font,
+        accentHue: settings.accent ? Number(settings.accent) : null,
+        radius: settings.radius ? Number(settings.radius) : null,
+        headingFont: settings.font ?? null,
+        bodyFont: settings['body-font'] ?? null,
         density: settings.density,
         card: settings.card,
         button: settings.button,
@@ -423,14 +523,25 @@ const groups: Group[] = [
   try {
     const stored = window.localStorage.getItem(STORAGE_KEY);
     if (stored) {
-      const parsed = JSON.parse(stored) as { settings?: Record<string, string>; touched?: string[] };
-      settings = { ...defaults, ...(parsed.settings ?? {}) };
-      touched = parsed.touched ?? [];
+      const parsed = JSON.parse(stored) as {
+        version?: number;
+        settings?: Record<string, string>;
+        touched?: string[];
+      };
+      if (parsed.version === STORAGE_VERSION) {
+        settings = { ...defaults, ...(parsed.settings ?? {}) };
+        touched = parsed.touched ?? [];
+      }
     }
   } catch {
     settings = { ...defaults };
   }
 
   Object.entries(settings).forEach(([key, value]) => applyOne(key, value));
+
+  const currentTheme = themeButtonOf(settings.theme ?? '');
+  if (currentTheme) syncThemeFonts(currentTheme);
+
   syncPressed();
 </script>
+

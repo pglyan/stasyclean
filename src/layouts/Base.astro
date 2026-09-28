@@ -12,13 +12,18 @@ import CookieNotice from '../components/CookieNotice.astro';
 import JsonLd from '../components/seo/JsonLd.astro';
 
 /**
- * Шрифты подключаем сами: файлы лежат в репозитории, правила @font-face —
- * в fonts.css. Сборка не ходит в сеть, а браузер скачивает только те
- * субсеты, символы которых реально есть на странице.
+ * Порядок подключения стилей важен:
+ *   1) tokens  — инварианты и дефолты переменных;
+ *   2) params  — сквозные параметры (акцент, плотность, карточки…);
+ *   3) base/layout/components — сами правила;
+ *   4) @skin   — CSS выбранной темы, поэтому её палитра перекрывает дефолты.
+ *
+ * @skin и @theme — алиасы из astro.config.mjs. В прод-сборке они ведут на
+ * файлы ОДНОЙ темы из design.config.json, в демо — на «все темы сразу»
+ * (src/themes/all.css и entries/all.ts).
  */
-import '../styles/fonts.css';
 import '../styles/tokens.css';
-import '../styles/themes.css';
+import '../styles/params.css';
 import '../styles/base.css';
 import '../styles/layout.css';
 import '../styles/components-core.css';
@@ -29,12 +34,15 @@ import '../styles/components-blocks-b.css';
 import '../styles/components-blocks-c.css';
 import '../styles/components-blocks-d.css';
 import '../styles/components-blocks-e.css';
+import '@skin';
 
-/* ?url отдаёт готовый адрес ассета: Vite сам добавит base демо-сборки
-   в подпапке /stasyclean/ и хеш содержимого для вечного кеша. */
-import manropeLatin from '../assets/fonts/manrope-latin.woff2?url';
-import manropeLatinExt from '../assets/fonts/manrope-latin-ext.woff2?url';
-import manropeCyrillic from '../assets/fonts/manrope-cyrillic.woff2?url';
+/**
+ * Данные выбранной темы для сборки: id темы и адреса субсетов её шрифтов.
+ * В прод-сборке это единственная тема, в демо — сводный список всех тем,
+ * чтобы панель могла предзагрузить субсет любого выбранного шрифта.
+ */
+import themeEntry from '@theme';
+import { designForBuild } from '../data/activeDesign';
 
 interface Props {
   locale: Locale;
@@ -95,13 +103,13 @@ const alternates = localeSwitchLinks(locale, routeKey).map((link) => ({
  * один предзагруженный файл ускоряет первую отрисовку и не конкурирует
  * за канал с остальными ресурсами. Остальные субсеты подтянутся сами,
  * когда браузер встретит их символы.
+ *
+ * Адреса берутся у выбранной темы (алиас @theme) и только для того
+ * семейства, которое реально используется: тема без веб-шрифтов не
+ * предзагружает ничего.
  */
-const headingFontByLocale: Record<Locale, string> = {
-  sr: manropeLatinExt, // č ć ž š đ живут в расширенной латинице
-  en: manropeLatin,
-  ru: manropeCyrillic,
-};
-const preloadFont = headingFontByLocale[locale];
+const themeFontUrls = themeEntry.fonts[designForBuild.headingFont];
+const preloadFont = themeFontUrls?.[locale];
 
 /**
  * Пока в проекте нет фотографий, вместо og:image используется
@@ -114,6 +122,19 @@ const ogImage = absolute(asset(`og/${locale}.png`));
 
 const demoMode = import.meta.env.PUBLIC_DEMO === 'on';
 
+/**
+ * Алиас @theme и design.config.json обязаны указывать на одну тему:
+ * первый выбирает CSS, второй — значения параметров. В демо алиас ведёт на
+ * сводный вход (id 'all'), потому что там тема меняется прямо в браузере.
+ */
+if (!demoMode && themeEntry.id !== designForBuild.theme.id) {
+  throw new Error(
+    `Расхождение темы: astro.config.mjs выбрал «${themeEntry.id}», ` +
+      `а design.config.json — «${designForBuild.theme.id}». ` +
+      'Пересоберите конфиг командой npm run design или проверьте алиас @theme.',
+  );
+}
+
 const DemoPanel = demoMode
   ? (await import('../components/demo/DemoPanel.astro')).default
   : null;
@@ -122,14 +143,8 @@ const DemoPanel = demoMode
 <!doctype html>
 <html
   lang={meta.htmlLang}
-  data-theme="mint"
-  data-font="display"
-  data-density="normal"
-  data-card="outline"
-  data-button="solid"
-  data-container="normal"
-  data-hero="split"
-  data-sticky="on"
+  {...designForBuild.attributes}
+  style={designForBuild.style || undefined}
 >
   <head>
     <meta charset="utf-8" />

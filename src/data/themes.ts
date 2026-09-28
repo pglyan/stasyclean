@@ -1,141 +1,165 @@
 /**
- * Пресеты тем и настройки демонстрационной панели.
+ * Реестр тем.
  *
- * Панель существует ТОЛЬКО в демо-сборке (PUBLIC_DEMO=on) — в прод-сборке
- * компонент панели и её скрипт не рендерятся вовсе, поэтому мультиязычный
- * статический сайт не платит за стенд ни одним байтом.
+ * Тема — это не палитра, а целый стиль оформления: свой графический язык,
+ * типографика, ритм секций и декор. Здесь лежат только *данные* темы —
+ * то, что нужно панели для показа и сборке для подстановки значений:
  *
- * Как это работает: пресет задаёт атрибут `data-theme` на <html>, а конкретные
- * значения токенов лежат в src/styles/themes.css. Отдельные настройки
- * (акцент, радиус, шрифт заголовков и т. д.) пишутся в inline CSS-переменные
- * и поэтому могут комбинироваться с любым пресетом.
+ *   name / description — локализованные подписи для заказчика;
+ *   swatch / layout    — паспорт темы в демо-панели;
+ *   defaults           — умолчания параметров (radius, шрифты, карточки…);
+ *   available          — какие шрифты тема разрешает (и, значит, везёт).
+ *
+ * Само оформление — в src/themes/<id>/theme.css. В прод-сборку попадает
+ * CSS только выбранной темы (см. алиас `@skin` в astro.config.mjs),
+ * поэтому длинный список тем не стоит продакшену ни одного байта.
  */
 
-export type DisplayKind = 'display' | 'serif' | 'system';
-
-export interface ThemePreset {
-  id: 'mint' | 'trust' | 'citrus' | 'sand' | 'nordic';
-  /** Название пресета для заказчика. */
-  name: string;
-  /** Одно предложение: какое ощущение создаёт пресет. */
-  description: string;
-  /** Цвета для мини-превью в панели: фон, акцент, текст. */
-  swatch: [string, string, string];
-  dark: boolean;
-  /** Шрифт заголовков по умолчанию для этого пресета. */
-  display: DisplayKind;
-  /** Базовый радиус по умолчанию, px. */
-  radius: number;
-}
+import type { ThemePreset } from '../themes/types';
 
 export const themePresets: ThemePreset[] = [
   {
-    id: 'mint',
-    name: 'Свежая мята',
-    description: 'Светлый, чистый, ассоциируется с эко-уборкой и свежестью.',
+    id: 'fresh',
+    name: { sr: 'Sveža menta', en: 'Fresh mint', ru: 'Свежая мята' },
+    description: {
+      sr: 'Svetao i čist izgled: asocira na eko čišćenje i svežinu.',
+      en: 'Light and clean: reads as eco cleaning and freshness.',
+      ru: 'Светлый, чистый, ассоциируется с эко-уборкой и свежестью.',
+    },
+    kind: 'light',
     swatch: ['#ffffff', '#12a87b', '#0b2b22'],
-    dark: false,
-    display: 'display',
-    radius: 16,
+    layout: 'split',
+    defaults: {
+      radius: 16,
+      density: 'normal',
+      headingFont: 'manrope',
+      bodyFont: 'manrope',
+      card: 'outline',
+      button: 'solid',
+      container: 'normal',
+      hero: 'split',
+    },
+    available: {
+      heading: ['manrope', 'lora', 'system'],
+      body: ['manrope', 'lora', 'system'],
+    },
   },
   {
     id: 'trust',
-    name: 'Глубокий синий',
-    description: 'Надёжность и сервис. Классика для сферы услуг, хорошо читается в рекламе.',
+    name: { sr: 'Duboko plavo', en: 'Deep blue', ru: 'Глубокий синий' },
+    description: {
+      sr: 'Pouzdanost i servis. Klasika za usluge, dobro se čita u reklami.',
+      en: 'Reliability and service. A classic for services, easy to read in ads.',
+      ru: 'Надёжность и сервис. Классика для сферы услуг, хорошо читается в рекламе.',
+    },
+    kind: 'light',
     swatch: ['#ffffff', '#1467b3', '#0b2138'],
-    dark: false,
-    display: 'display',
-    radius: 12,
+    layout: 'split',
+    defaults: {
+      radius: 12,
+      density: 'normal',
+      headingFont: 'manrope',
+      bodyFont: 'manrope',
+      card: 'outline',
+      button: 'solid',
+      container: 'normal',
+      hero: 'split',
+    },
+    available: {
+      heading: ['manrope', 'lora', 'system'],
+      body: ['manrope', 'lora', 'system'],
+    },
   },
   {
     id: 'citrus',
-    name: 'Цитрусовая энергия',
-    description: 'Яркий акцент и плотные заголовки. Заметно выделяется среди конкурентов.',
+    name: { sr: 'Citrusna energija', en: 'Citrus energy', ru: 'Цитрусовая энергия' },
+    description: {
+      sr: 'Jak akcenat i gusti naslovi. Uočljivo se izdvaja od konkurencije.',
+      en: 'A bright accent and tight headings. Stands out from competitors.',
+      ru: 'Яркий акцент и плотные заголовки. Заметно выделяется среди конкурентов.',
+    },
+    kind: 'light',
     swatch: ['#ffffff', '#f0871a', '#191919'],
-    dark: false,
-    display: 'display',
-    radius: 8,
+    layout: 'center',
+    defaults: {
+      radius: 8,
+      density: 'compact',
+      headingFont: 'manrope',
+      bodyFont: 'manrope',
+      card: 'outline',
+      button: 'solid',
+      container: 'normal',
+      hero: 'center',
+    },
+    available: {
+      heading: ['manrope', 'lora', 'system'],
+      body: ['manrope', 'lora', 'system'],
+    },
   },
   {
     id: 'sand',
-    name: 'Тёплый песок',
-    description: 'Спокойный премиальный тон: тёплый фон, терракота, засечный шрифт.',
+    name: { sr: 'Topli pesak', en: 'Warm sand', ru: 'Тёплый песок' },
+    description: {
+      sr: 'Miran premium ton: topao fon, terakota, naslovi sa serifima.',
+      en: 'A calm premium tone: warm background, terracotta, serif headings.',
+      ru: 'Спокойный премиальный тон: тёплый фон, терракота, засечный шрифт.',
+    },
+    kind: 'light',
     swatch: ['#faf6f1', '#b4633a', '#2b2620'],
-    dark: false,
-    display: 'serif',
-    radius: 4,
+    layout: 'poster',
+    defaults: {
+      radius: 4,
+      density: 'spacious',
+      headingFont: 'lora',
+      bodyFont: 'manrope',
+      card: 'flat',
+      button: 'outline',
+      container: 'wide',
+      hero: 'full',
+    },
+    available: {
+      heading: ['lora', 'manrope', 'system'],
+      body: ['manrope', 'lora', 'system'],
+    },
   },
   {
     id: 'nordic',
-    name: 'Северная ночь',
-    description: 'Тёмная тема для современных проектов. Минимализм и аквамариновый акцент.',
+    name: { sr: 'Severna noć', en: 'Nordic night', ru: 'Северная ночь' },
+    description: {
+      sr: 'Tamna tema za moderne projekte: minimalizam i akvamarin akcenat.',
+      en: 'A dark theme for modern projects: minimalism with an aquamarine accent.',
+      ru: 'Тёмная тема для современных проектов. Минимализм и аквамариновый акцент.',
+    },
+    kind: 'dark',
     swatch: ['#0e1216', '#35c2b0', '#e8eef3'],
-    dark: true,
-    display: 'display',
-    radius: 12,
+    layout: 'banded',
+    defaults: {
+      radius: 12,
+      density: 'normal',
+      headingFont: 'manrope',
+      bodyFont: 'manrope',
+      card: 'outline',
+      button: 'solid',
+      container: 'normal',
+      hero: 'split',
+    },
+    available: {
+      heading: ['manrope', 'lora', 'system'],
+      body: ['manrope', 'lora', 'system'],
+    },
   },
 ];
 
+/** Идентификаторы тем — для проверок и подсказок в ошибках. */
+export const themeIds: string[] = themePresets.map((preset) => preset.id);
+
 export function getThemePreset(id: string): ThemePreset {
   const found = themePresets.find((preset) => preset.id === id);
-  if (!found) throw new Error(`Unknown theme preset: ${id}`);
+  if (!found) {
+    throw new Error(
+      `Неизвестная тема «${id}». Доступные темы: ${themeIds.join(', ')} ` +
+        '(список — src/data/themes.ts, CSS темы — src/themes/<id>/theme.css).',
+    );
+  }
   return found;
 }
-
-export interface PanelOption<T> {
-  value: T;
-  label: string;
-}
-
-/** Акцент: меняем только тон (H), насыщенность и светлоту держит тема. */
-export const accentOptions: PanelOption<number>[] = [
-  { value: 162, label: 'Мята' },
-  { value: 210, label: 'Синий' },
-  { value: 32, label: 'Оранжевый' },
-  { value: 18, label: 'Терракота' },
-  { value: 265, label: 'Фиолетовый' },
-  { value: 340, label: 'Малина' },
-  { value: 96, label: 'Олива' },
-];
-
-export const radiusOptions: PanelOption<number>[] = [
-  { value: 0, label: '0 — строгие углы' },
-  { value: 8, label: '8 — сдержанные' },
-  { value: 16, label: '16 — мягкие' },
-  { value: 24, label: '24 — округлые' },
-];
-
-export const displayOptions: PanelOption<DisplayKind>[] = [
-  { value: 'display', label: 'Manrope — геометрия' },
-  { value: 'serif', label: 'Lora — с засечками' },
-  { value: 'system', label: 'Системный — без веб-шрифтов' },
-];
-
-export const densityOptions: PanelOption<string>[] = [
-  { value: 'compact', label: 'Компактно' },
-  { value: 'normal', label: 'Обычно' },
-  { value: 'spacious', label: 'Просторно' },
-];
-
-export const cardOptions: PanelOption<string>[] = [
-  { value: 'flat', label: 'Без рамок' },
-  { value: 'outline', label: 'Тонкая рамка' },
-  { value: 'shadow', label: 'Мягкая тень' },
-];
-
-export const buttonOptions: PanelOption<string>[] = [
-  { value: 'solid', label: 'Заливка' },
-  { value: 'soft', label: 'Мягкий фон' },
-  { value: 'outline', label: 'Контур' },
-];
-
-export const containerOptions: PanelOption<string>[] = [
-  { value: 'normal', label: 'Обычная ширина' },
-  { value: 'wide', label: 'Широкая' },
-];
-
-export const heroOptions: PanelOption<string>[] = [
-  { value: 'split', label: 'Текст слева, фото справа' },
-  { value: 'center', label: 'По центру' },
-  { value: 'full', label: 'Фото на всю ширину' },
-];

@@ -139,6 +139,7 @@ export const sr = {
     accent: 'Akcentna boja',
     radius: 'Zaobljenje uglova',
     font: 'Font naslova',
+    bodyFont: 'Font teksta',
     density: 'Gustina blokova',
     card: 'Stil kartica',
     button: 'Stil dugmadi',

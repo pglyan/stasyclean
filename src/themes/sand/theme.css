@@ -1,0 +1,30 @@
+/**
+ * Тема «Тёплый песок» (sand) — премиальный спокойный тон.
+ *
+ * Терракота, тёплый фон, засечные заголовки, широкий контейнер и фото на
+ * всю ширину первого экрана. Единственная из «спокойных» тем, где карточки
+ * без рамок: воздух важнее границ.
+ */
+
+@import '../../fonts/manrope.css';
+@import '../../fonts/lora.css';
+
+[data-skin='sand'] {
+  color-scheme: light;
+
+  --brand-h: 18;
+  --brand-s: 52%;
+  --brand-l: 42%;
+  --brand-ink: #fffaf6;
+
+  --bg: #faf6f1;
+  --surface: #ffffff;
+  --surface-2: #f3ebe3;
+  --ink: #2b2620;
+  --ink-soft: #6d6156;
+  --line: #e5dbd0;
+
+  --shadow-color: 24 22% 22%;
+
+  --radius: 4px;
+}

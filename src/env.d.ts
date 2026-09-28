@@ -18,3 +18,9 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv
 }
+
+/**
+ * Алиас CSS-входа темы: на сборке подменяется на файл выбранной темы
+ * (прод) или на сводный all.css со всеми темами (демо) — см. astro.config.mjs.
+ */
+declare module '@skin'
