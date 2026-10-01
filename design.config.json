@@ -17,5 +17,6 @@
   "photoShape": null,
   "palette": null,
   "motion": "on",
-  "stickyCta": "on"
+  "stickyCta": "on",
+  "orderHint": "combo"
 }

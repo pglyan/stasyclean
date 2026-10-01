@@ -25,6 +25,7 @@ import type {
   DensityKind,
   FontKind,
   HeroKind,
+  OrderHintKind,
   PaletteKind,
   PhotoKind,
   PhotoShapeKind,
@@ -60,6 +61,8 @@ export interface DesignSettings {
   palette: PaletteKind | null;
   motion: SwitchKind;
   stickyCta: SwitchKind;
+  /** Подсказка «заявка с расчётом» на кнопке телефона (см. OrderHintKind). */
+  orderHint: OrderHintKind;
 }
 
 /**
@@ -86,6 +89,7 @@ export const designDefaults: DesignSettings = {
   palette: null,
   motion: 'on',
   stickyCta: 'on',
+  orderHint: 'combo',
 };
 
 /** Допустимые значения перечислимых настроек. */
@@ -103,6 +107,7 @@ export const DESIGN_KINDS = {
   photoShape: ['rect', 'arch', 'round', 'blob'],
   motion: ['on', 'off'],
   stickyCta: ['on', 'off'],
+  orderHint: ['text', 'icon', 'glow', 'badge', 'combo'],
 } as const;
 
 export const FONT_KINDS: readonly FontKind[] = [
@@ -218,6 +223,12 @@ export function resolveDesign(input: unknown, themeIds: readonly string[]): Desi
       source.stickyCta,
       designDefaults.stickyCta,
       DESIGN_KINDS.stickyCta,
+    ),
+    orderHint: requiredOneOf(
+      'orderHint',
+      source.orderHint,
+      designDefaults.orderHint,
+      DESIGN_KINDS.orderHint,
     ),
   };
 }

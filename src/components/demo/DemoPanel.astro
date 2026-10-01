@@ -14,6 +14,7 @@ import {
   densityOptions,
   fontOptions,
   heroOptions,
+  orderHintOptions,
   paletteOptions,
   photoOptions,
   photoShapeOptions,
@@ -69,6 +70,12 @@ const defaults: Record<string, string> = {
   ...baked.attributes,
   accent: baked.settings.accentHue === null ? '' : String(baked.settings.accentHue),
   radius: baked.settings.radius === null ? '' : String(baked.settings.radius),
+  /**
+   * Подсказка заказа хранится под ключом-настройкой (как accent/radius), а не
+   * под именем атрибута: иначе подсветка выбранного варианта в панели не
+   * работала бы на загрузке — syncPressed ищет значение по имени настройки.
+   */
+  'order-hint': baked.settings.orderHint,
 };
 
 interface Option {
@@ -218,6 +225,12 @@ const groups: Group[] = [
       { value: 'on', label: ui.panel.stickyOn },
       { value: 'off', label: ui.panel.stickyOff },
     ],
+  },
+  {
+    label: ui.panel.orderHint,
+    setting: 'order-hint',
+    apply: 'attr:data-order-hint',
+    options: toOptions(orderHintOptions),
   },
 ];
 ---
@@ -658,6 +671,7 @@ const groups: Group[] = [
         palette: settings.palette || null,
         motion: settings.motion,
         stickyCta: settings.sticky,
+        orderHint: settings['order-hint'],
       },
       null,
       2,

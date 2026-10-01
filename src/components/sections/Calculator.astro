@@ -33,6 +33,9 @@ interface Props {
 const { locale, withHead = true, surface = true, id = 'calculator' } = Astro.props;
 const ui = useUI(locale);
 
+/** id для aria-controls кнопки-тоггла состава (см. разметку ниже). */
+const detailsId = `${id}-details`;
+
 /** Опции формата уборки: для каждой услуги — её тарифы. */
 const serviceOptions = services.map((service) => ({
   service,
@@ -150,15 +153,47 @@ const calcExtras = extraServices.filter((line) => line.unit === 'flat');
 
       <div class="calc__result">
         <span class="calc__result-label">{ui.price.total}</span>
-        <strong class="calc__total" data-total>—</strong>
-        <ul class="calc__lines" data-lines></ul>
-        <p class="calc__note">{ui.price.totalNote}</p>
+
+        {/*
+          Цена и кнопка-«язычок» — в одной строке: кнопка не занимает целую
+          строку в одиночку. На телефоне список раскрывается ВВЕРХ (см. CSS),
+          а эта строка остаётся у нижней кромки панели, поэтому кнопка всегда
+          на месте и за ней не нужно тянуться.
+        */}
+        <div class="calc__total-row">
+          <strong class="calc__total" data-total>—</strong>
+          <button
+            class="calc__toggle"
+            type="button"
+            data-details-toggle
+            aria-expanded="false"
+            aria-controls={detailsId}
+            aria-label={ui.calc.detailsShow}
+            data-label-show={ui.calc.detailsShow}
+            data-label-hide={ui.calc.detailsHide}
+          >
+            <Icon name="chevronDown" class="calc__toggle-icon" />
+          </button>
+        </div>
+
+        <div class="calc__breakdown" id={detailsId} data-details data-expanded="false">
+          <ul class="calc__lines" data-lines></ul>
+          <p class="calc__note">{ui.price.totalNote}</p>
+        </div>
+
+        {/*
+          Кнопка «Написать в Telegram» с готовым составом. На телефоне она
+          скрыта: заказ идёт через кнопку «Заказать» в закреплённом футере
+          (см. components-blocks-c.css). Но ссылку скрипт обновляет всегда —
+          эту же ссылку получает и кнопка футера, когда посетитель что-то
+          выбрал в калькуляторе.
+        */}
         <a
-          class="btn btn--block"
+          class="btn btn--block calc__cta"
           href={site.telegramUrl}
           target="_blank"
           rel="noopener noreferrer"
-          data-tg-link
+          data-order-link
         >
           <Icon name="telegram" class="btn__icon" />
           {ui.cta.telegram}
@@ -203,12 +238,30 @@ const calcExtras = extraServices.filter((line) => line.unit === 'flat');
     const hoursInput = root.querySelector<HTMLInputElement>('[data-hours]');
     const hoursOutput = root.querySelector<HTMLElement>('[data-hours-output]');
     const areaField = root.querySelector<HTMLElement>('[data-area-field]');
-    const tgLink = root.querySelector<HTMLAnchorElement>('[data-tg-link]');
+    /** Ссылки с готовым составом: кнопка в панели калькулятора. */
+    const orderLinks = Array.from(root.querySelectorAll<HTMLAnchorElement>('[data-order-link]'));
+    /** Кнопка «Заказать» в закреплённом футере — она живёт вне секции калькулятора. */
+    const footerBooks = Array.from(
+      document.querySelectorAll<HTMLAnchorElement>('[data-order-book]'),
+    );
+    /** Тоггл и раскрывающийся состав в панели результата (телефон). */
+    const details = root.querySelector<HTMLElement>('[data-details]');
+    const detailsToggle = root.querySelector<HTMLButtonElement>('[data-details-toggle]');
 
     type PlanRow = [string, string, number[]];
 
     let plan = { name: '', tiers: [] as number[] };
     let areaIndex: number | 'over' = 0;
+
+    /**
+     * Посетитель что-то менял в калькуляторе.
+     *
+     * До этого «Заказать» в футере ведёт на обычный Telegram, после — несёт
+     * состав заказа и получает подсказку data-order-ready. Так ссылка меняет
+     * смысл только тогда, когда пользователь действительно сделал выбор,
+     * а не просто открыл страницу с выбором по умолчанию.
+     */
+    let interacted = false;
 
     const activeChip = (chips: HTMLButtonElement[]) =>
       chips.find((chip) => chip.getAttribute('aria-pressed') === 'true');
@@ -256,6 +309,7 @@ const calcExtras = extraServices.filter((line) => line.unit === 'flat');
         button.addEventListener('click', () => {
           setPressed(Array.from(plansList.querySelectorAll<HTMLButtonElement>('.chip')), button);
           plan = { name, tiers };
+          interacted = true;
           update();
         });
         plansList.appendChild(button);
@@ -304,23 +358,35 @@ const calcExtras = extraServices.filter((line) => line.unit === 'flat');
         }
       }
 
-      // Готовое сообщение в Telegram: менеджер сразу видит состав заявки
-      if (tgLink) {
-        const areaLabel =
-          areaIndex === 'over'
-            ? root.dataset.msgOver ?? ''
-            : areaChips[areaIndex as number]?.textContent?.trim() ?? '';
+      // Готовое сообщение в Telegram: менеджер сразу видит состав заявки.
+      // Ссылку в панели обновляем всегда, а кнопку в футере — только когда
+      // посетитель что-то выбрал: до этого она остаётся обычной ссылкой.
+      const areaLabel =
+        areaIndex === 'over'
+          ? root.dataset.msgOver ?? ''
+          : areaChips[areaIndex as number]?.textContent?.trim() ?? '';
 
-        const parts = [
-          `${root.dataset.msgService}: ${activeService?.textContent?.trim() ?? ''}${hourly ? '' : ` / ${plan.name}`}`,
-          `${root.dataset.msgArea}: ${areaLabel}`,
-          `${root.dataset.msgExtras}: ${
-            extras.length ? extras.map((extra) => extra.name).join(', ') : root.dataset.msgNone ?? ''
-          }`,
-          `${root.dataset.msgTotal}: ${money.format(total)} ${currency}`,
-        ];
+      const parts = [
+        `${root.dataset.msgService}: ${activeService?.textContent?.trim() ?? ''}${hourly ? '' : ` / ${plan.name}`}`,
+        `${root.dataset.msgArea}: ${areaLabel}`,
+        `${root.dataset.msgExtras}: ${
+          extras.length ? extras.map((extra) => extra.name).join(', ') : root.dataset.msgNone ?? ''
+        }`,
+        `${root.dataset.msgTotal}: ${money.format(total)} ${currency}`,
+      ];
 
-        tgLink.href = `${root.dataset.tg}?text=${encodeURIComponent(parts.join('\n'))}`;
+      const orderUrl = `${root.dataset.tg}?text=${encodeURIComponent(parts.join('\n'))}`;
+
+      for (const link of orderLinks) link.href = orderUrl;
+
+      if (interacted) {
+        for (const link of footerBooks) {
+          link.href = orderUrl;
+          link.dataset.orderReady = 'true';
+          if (link.dataset.ariaReady) link.setAttribute('aria-label', link.dataset.ariaReady);
+          const label = link.querySelector<HTMLElement>('[data-order-label]');
+          if (label && link.dataset.labelReady) label.textContent = link.dataset.labelReady;
+        }
       }
     }
 
@@ -334,22 +400,51 @@ const calcExtras = extraServices.filter((line) => line.unit === 'flat');
       update();
     }
 
-    serviceChips.forEach((chip) => chip.addEventListener('click', () => selectService(chip)));
+    serviceChips.forEach((chip) =>
+      chip.addEventListener('click', () => {
+        interacted = true;
+        selectService(chip);
+      }),
+    );
 
     areaChips.forEach((chip) => {
       chip.addEventListener('click', () => {
         setPressed(areaChips, chip);
         const value = chip.dataset.area;
         areaIndex = value === 'over' ? 'over' : Number(value);
+        interacted = true;
         update();
       });
     });
 
     root.querySelectorAll<HTMLInputElement>('[data-extra]').forEach((input) => {
-      input.addEventListener('change', update);
+      input.addEventListener('change', () => {
+        interacted = true;
+        update();
+      });
     });
 
-    hoursInput?.addEventListener('input', update);
+    hoursInput?.addEventListener('input', () => {
+      interacted = true;
+      update();
+    });
+
+    /**
+     * Сворачивание состава в панели результата на телефоне.
+     *
+     * data-expanded управляет видимостью только на узких экранах (CSS):
+     * на десктопе кнопка скрыта, а состав показан всегда. Подпись меняем
+     * в разметке, aria-expanded — для скринридеров.
+     */
+    detailsToggle?.addEventListener('click', () => {
+      if (!details) return;
+      const expanded = details.dataset.expanded !== 'true';
+      details.dataset.expanded = String(expanded);
+      detailsToggle.setAttribute('aria-expanded', String(expanded));
+      // Текст подписи ушёл в aria-label: видимая часть — только шеврон.
+      const label = expanded ? detailsToggle.dataset.labelHide : detailsToggle.dataset.labelShow;
+      if (label) detailsToggle.setAttribute('aria-label', label);
+    });
 
     // Стартовое состояние: первая услуга, её первый тариф, первая площадь
     if (serviceChips[0]) selectService(serviceChips[0]);

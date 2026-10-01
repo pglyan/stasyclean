@@ -30,6 +30,8 @@ export const sr = {
     /** Kratke oznake za fiksiranu traku na telefonu (vidi ru.ts). */
     bookShort: 'Zakaži',
     calcShort: 'Izračunaj',
+    orderShort: 'Pošalji',
+    order: 'Pošalji zahtev sa procenom',
   },
 
   price: {
@@ -94,6 +96,8 @@ export const sr = {
     resultHint:
       'Ovo je samo orijentir. Tačan iznos kažemo posle nekoliko kratkih pitanja.',
     noExtras: 'Dodatni zadaci nisu izabrani',
+    detailsShow: 'Prikaži detalje',
+    detailsHide: 'Sakrij detalje',
     smartHint: 'Kod Smart čišćenja plaćate po satu, pa se cena računa po vremenu.',
     overLimit: 'Kvadratura je veća od 150 m² — obračun radimo individualno.',
   },
@@ -162,6 +166,7 @@ export const sr = {
     sticky: 'Fiksirano dugme na telefonu',
     stickyOn: 'Prikazuj',
     stickyOff: 'Sakrij',
+    orderHint: 'Nagoveštaj gotovog zahteva',
     language: 'Jezik prezentacije',
     reset: 'Resetuj',
     random: 'Slučajna kombinacija',

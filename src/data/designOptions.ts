@@ -19,6 +19,7 @@ import type {
   DensityKind,
   FontKind,
   HeroKind,
+  OrderHintKind,
   PaletteKind,
   PhotoKind,
   PhotoShapeKind,
@@ -174,4 +175,19 @@ export const heroOptions: PanelOption<HeroKind>[] = [
   { value: 'split', label: { sr: 'Tekst levo, foto desno', en: 'Text left, photo right', ru: 'Текст слева, фото справа' } },
   { value: 'center', label: { sr: 'Po sredini', en: 'Centred', ru: 'По центру' } },
   { value: 'full', label: { sr: 'Foto preko cele širine', en: 'Full-width photo', ru: 'Фото на всю ширину' } },
+];
+
+/**
+ * Подсказка «заявка с расчётом» на закреплённой кнопке телефона.
+ *
+ * Пять вариантов одного состояния: заказчик смотрит их на стенде и выбирает
+ * один. Разница только в слое поверх смены подписи — так сравнение честное,
+ * а не «разные кнопки».
+ */
+export const orderHintOptions: PanelOption<OrderHintKind>[] = [
+  { value: 'text', label: { sr: '1 — samo tekst', en: '1 — text only', ru: '1 — только текст' } },
+  { value: 'icon', label: { sr: '2 — tekst + ikona', en: '2 — text + icon', ru: '2 — текст + иконка' } },
+  { value: 'glow', label: { sr: '3 — tekst + sjaj', en: '3 — text + glow', ru: '3 — текст + свечение' } },
+  { value: 'badge', label: { sr: '4 — tekst + oznaka', en: '4 — text + badge', ru: '4 — текст + бейдж' } },
+  { value: 'combo', label: { sr: '5 — tekst + ikona + sjaj', en: '5 — text + icon + glow', ru: '5 — текст + иконка + свечение' } },
 ];

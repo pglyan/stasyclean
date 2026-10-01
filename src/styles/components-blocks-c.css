@@ -147,12 +147,58 @@
   }
 }
 
+/*
+ * Раскрывающийся состав заказа.
+ *
+ * На десктопе .calc__toggle скрыт, а .calc__breakdown показан всегда — так
+ * панель работает как раньше. На телефоне состав свёрнут (см. правила в конце
+ * файла), чтобы прилипшая к низу панель не занимала пол-экрана.
+ */
+.calc__breakdown {
+  display: grid;
+  gap: var(--s3);
+}
+
+.calc__toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  /* Не меньше 44px: цель нажатия для тач-ввода (см. check-mobile). */
+  min-block-size: 2.75rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--brand-strong);
+  font: inherit;
+  cursor: pointer;
+}
+
+.calc__toggle-icon {
+  inline-size: 1.125em;
+  block-size: 1.125em;
+  transition: transform var(--dur) var(--ease);
+  /* Свёрнуто — «язычок» смотрит вверх: список раскрывается НАД кнопкой. */
+  transform: rotate(180deg);
+}
+
+.calc__toggle[aria-expanded='true'] .calc__toggle-icon {
+  transform: rotate(0deg);
+}
+
 .calc__result-label {
   font-size: var(--fs-xs);
   font-weight: 700;
   letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
   color: var(--ink-soft);
+}
+
+/* Цена и кнопка-«язычок» в одной строке (кнопка видна только на телефоне). */
+.calc__total-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
 }
 
 .calc__total {
@@ -283,15 +329,19 @@
 
 /* ==================== Калькулятор на телефоне ==================== */
 /**
- * Панель результата «едет» вместе с прокруткой опций.
+ * Панель результата «едет» вместе с прокруткой опций и смыкается с баром.
  *
- * Без этого после каждой правки чипа нужно было прокручивать экран вниз,
+ * Без sticky после каждой правки чипа нужно было прокручивать экран вниз,
  * чтобы увидеть новую сумму: список дополнительных задач сам занимает около
  * экрана, а панель стоит после него.
  *
  * display: block у .calc — обязательное условие: в одноколоночной сетке
- * строка равна высоте самого элемента, и «прилипать» ему некуда. Подвал
- * от этого не съезжает: второй колонки на телефоне всё равно нет.
+ * строка равна высоте самого элемента, и «прилипать» ему некуда.
+ *
+ * Панель прижата вплотную к верхней кромке закреплённого футера и повторяет
+ * его фон и блюр — так цена и кнопка «Заказать» читаются как одно целое.
+ * Состав свёрнут (.calc__breakdown) и раскрывается кнопкой: раньше список
+ * рос вместе с выбором и закрывал карточки опций.
  *
  * Правила стоят В КОНЦЕ файла, а не рядом с описанием .calc: при равной
  * специфичности выигрывает то, что ниже, и мобильные переопределения
@@ -303,15 +353,115 @@
   }
 
   .calc__result {
+    /* Колонка, чтобы «резиновым» был только состав: итог и кнопка держатся
+       у нижней кромки и не уезжают вверх при раскрытии списка. */
+    display: flex;
+    flex-direction: column;
+    gap: var(--s3);
     position: sticky;
-    inset-block-end: calc(var(--sticky-h) + var(--s2));
+    /* Вплотную к бару: его высота — тот же токен плюс safe-area снизу. */
+    inset-block-end: calc(var(--sticky-h) + env(safe-area-inset-bottom, 0px));
     z-index: 1;
+    /* Панель не выходит за пределы экрана: сверху оставляем воздух --s8.
+       Сначала vh, затем dvh — на телефоне адресная строка меняет высоту, и
+       dvh точнее; vh остаётся запасом для старых браузеров. */
+    max-block-size: calc(100vh - var(--sticky-h) - env(safe-area-inset-bottom, 0px) - var(--s8));
+    max-block-size: calc(100dvh - var(--sticky-h) - env(safe-area-inset-bottom, 0px) - var(--s8));
     margin-block-start: var(--s8);
+    /* Full-bleed: тянем панель до краёв экрана, как фиксированный бар.
+       Контейнер уже имеет поля --gutter, поэтому уводим их в минус. */
+    margin-inline: calc(-1 * var(--gutter));
+    padding: var(--s4) var(--gutter) var(--s3);
+    /* Скруглены только верхние углы — низ смыкается с футером без шва. */
+    border-radius: var(--r-lg) var(--r-lg) 0 0;
+    /* Контрастная верхняя кромка: панель полупрозрачная, и без неё её фон
+       сливался бы с содержимым страницы позади неё. */
+    border-block-start: 2px solid color-mix(in oklab, var(--ink) 14%, transparent);
+    border-block-end: 0;
+    background: color-mix(in oklab, var(--bg) 92%, transparent);
+    backdrop-filter: blur(14px);
     box-shadow: var(--shadow-lg);
-    /* Компактнее, чем на десктопе: прилипшая панель занимает место на
-       экране, и каждые лишние 40px высоты — это минус карточка опций
-       на виду (панель была 275px, стала ~230px). */
+  }
+
+  /*
+   * Маленький «язычок» сверху — контрастная метка начала панели. order: -2
+   * держит его выше состава (order: -1), поэтому он всегда на самой кромке.
+   */
+  .calc__result::before {
+    content: '';
+    order: -2;
+    align-self: center;
+    inline-size: 2.25rem;
+    block-size: 0.25rem;
+    border-radius: var(--r-pill);
+    background: color-mix(in oklab, var(--ink) 22%, transparent);
+  }
+
+  /*
+   * Состав — первым (order: -1) и раскрывается ВВЕРХ: панель прижата к низу,
+   * поэтому добавление списка наверх растягивает её вверх, а итог и кнопка
+   * остаются на своих местах. Это единственная «резиновая» часть: при
+   * переполнении она сжимается и прокручивается внутри панели (min-block-size: 0
+   * обязателен, иначе flex-элемент не даст себя сжать).
+   */
+  .calc__breakdown {
+    order: -1;
+    overflow-y: auto;
+    min-block-size: 0;
+    overscroll-behavior: contain;
+  }
+
+  /* Свёрнутый состав: видно только итог, пока не нажали «Показать детали». */
+  .calc__breakdown[data-expanded='false'] {
+    display: none;
+  }
+
+  /* Итог, подпись и кнопки не сжимаются при прокрутке списка. */
+  .calc__result-label,
+  .calc__total-row,
+  .calc__cta {
+    flex: none;
+  }
+
+  /*
+   * Кнопка-«язычок»: маленькая, в одной строке с ценой, у нижней кромки панели —
+   * всегда на месте, поэтому за ней не нужно тянуться вверх. Высоту держим
+   * 44px (цель нажатия), но по ширине она узкая — это и делает её небольшой.
+   */
+  .calc__toggle {
+    display: inline-flex;
+    flex: none;
+    min-inline-size: 2.75rem;
+    padding-inline: var(--s2);
+    border-radius: var(--r-pill);
+    background: var(--brand-soft);
+  }
+
+  /*
+   * Кнопку «Написать в Telegram» в самой панели прячем: на телефоне заказ
+   * отправляет кнопка «Заказать» в футере — она несёт состав, когда посетитель
+   * что-то выбрал. Если бар отключён демо-панелью, кнопку оставляем, иначе
+   * заказ отправлять нечем.
+   */
+  [data-sticky='on'] .calc__cta {
+    display: none;
+  }
+
+  /* Бар скрыт: панель ни с чем не смыкается — возвращаем ей вид карточки. */
+  [data-sticky='off'] .calc__result {
+    inset-block-end: var(--s4);
+    margin-inline: 0;
     padding: var(--s4) var(--s5);
+    border-radius: var(--r-lg);
+    border-block-start: var(--bw) solid var(--line);
+    border-block-end: var(--bw) solid var(--line);
+    background: var(--surface);
+    backdrop-filter: none;
+  }
+
+  /* …и убираем «язычок»: он метит кромку слияния с баром, которой тут нет. */
+  [data-sticky='off'] .calc__result::before {
+    display: none;
   }
 
   .calc__total {

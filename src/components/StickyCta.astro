@@ -13,6 +13,12 @@ import Icon from './ui/Icon.astro';
  * не должен искать кнопку в футере. Скрывается на широких экранах
  * и при `data-sticky="off"` из демо-панели.
  *
+ * Порядок кнопок: «Рассчитать» слева, «Заказать» справа — основное действие
+ * под большой палец. Вторая кнопка помечена `data-order-book`: когда на
+ * странице есть калькулятор и посетитель что-то в нём выбрал, скрипт
+ * калькулятора подставляет в неё ссылку с составом заказа и ставит
+ * `data-order-ready`. До этого она ведёт на обычный Telegram.
+ *
  * Мобильные правила, зашитые в разметку:
  *   • высота панели — токен --sticky-h (Панель не может стать выше места,
  *     которое под неё оставлено: см. components-footer.css);
@@ -34,16 +40,6 @@ const ui = useUI(locale);
 
 <div class="sticky-cta">
   <a
-    class="btn"
-    href={site.telegramUrl}
-    target="_blank"
-    rel="noopener noreferrer"
-    aria-label={ui.cta.book}
-  >
-    <Icon name="telegram" class="btn__icon" />
-    <span class="btn__label">{ui.cta.bookShort}</span>
-  </a>
-  <a
     class="btn btn--ghost"
     href={`${href(locale, 'prices')}#calculator`}
     aria-label={ui.cta.calculate}
@@ -51,4 +47,22 @@ const ui = useUI(locale);
     <Icon name="calculator" class="btn__icon" />
     <span class="btn__label">{ui.cta.calcShort}</span>
   </a>
+  <a
+    class="btn sticky-cta__order"
+    href={site.telegramUrl}
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label={ui.cta.book}
+    data-order-book
+    data-label-default={ui.cta.bookShort}
+    data-label-ready={ui.cta.orderShort}
+    data-aria-default={ui.cta.book}
+    data-aria-ready={ui.cta.order}
+  >
+    <Icon name="telegram" class="btn__icon btn__icon--default" />
+    <Icon name="check-circle" class="btn__icon btn__icon--ready" />
+    <span class="btn__label" data-order-label>{ui.cta.bookShort}</span>
+    <span class="sticky-cta__badge" aria-hidden="true"></span>
+  </a>
 </div>
+

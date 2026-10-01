@@ -30,6 +30,8 @@ export const en = {
     /** Короткие подписи для закреплённой панели на телефоне (см. ru.ts). */
     bookShort: 'Book',
     calcShort: 'Calculate',
+    orderShort: 'Send',
+    order: 'Send request with the quote',
   },
 
   price: {
@@ -94,6 +96,8 @@ export const en = {
     resultHint:
       'This is a guide only. We will confirm the exact amount after a couple of quick questions.',
     noExtras: 'No extra tasks selected',
+    detailsShow: 'Show details',
+    detailsHide: 'Hide details',
     smartHint: 'With smart cleaning you pay by the hour, so the price is based on time.',
     overLimit: 'The area is over 150 m² — we will quote you individually.',
   },
@@ -162,6 +166,7 @@ export const en = {
     sticky: 'Sticky mobile button',
     stickyOn: 'Show',
     stickyOff: 'Hide',
+    orderHint: 'Order-ready hint',
     language: 'Presentation language',
     reset: 'Reset',
     random: 'Random combination',

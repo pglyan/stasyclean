@@ -118,6 +118,72 @@
   min-inline-size: 0;
 }
 
+/* ==================== Подсказка «заявка с расчётом» ==================== */
+/*
+ * Кнопка «Заказать» меняет вид, когда посетитель что-то выбрал в калькуляторе:
+ * скрипт калькулятора ставит на неё data-order-ready и подставляет в ссылку
+ * состав заказа. Вариант подсказки — настройка orderHint в демо-панели: пять
+ * слоёв поверх неизменной смены подписи, чтобы заказчик выбрал оформление.
+ *
+ * Смену текста и aria-label делает скрипт — правила ниже только визуальные.
+ * Слои с анимацией опираются на --dur-slow, который обнуляется и демо-
+ * переключателем «Анимации», и системным prefers-reduced-motion: пульс тогда
+ * просто не проигрывается.
+ */
+.sticky-cta__order .btn__icon--ready,
+.sticky-cta__badge {
+  display: none;
+}
+
+.sticky-cta__badge {
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+  border-radius: 50%;
+  background: var(--btn-ink);
+}
+
+/* 2 и 5: telegram → галочка */
+[data-order-hint='icon'] [data-order-ready='true'] .btn__icon--default,
+[data-order-hint='combo'] [data-order-ready='true'] .btn__icon--default {
+  display: none;
+}
+
+[data-order-hint='icon'] [data-order-ready='true'] .btn__icon--ready,
+[data-order-hint='combo'] [data-order-ready='true'] .btn__icon--ready {
+  display: block;
+}
+
+/* 3 и 5: акцентное кольцо и один мягкий «пульс» при переходе.
+   outline, а не box-shadow: не затираем тень кнопок «жёстких» тем. */
+[data-order-hint='glow'] [data-order-ready='true'],
+[data-order-hint='combo'] [data-order-ready='true'] {
+  outline: 3px solid var(--brand-ring);
+  outline-offset: 2px;
+  animation: order-ready-pulse var(--dur-slow) var(--ease) 1;
+}
+
+@keyframes order-ready-pulse {
+  0% {
+    outline-offset: 2px;
+    outline-color: var(--brand-ring);
+  }
+
+  60% {
+    outline-offset: 6px;
+    outline-color: transparent;
+  }
+
+  100% {
+    outline-offset: 2px;
+    outline-color: var(--brand-ring);
+  }
+}
+
+/* 4: точка рядом с подписью */
+[data-order-hint='badge'] [data-order-ready='true'] .sticky-cta__badge {
+  display: block;
+}
+
 @media (min-width: 62rem) {
   .sticky-cta {
     display: none;

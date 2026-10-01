@@ -112,6 +112,7 @@ export function resolveForBuild(design: DesignSettings = activeDesign): BuildDes
     'data-photo': values.photo,
     'data-motion': design.motion,
     'data-sticky': design.stickyCta,
+    'data-order-hint': design.orderHint,
   };
 
   /** Форма фото-слота: null у темы — значит «базовое скругление», без атрибута. */
