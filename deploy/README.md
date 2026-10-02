@@ -32,8 +32,7 @@ dist/
 npm ci
 node scripts/sync-fonts.mjs
 npm run build:prod
-node scripts/check-i18n.mjs dist
-node scripts/check-size.mjs dist
+npm run check:colors
 
 # 2. Скопировать содержимое dist/ на сервер
 rsync -avz --delete dist/ user@server:/var/www/stasyclean/

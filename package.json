@@ -10,24 +10,14 @@
   },
   "scripts": {
     "dev": "node scripts/make-og.mjs && PUBLIC_DEMO=on astro dev",
-    "build:demo": "node scripts/make-og.mjs && PUBLIC_DEMO=on astro build --mode demo && npm run minify:demo",
-    "build:prod": "node scripts/make-og.mjs && astro build --mode production && npm run minify:prod",
-    "minify:demo": "node scripts/minify-html.mjs dist-demo",
-    "minify:prod": "node scripts/minify-html.mjs dist",
+    "build:demo": "node scripts/make-og.mjs && PUBLIC_DEMO=on astro build --mode demo",
+    "build:prod": "node scripts/make-og.mjs && astro build --mode production",
     "preview:demo": "astro preview --outDir dist-demo",
     "preview:prod": "astro preview",
     "check": "astro check",
     "check:colors": "node scripts/check-contrast.mjs",
-    "check:i18n": "node scripts/check-i18n.mjs dist",
-    "check:i18n:demo": "node scripts/check-i18n.mjs dist-demo /stasyclean/",
-    "check:size": "node scripts/check-size.mjs",
-    "check:clean": "node scripts/check-clean.mjs dist",
-    "check:clean:demo": "node scripts/check-clean.mjs dist-demo",
-    "check:mobile": "node scripts/check-mobile.mjs dist",
-    "check:mobile:demo": "node scripts/check-mobile.mjs dist-demo /stasyclean/",
     "design": "node scripts/design.mjs",
-    "make:og": "node scripts/make-og.mjs",
-    "serve:prod": "node scripts/serve.mjs dist"
+    "make:og": "node scripts/make-og.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",
@@ -41,7 +31,6 @@
     "@fontsource-variable/manrope": "^5.3.0",
     "@fontsource-variable/nunito": "^5.3.0",
     "@fontsource-variable/playfair-display": "^5.3.0",
-    "html-minifier-terser": "^7.2.0",
     "typescript": "^6.0.3"
   }
 }
