@@ -142,9 +142,6 @@ export type SwitchKind = 'on' | 'off';
  */
 export type OrderHintKind = 'text' | 'icon' | 'glow' | 'badge' | 'combo';
 
-/** Схема раскладки — рисуется в паспорте темы в демо-панели. */
-export type LayoutSketch = 'split' | 'center' | 'poster' | 'banded' | 'grid' | 'zigzag';
-
 /** Адреса субсетов одного семейства: локаль → URL готового ассета. */
 export type FontUrls = Record<Locale, string>;
 
@@ -193,8 +190,6 @@ export interface ThemePreset {
   /** Одно предложение о том, какое ощущение создаёт тема. */
   description: Localized;
   kind: ThemeKind;
-  /** Схема раскладки для мини-превью. */
-  layout: LayoutSketch;
   defaults: ThemeDefaults;
   /**
    * Шрифты, которые тема допускает.

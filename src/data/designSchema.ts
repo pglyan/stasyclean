@@ -36,6 +36,8 @@ import type {
   ThemeKind,
 } from '../themes/types';
 
+import { paletteIds } from './palettes';
+
 export interface DesignSettings {
   /** Идентификатор темы — см. src/data/themes.ts */
   theme: string;
@@ -128,22 +130,6 @@ export const FONT_KINDS: readonly FontKind[] = [
   'system',
 ];
 
-/**
- * Известные палитры. Полный список нужен, чтобы поймать опечатку в
- * design.config.json до сборки; допустима ли палитра конкретной теме —
- * проверяет assertThemePalettes, как и со шрифтами.
- */
-export const PALETTE_KINDS: readonly PaletteKind[] = [
-  'sky',
-  'mist',
-  'milk',
-  'aqua',
-  'rose',
-  'peach',
-  'butter',
-  'lilac',
-];
-
 /** Все ключи конфига — нужны CLI для проверки опечаток в именах полей. */
 export const DESIGN_KEYS = Object.keys(designDefaults) as (keyof DesignSettings)[];
 
@@ -192,7 +178,7 @@ function fontOrNull(field: string, value: unknown): FontKind | null {
 }
 
 function paletteOrNull(field: string, value: unknown): PaletteKind | null {
-  return oneOf(field, value, PALETTE_KINDS);
+  return oneOf(field, value, paletteIds);
 }
 
 /**

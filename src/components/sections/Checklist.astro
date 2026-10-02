@@ -18,32 +18,21 @@ import SectionHead from './SectionHead.astro';
 interface Props {
   locale: Locale;
   checklist: ChecklistData;
-  title?: string;
-  lead?: string;
-  id?: string;
   withHead?: boolean;
   surface?: boolean;
 }
 
-const {
-  locale,
-  checklist,
-  title,
-  lead,
-  id,
-  withHead = true,
-  surface = false,
-} = Astro.props;
+const { locale, checklist, withHead = true, surface = false } = Astro.props;
 const ui = useUI(locale);
-const listId = id ?? `checklist-${checklist.serviceKey}`;
+const listId = `checklist-${checklist.serviceKey}`;
 ---
 
 <section class={`section ${surface ? 'section--surface' : ''}`.trim()} id={listId}>
   <div class="container">
-    {withHead && <SectionHead title={title ?? ui.home.includedTitle} lead={lead ?? ui.home.includedLead} />}
+    {withHead && <SectionHead title={ui.home.includedTitle} lead={ui.home.includedLead} />}
 
     <div class="tabs" data-tabs>
-      <div class="tabs__list" role="tablist" aria-label={title ?? ui.home.includedTitle}>
+      <div class="tabs__list" role="tablist" aria-label={ui.home.includedTitle}>
         {checklist.groups.map((group, index) => (
           <button
             class="tabs__tab"

@@ -24,8 +24,6 @@ export const ru = {
     details: 'Подробнее',
     allServices: 'Все услуги',
     toPrices: 'Смотреть цены',
-    showAll: 'Показать все',
-    collapse: 'Свернуть',
     back: 'На главную',
     menu: 'Меню',
     close: 'Закрыть',

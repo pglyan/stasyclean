@@ -61,32 +61,6 @@
   margin-block-start: var(--s6);
 }
 
-/* ==================== Цифры ==================== */
-
-.stats {
-  display: grid;
-  gap: var(--s6);
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
-}
-
-.stat {
-  display: grid;
-  gap: var(--s1);
-}
-
-.stat__value {
-  font-family: var(--font-heading);
-  font-size: var(--fs-h2);
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-}
-
-.stat__label {
-  font-size: var(--fs-sm);
-  color: var(--ink-soft);
-}
-
 /* ==================== Районы ==================== */
 
 .areas {

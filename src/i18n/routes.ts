@@ -106,12 +106,6 @@ export function href(locale: Locale, key: PageKey): string {
   return path ? `${BASE}${path}/` : BASE;
 }
 
-/** Путь без base — для hreflang, canonical, sitemap. */
-export function routeHref(locale: Locale, key: PageKey): string {
-  const path = routePath(locale, key);
-  return path ? `/${path}/` : '/';
-}
-
 export interface LocaleSwitchLink {
   locale: Locale;
   href: string;

@@ -123,15 +123,6 @@
   font-size: var(--fs-sm);
 }
 
-.card__price {
-  margin-block-start: auto;
-  padding-block-start: var(--s3);
-  font-family: var(--font-heading);
-  font-size: var(--fs-h3);
-  font-weight: 700;
-  letter-spacing: var(--tracking-tight);
-}
-
 /* Иконка в мягком круге — повторяется почти в каждом блоке */
 .icon-box {
   display: grid;
@@ -176,11 +167,6 @@
 .badge--brand {
   background: var(--brand-soft);
   color: var(--brand-strong);
-}
-
-.badge--solid {
-  background: var(--brand);
-  color: var(--brand-ink);
 }
 
 /* ==================== Строки прайса ==================== */

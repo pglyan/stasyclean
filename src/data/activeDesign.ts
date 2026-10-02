@@ -18,7 +18,6 @@ import raw from '../../design.config.json';
 import {
   assertThemeFonts,
   assertThemePalettes,
-  designDefaults,
   resolveDesign,
   type DesignSettings,
 } from './designSchema';
@@ -31,9 +30,6 @@ export const themeIds = themePresets.map((preset) => preset.id);
 /** Проверенный выбор из design.config.json. */
 export const activeDesign: DesignSettings = resolveDesign(raw, themeIds);
 
-/** Тема выбранного дизайна. */
-export const activeTheme: ThemePreset = getThemePreset(activeDesign.theme);
-
 export interface BuildDesign {
   settings: DesignSettings;
   theme: ThemePreset;
@@ -43,23 +39,6 @@ export interface BuildDesign {
   palette: PaletteKind | null;
   /** Итоговая схема: выбор из конфига либо натуральная схема темы (её `kind`). */
   scheme: ThemeKind;
-  /**
-   * Значения параметров после подстановки умолчаний темы.
-   * id темы не входит: его читает CSS, а не скрипты.
-   */
-  values: {
-    density: string;
-    card: string;
-    button: string;
-    container: string;
-    hero: string;
-    sections: string;
-    texture: string;
-    surface: string;
-    decor: string;
-    photo: string;
-    photoShape: string | null;
-  };
   /** Атрибуты на <html>: значения темы, перекрытые выбором из конфига. */
   attributes: Record<string, string>;
   /** Инлайновые переменные: акцент и радиус, если их переопределили. */
@@ -147,10 +126,8 @@ export function resolveForBuild(design: DesignSettings = activeDesign): BuildDes
     .filter(Boolean)
     .join(';');
 
-  return { settings: design, theme, headingFont, bodyFont, palette, scheme, values, attributes, style };
+  return { settings: design, theme, headingFont, bodyFont, palette, scheme, attributes, style };
 }
 
 /** Посчитано один раз на сборку. */
 export const designForBuild: BuildDesign = resolveForBuild();
-
-export { designDefaults };

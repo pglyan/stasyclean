@@ -10,22 +10,15 @@ import SectionHead from './SectionHead.astro';
  * положению ползунка. Работает на инлайновом <input type="range">, поэтому
  * доступно с клавиатуры и скринридером без единой строки JS.
  *
- * Пока фотографий нет, слои показываются разными заглушками — механизм
- * и вёрстку видно, а заказчик понимает, какие фото нужны.
+ * Пока фотографий нет, слои — пустые заглушки: механика и вёрстка
+ * видны, а заказчик понимает, какие фото нужны.
  */
 
 interface Props {
   locale: Locale;
-  /** Реальные фотографии: появятся — компонент переключится на них. */
-  before?: string;
-  after?: string;
-  /** Подпись сюжета: «Генеральная уборка, Санузел». */
-  caption?: string;
-  withHead?: boolean;
-  id?: string;
 }
 
-const { locale, before, after, caption, withHead = true, id = 'before-after' } = Astro.props;
+const { locale } = Astro.props;
 
 const labels = {
   sr: { title: 'Pre i posle', lead: 'Isti ugao snimljen pre i posle čišćenja.', before: 'Pre', after: 'Posle', hint: 'Foto: isto mesto pre i posle uklanjanja' },
@@ -34,18 +27,14 @@ const labels = {
 }[locale];
 ---
 
-<section class="section" id={id}>
+<section class="section" id="before-after">
   <div class="container">
-    {withHead && <SectionHead title={labels.title} lead={labels.lead} />}
+    <SectionHead title={labels.title} lead={labels.lead} />
 
     <div class="ba__grid">
       <div class="ba" data-before-after>
-        <div class="ba__layer photo photo--before">
-          {before && <img src={before} alt={labels.hint} loading="lazy" decoding="async" />}
-        </div>
-        <div class="ba__layer ba__after photo photo--after">
-          {after && <img src={after} alt={labels.hint} loading="lazy" decoding="async" />}
-        </div>
+        <div class="ba__layer photo photo--before"></div>
+        <div class="ba__layer ba__after photo photo--after"></div>
 
         <span class="ba__label ba__label--before">{labels.before}</span>
         <span class="ba__label ba__label--after">{labels.after}</span>
@@ -61,8 +50,6 @@ const labels = {
           data-ba-range
         />
       </div>
-
-      {caption && <p class="small muted">{caption}</p>}
     </div>
   </div>
 </section>

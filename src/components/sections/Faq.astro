@@ -8,36 +8,24 @@ import SectionHead from './SectionHead.astro';
 /**
  * FAQ на нативных <details>.
  *
- * Ни одной строки JS: браузер сам обрабатывает раскрытие, клавиатуру
- * и скринридер. Раньше такие блоки писали на div+aria-expanded, но
- * сейчас это лишний код ради того же результата.
+ * Ни одной строки JS: браузер сам обрабатывает раскрытие,
+ * клавиатуру и скринридер.
  */
 
 interface Props {
   locale: Locale;
   withHead?: boolean;
   limit?: number;
-  /** Показывать только вопросы, основанные на публичных условиях клиента. */
-  clientTermsOnly?: boolean;
-  id?: string;
   surface?: boolean;
 }
 
-const {
-  locale,
-  withHead = true,
-  limit,
-  clientTermsOnly = false,
-  id = 'faq',
-  surface = false,
-} = Astro.props;
+const { locale, withHead = true, limit, surface = false } = Astro.props;
 const ui = useUI(locale);
 
-const items = (clientTermsOnly ? allFaq.filter((item) => item.fromClientTerms) : allFaq)
-  .slice(0, limit ?? allFaq.length);
+const items = allFaq.slice(0, limit ?? allFaq.length);
 ---
 
-<section class={`section ${surface ? 'section--surface' : ''}`.trim()} id={id}>
+  <section class={`section ${surface ? 'section--surface' : ''}`.trim()} id="faq">
   <div class="container">
     {withHead && <SectionHead title={ui.home.faqTitle} lead={ui.home.faqLead} />}
 

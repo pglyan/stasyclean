@@ -28,7 +28,6 @@ export const themePresets: ThemePreset[] = [
       ru: 'Светлый, чистый, ассоциируется с эко-уборкой и свежестью.',
     },
     kind: 'light',
-    layout: 'split',
     defaults: {
       radius: 16,
       density: 'normal',
@@ -61,7 +60,6 @@ export const themePresets: ThemePreset[] = [
       ru: 'Надёжность и сервис. Классика для сферы услуг, хорошо читается в рекламе.',
     },
     kind: 'light',
-    layout: 'split',
     defaults: {
       radius: 12,
       density: 'normal',
@@ -94,7 +92,6 @@ export const themePresets: ThemePreset[] = [
       ru: 'Яркий акцент и плотные заголовки. Заметно выделяется среди конкурентов.',
     },
     kind: 'light',
-    layout: 'center',
     defaults: {
       radius: 8,
       density: 'compact',
@@ -127,7 +124,6 @@ export const themePresets: ThemePreset[] = [
       ru: 'Спокойный премиальный тон: тёплый фон, терракота, засечный шрифт.',
     },
     kind: 'light',
-    layout: 'poster',
     defaults: {
       radius: 4,
       density: 'spacious',
@@ -160,7 +156,6 @@ export const themePresets: ThemePreset[] = [
       ru: 'Тёмная тема для современных проектов. Минимализм и аквамариновый акцент.',
     },
     kind: 'dark',
-    layout: 'banded',
     defaults: {
       radius: 12,
       density: 'normal',
@@ -193,7 +188,6 @@ export const themePresets: ThemePreset[] = [
       ru: 'Журнальный разворот: крупная засечная типографика, линейки, нумерация секций, двухцветные фото.',
     },
     kind: 'light',
-    layout: 'poster',
     defaults: {
       radius: 0,
       density: 'spacious',
@@ -226,7 +220,6 @@ export const themePresets: ThemePreset[] = [
       ru: 'Тёплая и дружелюбная подача: округлый шрифт, мягкие формы, наклейки, точечная текстура.',
     },
     kind: 'light',
-    layout: 'split',
     defaults: {
       radius: 26,
       density: 'normal',
@@ -259,7 +252,6 @@ export const themePresets: ThemePreset[] = [
       ru: 'Светлая «мыльная» подача: округлая геометрия, пузырьки и пастельное небо.',
     },
     kind: 'light',
-    layout: 'banded',
     defaults: {
       radius: 24,
       density: 'normal',
@@ -292,7 +284,6 @@ export const themePresets: ThemePreset[] = [
       ru: 'Лилово-персиковая мягкость: округлые формы, искры и «чешуйчатая» текстура.',
     },
     kind: 'light',
-    layout: 'zigzag',
     defaults: {
       radius: 20,
       density: 'normal',
@@ -325,7 +316,6 @@ export const themePresets: ThemePreset[] = [
       ru: 'Брутализм и самиздат: жёсткие рамки, сдвинутые тени, капс и типографская лента.',
     },
     kind: 'light',
-    layout: 'center',
     defaults: {
       radius: 0,
       density: 'normal',

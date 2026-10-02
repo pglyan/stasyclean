@@ -244,6 +244,47 @@ const isServicePage = ['general', 'regular', 'smart', 'reno', 'services'].includ
     if (event.key === 'Escape' && drawer?.classList.contains('is-open')) setDrawer(false);
   });
 
+  /**
+   * Мобильный переключатель языка: круглая кнопка в шапке, при
+   * нажатии раскрывает список языков (разметка — LangSwitch.astro).
+   * В шторке меню переключатель остаётся обычными ссылками, поэтому
+   * кнопку ищем только в шапке. Без JS дропдаун не раскрывается,
+   * но список языков доступен в шторке и в подвале.
+   */
+  document
+    .querySelectorAll<HTMLElement>('.site-header [data-lang-toggle]')
+    .forEach((toggle) => {
+      const menu = toggle.parentElement?.querySelector<HTMLElement>(
+        '[data-lang-menu]',
+      );
+      if (!menu) return;
+
+      const setOpen = (open: boolean) => {
+        menu.classList.toggle('is-open', open);
+        toggle.setAttribute('aria-expanded', String(open));
+      };
+
+      toggle.addEventListener('click', (event) => {
+        // Иначе документный обработчик ниже сразу закрывает только что открытый список
+        event.stopPropagation();
+        setOpen(!menu.classList.contains('is-open'));
+      });
+
+      document.addEventListener('click', (event) => {
+        const inside = (event.target as HTMLElement | null)?.closest?.(
+          '[data-lang-toggle], [data-lang-menu]',
+        );
+        if (!inside) setOpen(false);
+      });
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && menu.classList.contains('is-open')) {
+          setOpen(false);
+          toggle.focus();
+        }
+      });
+    });
+
   // Граница у шапки появляется только после прокрутки
   if (header) {
     const onScroll = () => header.classList.toggle('is-scrolled', window.scrollY > 8);

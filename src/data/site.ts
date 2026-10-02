@@ -52,13 +52,6 @@ export const site = {
     'Rakovica',
     'Bežanija',
   ] as string[],
-
-  rating: {
-    value: 4.9,
-    count: null as number | null,
-    /** Отзывы есть только в Instagram и Telegram — требуется собрать на сайт. */
-    verified: false,
-  },
 } as const;
 
 /** Тексты шапки/футера и метаданные — по локалям. */
@@ -107,10 +100,3 @@ export const siteText = {
     ru: 'Фиксированная цена по площади. Цена не зависит от длительности уборки.',
   } satisfies Localized,
 } as const;
-
-/** Пометка о предварительном характере демо-контента. */
-export const demoNotice = {
-  sr: 'Demo prikaz: tekstovi, fotografije i cene su privremeni i služe za izbor stila.',
-  en: 'Demo preview: copy, photos and prices are provisional and used for style selection.',
-  ru: 'Демонстрационная версия: тексты, фото и цены предварительные и служат для выбора стиля.',
-} satisfies Localized;

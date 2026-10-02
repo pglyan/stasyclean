@@ -226,12 +226,6 @@
   gap: var(--s3);
 }
 
-.calc__lines b {
-  color: var(--ink);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-
 .calc__note {
   font-size: var(--fs-xs);
   color: var(--ink-soft);

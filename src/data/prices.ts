@@ -76,17 +76,3 @@ export function plansForService(key: ServiceKey) {
 export function planPriceFrom(plan: PricePlan): number {
   return Math.min(...plan.tiers);
 }
-
-export function getPlan(id: string): PricePlan {
-  const found = plans.find((plan) => plan.id === id);
-  if (!found) throw new Error(`Unknown price plan: ${id}`);
-  return found;
-}
-
-/** Считает цену по площади, подбирая диапазон. Возвращает null, если площадь больше максимального тарифа. */
-export function priceForArea(tiers: readonly number[], area: number): number | null {
-  for (let index = 0; index < AREA_TIERS.length; index += 1) {
-    if (area <= AREA_TIERS[index]) return tiers[index] ?? null;
-  }
-  return null;
-}

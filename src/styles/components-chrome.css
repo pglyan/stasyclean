@@ -36,12 +36,20 @@
   min-block-size: 4.5rem;
 }
 
-/* Переключатель языка переезжает в меню-«шторку» на всём мобильном диапазоне.
-   Причина: на 360px он занимал 122px — треть шапки, — хотя те же три ссылки
-   есть в .drawer__foot и в подвале. Экономия места уходит кнопке меню. */
+/*
+  Переключатель языка на телефоне: три ссылки в ряд занимали 122px —
+  треть шапки, — поэтому в узком виде шапка показывает круглую кнопку
+  с дропдауном (.lang-mobile в секции «Переключатель языка» ниже), а
+  полный список ссылок остаётся в шторке меню (.drawer__foot) и в
+  подвале.
+*/
 @media (max-width: 47.999rem) {
   .site-header .lang {
     display: none;
+  }
+
+  .site-header .lang-mobile {
+    display: block;
   }
 }
 
@@ -238,28 +246,116 @@
   color: var(--brand-ink);
 }
 
+/* ---------- Переключатель языка на телефоне: кнопка и дропдаун ---------- */
+
+/*
+  Круглая кнопка с иконкой-глобусом. Имя даёт aria-label
+  (ui.nav.language — «Язык» / «Language» / «Jezik»), видимого текста
+  нет. Блок скрыт по умолчанию и включается только для шапки на
+  узком экране: в шторке меню (.drawer__foot) список языков остаётся
+  обычными ссылками (.lang выше).
+*/
+.lang-mobile {
+  position: relative;
+  display: none;
+}
+
+.lang-toggle {
+  display: grid;
+  place-items: center;
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+  border: var(--bw) solid var(--line);
+  border-radius: var(--r-pill);
+  color: var(--ink);
+}
+
+.lang-toggle svg {
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+}
+
+@media (hover: hover) {
+  .lang-toggle:hover {
+    background: var(--surface-2);
+  }
+}
+
+/*
+  Дропдаун раскрывает JS в Header.astro классом is-open — та же
+  анимация появления, что у выпадающего меню «Услуги» (.nav__menu).
+  Закрыт visibility, поэтому ссылки недоступны клавиатуре, пока
+  список не открыт.
+*/
+.lang-menu {
+  position: absolute;
+  inset-block-start: calc(100% + var(--s2));
+  inset-inline-end: 0;
+  min-inline-size: 9.5rem;
+  padding: var(--s2);
+  background: var(--surface);
+  border: var(--bw) solid var(--line);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-md);
+  opacity: 0;
+  visibility: hidden;
+  translate: 0 -0.25rem;
+  transition:
+    opacity var(--dur-fast) var(--ease),
+    translate var(--dur-fast) var(--ease),
+    visibility var(--dur-fast);
+}
+
+.lang-menu.is-open {
+  opacity: 1;
+  visibility: visible;
+  translate: 0 0;
+}
+
+.lang-menu a {
+  display: flex;
+  align-items: center;
+  padding: var(--s2) var(--s3);
+  border-radius: var(--r-sm);
+  color: var(--ink);
+  font-size: var(--fs-sm);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+@media (hover: hover) {
+  .lang-menu a:hover {
+    background: var(--surface-2);
+    color: var(--ink);
+  }
+}
+
+.lang-menu a[aria-current='true'] {
+  background: var(--brand);
+  color: var(--brand-ink);
+  font-weight: 600;
+}
+
 /* ---------- Переключатель схемы (светлая / тёмная) ---------- */
 
 /*
   Кнопка есть и в прод-сборке: тёмная вариация темы уже едет в CSS
-  (токены src/themes/tokens.ts), но без кнопки посетитель не мог её включить.
-  Размер держим как у бургера: на телефоне это icon-only цель 44×44px
-  (Apple HIG, Material, WCAG 2.5.8), потому что подпись там скрыта из кадра.
+  (токены src/themes/tokens.ts), но без кнопки посетитель не мог её
+  включить. Кнопка — только иконка на всех размерах: подпись с текстом
+  переносилась внутри кнопки и расширяла шапку. Размер как у бургера:
+  2.75rem — цель 44×44px (Apple HIG, Material, WCAG 2.5.8).
 */
 .scheme-switch {
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--s2);
-  min-inline-size: 2.75rem;
-  min-block-size: 2.75rem;
-  padding-inline: var(--s3);
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+  padding: 0;
   border: var(--bw) solid var(--line);
   border-radius: var(--r-pill);
   color: var(--ink);
-  font-size: var(--fs-sm);
-  font-weight: 600;
 }
 
 @media (hover: hover) {
@@ -289,24 +385,23 @@
 }
 
 /*
-  На телефоне остаётся только иконка: с подписью кнопка занимала бы треть
-  шапки, а на 320px места нет вовсе. Текст при этом НЕ исчезает из
-  доступности — свойства те же, что у .visually-hidden в base.css
-  (прячем из кадра, а не из дерева доступности), иначе у иконочной кнопки
-  не осталось бы имени.
+  Подпись скрыта из кадра на всех размерах: кнопка — только иконка
+  (раньше на десктопе подпись показывалась, но её текст переносился
+  внутри кнопки). Текст при этом НЕ исчезает из доступности —
+  свойства те же, что у .visually-hidden в base.css (прячем из
+  кадра, а не из дерева доступности), поэтому у иконочной кнопки
+  остаётся имя: «Светлая тема» / «Тёмная тема».
 */
-@media (max-width: 47.999rem) {
-  .scheme-switch__label {
-    position: absolute;
-    inline-size: 1px;
-    block-size: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-    border: 0;
-  }
+.scheme-switch__label {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* ---------- Кнопка-бургер ---------- */

@@ -64,11 +64,6 @@ export const LOCALE_META: Record<Locale, LocaleMeta> = {
   },
 };
 
-/** Все локали, кроме текущей — используется переключателем языка. */
-export function otherLocales(locale: Locale): Locale[] {
-  return LOCALES.filter((item) => item !== locale);
-}
-
 /**
  * Форматирует число по правилам локали.
  * sr → 4.000   |   ru → 4 000   |   en → 4,000
@@ -91,11 +86,6 @@ export function formatPrice(value: number, locale: Locale): string {
 /** «od 4.000 RSD» / «from 4,000 RSD» / «от 4 000 RSD» */
 export function formatPriceFrom(value: number, locale: Locale): string {
   return `${LOCALE_META[locale].fromPrefix} ${formatPrice(value, locale)}`;
-}
-
-/** «od 4.000 RSD / 1 sat» — для почасовых тарифов */
-export function formatPricePerHour(value: number, locale: Locale, hourWord: string): string {
-  return `${formatPrice(value, locale)} / ${hourWord}`;
 }
 
 /** Диапазон цен «1.500 – 3.000 RSD» */

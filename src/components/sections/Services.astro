@@ -19,14 +19,12 @@ import SectionHead from './SectionHead.astro';
 interface Props {
   locale: Locale;
   withHead?: boolean;
-  /** Ограничить набор услуг — например, для страницы-хаба. */
-  limit?: number;
 }
 
-const { locale, withHead = true, limit } = Astro.props;
+const { locale, withHead = true } = Astro.props;
 const ui = useUI(locale);
 
-const items = (limit ? services.slice(0, limit) : services).map((service) => {
+const items = services.map((service) => {
   const priceFrom =
     service.priceUnit === 'hour'
       ? hourlyRate.price

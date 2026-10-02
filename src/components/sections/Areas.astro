@@ -17,15 +17,13 @@ import SectionHead from './SectionHead.astro';
 interface Props {
   locale: Locale;
   withHead?: boolean;
-  id?: string;
-  surface?: boolean;
 }
 
-const { locale, withHead = true, id = 'areas', surface = true } = Astro.props;
+const { locale, withHead = true } = Astro.props;
 const ui = useUI(locale);
 ---
 
-<section class={`section ${surface ? 'section--surface' : ''}`.trim()} id={id}>
+<section class="section section--surface" id="areas">
   <div class="container">
     {withHead && <SectionHead title={ui.home.areasTitle} lead={ui.home.areasLead} />}
 

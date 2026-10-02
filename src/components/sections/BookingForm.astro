@@ -23,11 +23,9 @@ import SectionHead from './SectionHead.astro';
 interface Props {
   locale: Locale;
   withHead?: boolean;
-  surface?: boolean;
-  id?: string;
 }
 
-const { locale, withHead = true, surface = false, id = 'booking' } = Astro.props;
+const { locale, withHead = true } = Astro.props;
 const ui = useUI(locale);
 
 const times = [ui.form.timeMorning, ui.form.timeAfternoon, ui.form.timeEvening];
@@ -37,7 +35,7 @@ const whatsappUrl = site.phone
   : null;
 ---
 
-<section class={`section ${surface ? 'section--surface' : ''}`.trim()} id={id}>
+<section class="section" id="booking">
   <div class="container">
     {withHead && <SectionHead title={ui.home.formTitle} lead={ui.home.formLead} />}
 
