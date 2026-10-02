@@ -18,6 +18,7 @@
 @import '../../fonts/nunito.css';
 @import '../../fonts/manrope.css';
 @import './palettes.css';
+@import './scheme.css';
 
 [data-skin='sorbet'] {
   color-scheme: light;

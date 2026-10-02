@@ -19,6 +19,7 @@
 @import '../../fonts/comfortaa.css';
 @import '../../fonts/manrope.css';
 @import './palettes.css';
+@import './scheme.css';
 
 [data-skin='bubble'] {
   color-scheme: light;

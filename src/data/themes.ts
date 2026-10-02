@@ -6,7 +6,8 @@
  * то, что нужно панели для показа и сборке для подстановки значений:
  *
  *   name / description — локализованные подписи для заказчика;
- *   swatch / layout    — паспорт темы в демо-панели;
+ *   swatch / swatchAlt — паспорт темы в демо-панели: натуральная схема и вторая;
+ *   layout             — схема раскладки для мини-превью;
  *   defaults           — умолчания параметров (radius, шрифты, карточки…);
  *   available          — какие шрифты тема разрешает (и, значит, везёт).
  *
@@ -28,6 +29,7 @@ export const themePresets: ThemePreset[] = [
     },
     kind: 'light',
     swatch: ['#ffffff', '#157f5f', '#0b2b22'],
+    swatchAlt: ['#0c1512', '#31c498', '#e6f0eb'],
     layout: 'split',
     defaults: {
       radius: 16,
@@ -62,6 +64,7 @@ export const themePresets: ThemePreset[] = [
     },
     kind: 'light',
     swatch: ['#ffffff', '#145ca3', '#0b2138'],
+    swatchAlt: ['#0a1420', '#4794e1', '#e3ecf6'],
     layout: 'split',
     defaults: {
       radius: 12,
@@ -96,6 +99,7 @@ export const themePresets: ThemePreset[] = [
     },
     kind: 'light',
     swatch: ['#ffffff', '#ad560b', '#191919'],
+    swatchAlt: ['#1a1713', '#ef8e39', '#f2ede6'],
     layout: 'center',
     defaults: {
       radius: 8,
@@ -130,6 +134,7 @@ export const themePresets: ThemePreset[] = [
     },
     kind: 'light',
     swatch: ['#faf6f1', '#a35533', '#2b2620'],
+    swatchAlt: ['#1a1512', '#cd7651', '#efe8e0'],
     layout: 'poster',
     defaults: {
       radius: 4,
@@ -164,6 +169,7 @@ export const themePresets: ThemePreset[] = [
     },
     kind: 'dark',
     swatch: ['#0e1216', '#39d0c1', '#e8eef3'],
+    swatchAlt: ['#f4f7f9', '#22776e', '#0e1a20'],
     layout: 'banded',
     defaults: {
       radius: 12,
@@ -198,6 +204,7 @@ export const themePresets: ThemePreset[] = [
     },
     kind: 'light',
     swatch: ['#f6f3ee', '#8d4634', '#15120e'],
+    swatchAlt: ['#14120f', '#cf7159', '#f0ebe3'],
     layout: 'poster',
     defaults: {
       radius: 0,
@@ -232,6 +239,7 @@ export const themePresets: ThemePreset[] = [
     },
     kind: 'light',
     swatch: ['#fff9f5', '#ca2b53', '#3f2f35'],
+    swatchAlt: ['#1a1316', '#d65173', '#f2e9ec'],
     layout: 'split',
     defaults: {
       radius: 26,
@@ -271,6 +279,7 @@ export const themePresets: ThemePreset[] = [
     },
     kind: 'light',
     swatch: ['#f4faff', '#76bae5', '#0d2b3a'],
+    swatchAlt: ['#0b1219', '#4cabe6', '#e4eef6'],
     layout: 'banded',
     defaults: {
       radius: 24,
@@ -310,6 +319,7 @@ export const themePresets: ThemePreset[] = [
     },
     kind: 'light',
     swatch: ['#fbf9ff', '#b486ea', '#322b3d'],
+    swatchAlt: ['#100c16', '#9f65e2', '#ece6f4'],
     layout: 'zigzag',
     defaults: {
       radius: 20,
@@ -349,6 +359,7 @@ export const themePresets: ThemePreset[] = [
     },
     kind: 'light',
     swatch: ['#f4f1ea', '#ffce0a', '#0f0f0c'],
+    swatchAlt: ['#14140f', '#ffd11a', '#f2efe4'],
     layout: 'center',
     defaults: {
       radius: 0,

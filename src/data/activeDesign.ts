@@ -23,7 +23,7 @@ import {
   type DesignSettings,
 } from './designSchema';
 import { getThemePreset, themePresets } from './themes';
-import type { FontKind, PaletteKind, ThemePreset } from '../themes/types';
+import type { FontKind, PaletteKind, ThemeKind, ThemePreset } from '../themes/types';
 
 /** Идентификаторы всех тем — нужны валидации конфига. */
 export const themeIds = themePresets.map((preset) => preset.id);
@@ -41,6 +41,8 @@ export interface BuildDesign {
   bodyFont: FontKind;
   /** Палитра темы после подстановки умолчания. null — у темы их нет. */
   palette: PaletteKind | null;
+  /** Итоговая схема: выбор из конфига либо натуральная схема темы (её `kind`). */
+  scheme: ThemeKind;
   /**
    * Значения параметров после подстановки умолчаний темы.
    * id темы не входит: его читает CSS, а не скрипты.
@@ -78,6 +80,12 @@ export function resolveForBuild(design: DesignSettings = activeDesign): BuildDes
   const headingFont = design.headingFont ?? theme.defaults.headingFont;
   const bodyFont = design.bodyFont ?? theme.defaults.bodyFont;
   const palette = design.palette ?? theme.defaults.palette;
+  /**
+   * Схема: у каждой темы есть обе (натуральная — её `kind`, вариация — блок
+   * [data-scheme] в её scheme.css). Атрибут ставим всегда, поэтому CSS темы
+   * и мини-превью панели читают одно и то же значение.
+   */
+  const scheme: ThemeKind = design.scheme ?? theme.kind;
 
   assertThemeFonts(theme, design, { headingFont, bodyFont });
   assertThemePalettes(theme, design, palette);
@@ -98,6 +106,7 @@ export function resolveForBuild(design: DesignSettings = activeDesign): BuildDes
 
   const attributes: Record<string, string> = {
     'data-skin': theme.id,
+    'data-scheme': scheme,
     'data-font': headingFont,
     'data-body-font': bodyFont,
     'data-density': values.density,
@@ -123,8 +132,13 @@ export function resolveForBuild(design: DesignSettings = activeDesign): BuildDes
    * отдельный цвет, а тот, что уже описан в её токенах. Поэтому атрибут
    * ставим только когда палитра выбрана осознанно: без него тема выглядит
    * ровно так, как её написал автор.
+   *
+   * Ещё одно условие — схема: палитры объявлены для натуральной схемы темы
+   * (data-scheme её `kind`). В тёмной вариации цвета даёт scheme.css, а
+   * палитры не предлагаются, поэтому атрибут не ставим — иначе он висел бы
+   * вопреки правилу «в тёмной схеме палитры нет».
    */
-  if (palette) attributes['data-palette'] = palette;
+  if (palette && scheme === theme.kind) attributes['data-palette'] = palette;
 
   const style = [
     design.accentHue !== null ? `--brand-h:${design.accentHue}` : '',
@@ -133,7 +147,7 @@ export function resolveForBuild(design: DesignSettings = activeDesign): BuildDes
     .filter(Boolean)
     .join(';');
 
-  return { settings: design, theme, headingFont, bodyFont, palette, values, attributes, style };
+  return { settings: design, theme, headingFont, bodyFont, palette, scheme, values, attributes, style };
 }
 
 /** Посчитано один раз на сборку. */

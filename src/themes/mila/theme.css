@@ -12,6 +12,7 @@
 
 @import '../../fonts/nunito.css';
 @import './palettes.css';
+@import './scheme.css';
 
 [data-skin='mila'] {
   color-scheme: light;

@@ -68,6 +68,14 @@ const SKIN_VALUE = /data-skin\s*(?:=|:)\s*["']?([\w-]+)/g;
  */
 const PALETTE_VALUE = /data-palette\s*(?:=|:)\s*["']?([\w-]+)/g;
 
+/**
+ * Схема (light/dark) — третья ось оформления рядом с темой и палитрой.
+ * Значений всего два, поэтому «чужого» значения быть не может; проверяем,
+ * что в разметке и CSS встречаются только известные.
+ */
+const SCHEME_VALUE = /data-scheme\s*(?:=|:)\s*["']?([\w-]+)/g;
+const SCHEME_KINDS = new Set(['light', 'dark']);
+
 const problems = [];
 const rel = (file) => relative(target, file) || file;
 
@@ -166,6 +174,20 @@ for (const { content } of css) {
   for (const match of content.matchAll(PALETTE_VALUE)) palettesInCss.add(match[1]);
 }
 
+/** Куда попали значения data-scheme: light/dark → файлы. */
+const schemes = new Map();
+for (const { path, content } of texts) {
+  for (const match of content.matchAll(SCHEME_VALUE)) {
+    const value = match[1];
+    if (!schemes.has(value)) schemes.set(value, new Set());
+    schemes.get(value).add(rel(path));
+  }
+}
+
+/** Есть ли в разметке data-scheme нужного значения. */
+const hasSchemeAttribute = (value, content) =>
+  [...content.matchAll(SCHEME_VALUE)].some((match) => match[1] === value);
+
 const lines = [];
 const check = (ok, good, bad) => {
   lines.push(`${ok ? '✓' : '✗'} ${ok ? good : bad}`);
@@ -256,19 +278,51 @@ if (!demoBuild) {
   const foreignPalettes = [...palettes.keys()].filter((id) => !declared.includes(id));
 
   /**
+   * Схема: натуральная схема темы (её `kind`) либо вариация из конфига.
+   * Палитра объявлена только для натуральной схемы — в вариации её не
+   * выводят, поэтому и в сообщении о палитре это учтено.
+   */
+  const resolvedScheme = design.scheme ?? activeTheme.kind;
+  const naturalScheme = resolvedScheme === activeTheme.kind;
+
+  /**
    * В разметке стоит не значение конфига, а результат подстановки: если в
    * design.config.json palette = null, тема подставляет свою палитру по
    * умолчанию. Поэтому в сообщении — фактическая палитра, а не поле конфига.
    */
-  const effective = design.palette ?? activeTheme.defaults.palette;
+  const effective = naturalScheme ? (design.palette ?? activeTheme.defaults.palette) : null;
   check(
     foreignPalettes.length === 0,
     `разметка и CSS: палитра ${
-      effective ? `«${effective}»${design.palette ? '' : ' (умолчание темы)'}` : 'не задана'
+      effective
+        ? `«${effective}»${design.palette ? '' : ' (умолчание темы)'}`
+        : naturalScheme
+          ? 'не задана'
+          : `не выводится — схема «${resolvedScheme}»`
     } — из списка темы`,
     `палитры: найдены значения data-palette, которых тема не объявляет — ${foreignPalettes
       .map((id) => `«${id}» (${[...(palettes.get(id) ?? [])].slice(0, 2).join(', ')})`)
       .join(', ')}.`,
+  );
+
+  /**
+   * Схема: у темы есть натуральная схема (её `kind`) и вариация
+   * (`[data-scheme]`). В разметку уходит итоговая, в CSS — обе, поэтому
+   * проверяем и правильность атрибута, и что чужих значений не завелось.
+   */
+  const strayScheme = [...schemes.keys()].filter((value) => !SCHEME_KINDS.has(value));
+
+  check(
+    pages.every(({ content }) => hasSchemeAttribute(resolvedScheme, content)),
+    `разметка: data-scheme="${resolvedScheme}" на всех ${pages.length} страницах`,
+    `схема: не во всех страницах есть data-scheme="${resolvedScheme}" — сборка положила не ту ` +
+      'схему (см. resolveForBuild в src/data/activeDesign.ts).',
+  );
+
+  check(
+    strayScheme.length === 0,
+    `схема: ${[...schemes.keys()].sort().join(', ') || 'не задана'} — только light/dark`,
+    `схема: неизвестные значения data-scheme — ${strayScheme.join(', ')}.`,
   );
 } else {
   const panel = pages.filter(({ content }) => content.includes('demo-panel'));
@@ -302,6 +356,29 @@ if (!demoBuild) {
     `палитры: все ${allPalettes.length} палитр стенда в CSS (${allPalettes.join(', ') || 'их нет'})`,
     `палитры: в демо-CSS нет ${missingPalettes.join(', ')} — проверьте импорт ./palettes.css ` +
       'в CSS соответствующей темы.',
+  );
+
+  /**
+   * Схемы стенда: у каждой темы должна быть вариация второй схемы в CSS,
+   * иначе переключатель «Схема» оставит тему без изменений.
+   */
+  const withoutScheme = themePresets
+    .map((preset) => ({ id: preset.id, alt: preset.kind === 'dark' ? 'light' : 'dark' }))
+    .filter(
+      ({ id, alt }) =>
+        !css.some(({ content }) =>
+          new RegExp(
+            `\\[data-skin=['"]?${id}['"]?\\]\\[data-scheme=['"]?${alt}['"]?\\]`,
+          ).test(content),
+        ),
+    );
+
+  check(
+    withoutScheme.length === 0,
+    `схемы: все ${themePresets.length} тем имеют вариацию второй схемы`,
+    `схемы: в демо-CSS нет вариации схемы для ${withoutScheme
+      .map((item) => `${item.id} (${item.alt})`)
+      .join(', ')} — проверьте импорт ./scheme.css в CSS темы.`,
   );
 }
 

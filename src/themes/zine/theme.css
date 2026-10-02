@@ -15,6 +15,7 @@
  */
 
 @import '../../fonts/manrope.css';
+@import './scheme.css';
 
 [data-skin='zine'] {
   color-scheme: light;

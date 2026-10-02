@@ -1,0 +1,29 @@
+/**
+ * Схема «Сорбета» (sorbet) — тёмная вариация.
+ *
+ * См. комментарий в src/themes/fresh/scheme.css: ось схемы меняет ТОЛЬКО
+ * цвета. В тёмной схеме палитры (lilac/peach/sky/butter) не предлагаются —
+ * панель прячет группу палитр.
+ *
+ * `--brand-strong` задан явно: базовый блок темы объявил его литерально
+ * для светлого акцента, на тёмном фоне нужен свой, светлый оттенок ссылок.
+ */
+
+[data-skin='sorbet'][data-scheme='dark'] {
+  color-scheme: dark;
+
+  --brand-h: 268;
+  --brand-s: 68%;
+  --brand-l: 64%;
+  --brand-ink: #120a1d;
+  --brand-strong: #af83e7;
+
+  --bg: #100c16;
+  --surface: #171221;
+  --surface-2: #1e1829;
+  --ink: #ece6f4;
+  --ink-soft: #a89fba;
+  --line: #2b2438;
+
+  --shadow-color: 268 30% 4%;
+}

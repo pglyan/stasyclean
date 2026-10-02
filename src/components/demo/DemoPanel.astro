@@ -50,6 +50,16 @@ import panelCss from '../../styles/components-panel.css?raw';
  * (радиус, шрифты, карточки, раскладка первого экрана) и свой CSS
  * (src/themes/<id>/theme.css). При выборе темы панель подставляет её
  * умолчания — но только для тех настроек, которые заказчик не трогал вручную.
+ *
+ * Схема (data-scheme) — отдельная ось рядом с палитрой: у каждой темы есть
+ * светлая и тёмная вариации (src/themes/<id>/scheme.css). В тёмной схеме
+ * палитра не предлагается, поэтому группа «Палитра» скрывается, атрибут
+ * data-palette снимается, а свотч карточки темы показывается по текущей схеме
+ * (applySchemeRules и paintThemeCardSwatches). Переключить схему можно и без
+ * панели: кнопкой [data-scheme-switch] в шапке сайта (она есть и в прод-сборке
+ * — см. src/scripts/scheme.ts) и плавающей кнопкой [data-scheme-toggle] рядом
+ * с «Настройками». Применяет схему общий модуль, а панель слушает его событие
+ * SCHEME_EVENT и догоняет своё состояние — иначе две кнопки разошлись бы.
  */
 
 interface Props {
@@ -76,6 +86,14 @@ const defaults: Record<string, string> = {
    * работала бы на загрузке — syncPressed ищет значение по имени настройки.
    */
   'order-hint': baked.settings.orderHint,
+  /** Итоговая схема сборки: натуральная схема темы либо выбор из конфига. */
+  scheme: baked.scheme,
+  /**
+   * Палитра после подстановки умолчания темы; '' — «как в теме». В тёмной
+   * схеме палитры нет, поэтому и здесь пусто — так стартовое состояние
+   * панели совпадает с разметкой сборки.
+   */
+  palette: baked.scheme === 'dark' ? '' : baked.palette ?? '',
 };
 
 interface Option {
@@ -106,6 +124,18 @@ const toOptions = (options: { value: string | number; label: Localized; hue?: nu
 
 /** Группы настроек описываются данными — разметка остаётся компактной. */
 const groups: Group[] = [
+  {
+    label: ui.panel.scheme,
+    setting: 'scheme',
+    apply: 'attr:data-scheme',
+    /* Схема — ось поверх темы: цвета даёт CSS темы (scheme.css), параметр
+       только переключает атрибут. Работает у каждой темы, потому что у всех
+       есть обе схемы (натуральная — её `kind`, вариация — второй блок). */
+    options: [
+      { value: 'light', label: ui.panel.schemeLight },
+      { value: 'dark', label: ui.panel.schemeDark },
+    ],
+  },
   {
     label: ui.panel.palette,
     setting: 'palette',
@@ -237,16 +267,42 @@ const groups: Group[] = [
 
 <style is:inline set:html={panelCss}></style>
 
-<button
-  class="panel-toggle"
-  type="button"
-  data-panel-open
-  aria-expanded="false"
-  aria-controls="demo-panel"
->
-  <Icon name="sliders" class="icon--sm" />
-  {ui.panel.open}
-</button>
+<div class="panel-fabs">
+  {/*
+    Быстрый переключатель схемы: работает без открытия панели, поэтому
+    требование «кнопка смены светлой/тёмной» видно сразу. Показываем ту
+    схему, в которую переключимся, — иконку и подпись берёт CSS по
+    data-scheme на <html>, поэтому JS состояние кнопки не дублирует.
+
+    Это орган управления стендом (рядом с «Настройками»): такую же кнопку,
+    но как функцию сайта, несёт шапка (components/ui/SchemeSwitch.astro).
+  */}
+  <button
+    class="panel-toggle panel-toggle--scheme"
+    type="button"
+    data-scheme-toggle
+  >
+    <span class="panel-toggle__icon" data-scheme-show="dark" aria-hidden="true">
+      <Icon name="moon" class="icon--sm" />
+    </span>
+    <span class="panel-toggle__icon" data-scheme-show="light" aria-hidden="true">
+      <Icon name="sun" class="icon--sm" />
+    </span>
+    <span data-scheme-show="dark">{ui.panel.schemeDark}</span>
+    <span data-scheme-show="light">{ui.panel.schemeLight}</span>
+  </button>
+
+  <button
+    class="panel-toggle"
+    type="button"
+    data-panel-open
+    aria-expanded="false"
+    aria-controls="demo-panel"
+  >
+    <Icon name="sliders" class="icon--sm" />
+    {ui.panel.open}
+  </button>
+</div>
 
 <aside class="panel" id="demo-panel" data-panel data-defaults={JSON.stringify(defaults)} hidden>
   <div class="panel__head">
@@ -286,16 +342,22 @@ const groups: Group[] = [
             data-meta-photo-shape={preset.defaults.photoShape ?? ''}
             data-meta-heading={preset.available.heading.join(',')}
             data-meta-body={preset.available.body.join(',')}
+            data-meta-scheme={preset.kind}
+            data-meta-swatch={JSON.stringify(preset.swatch)}
+            data-meta-swatch-alt={JSON.stringify(preset.swatchAlt)}
+            data-meta-color={preset.swatch[1]}
+            data-meta-color-dark={preset.swatchAlt[1]}
             data-meta-palette={preset.defaults.palette ?? ''}
             data-meta-palettes={JSON.stringify(
               Object.fromEntries(preset.available.palettes.map((item) => [item.id, item.swatch])),
             )}
-            data-meta-color={preset.swatch[1]}
             data-kind={preset.kind}
             title={preset.description[locale]}
           >
             <span class="panel__theme-swatch" aria-hidden="true">
-              {preset.swatch.map((color) => <span style={`background:${color}`}></span>)}
+              {preset.swatch.map((color) => (
+                <span data-theme-swatch style={`background:${color}`}></span>
+              ))}
             </span>
             <span class="panel__theme-name">{preset.name[locale]}</span>
           </button>
@@ -382,9 +444,12 @@ const groups: Group[] = [
    * Ссылка с ?panel=0 открывается без кнопки панели — удобно, когда нужно
    * отправить заказчику «чистый» вид без настроек.
    */
+  import { SCHEME_EVENT, applyScheme, asScheme, type Scheme } from '../../scripts/scheme';
+
   const root = document.documentElement;
   const panel = document.querySelector<HTMLElement>('[data-panel]');
   const openBtn = document.querySelector<HTMLButtonElement>('[data-panel-open]');
+  const schemeToggle = document.querySelector<HTMLButtonElement>('[data-scheme-toggle]');
   const closeBtn = document.querySelector<HTMLButtonElement>('[data-panel-close]');
   const toast = document.querySelector<HTMLElement>('[data-panel-toast]');
 
@@ -393,13 +458,20 @@ const groups: Group[] = [
    * другие значения (data-theme='mint'), а в версии 3 изменилось фото:
    * лечение снимка (data-photo) и его форма (data-photo-shape) разделились,
    * поэтому старое значение photo='arch' больше ничего не значит и такие
-   * записи нужно игнорировать, а не применять.
+   * записи нужно игнорировать, а не применять. В версии 4 появилась схема
+   * (data-scheme): в старых записях её нет, поэтому выбор пересоберётся из
+   * умолчаний темы — это надёжнее, чем «дотягивать» чужое значение.
    */
-  const STORAGE_VERSION = 3;
+  const STORAGE_VERSION = 4;
   const STORAGE_KEY = 'stasyclean:demo:v2';
   const defaults: Record<string, string> = JSON.parse(panel?.dataset.defaults ?? '{}');
 
-  if (new URLSearchParams(window.location.search).get('panel') === '0') openBtn?.remove();
+  if (new URLSearchParams(window.location.search).get('panel') === '0') {
+    openBtn?.remove();
+    // ?panel=0 — «чистый» вид: убираем весь блок кнопок стенда. Кнопка схемы
+    // в шапке сайта при этом остаётся: это функция сайта, а не стенда.
+    document.querySelector('.panel-fabs')?.remove();
+  }
 
   /** Карта «настройка → как её применить», берётся прямо из разметки. */
   const APPLY: Record<string, string> = {};
@@ -415,6 +487,17 @@ const groups: Group[] = [
   function applyOne(setting: string, value: string) {
     const rule = APPLY[setting];
     if (!rule) return;
+
+    /**
+     * Схема применяется общим механизмом сайта (src/scripts/scheme.ts), а не
+     * здесь: тот же переключатель есть в шапке, и две отдельные реализации
+     * разошлись бы после первого же клика. Модуль сам ставит атрибут,
+     * обновляет мету, помнит выбор и сообщает о смене событием.
+     */
+    if (setting === 'scheme') {
+      applyScheme(asScheme(value) ?? 'light');
+      return;
+    }
 
     if (rule.startsWith('attr:')) {
       const attribute = rule.slice(5);
@@ -453,6 +536,7 @@ const groups: Group[] = [
    * из data-meta-* на кнопке темы.
    */
   const THEME_DEFAULT_KEYS: Record<string, string> = {
+    scheme: 'metaScheme',
     palette: 'metaPalette',
     radius: 'metaRadius',
     density: 'metaDensity',
@@ -487,14 +571,24 @@ const groups: Group[] = [
       palette: Object.keys(palettesOf(themeButton)),
     };
 
+    /**
+     * В тёмной схеме палитры не предлагаются: цвета даёт сама вариация схемы
+     * (scheme.css), поэтому палитра и схема не спорят за одни переменные.
+     */
+    const darkScheme = settings.scheme === 'dark';
+
     document.querySelectorAll<HTMLElement>('[data-filter]').forEach((list) => {
-      const allow = allowed[list.dataset.filter ?? ''] ?? [];
+      const filter = list.dataset.filter ?? '';
+      const allow = allowed[filter] ?? [];
       let visible = 0;
 
       list.querySelectorAll<HTMLElement>('[data-setting]').forEach((option) => {
         const value = option.dataset.value ?? '';
         // «Как в теме» (пустое значение) имеет смысл, только если есть из чего выбирать
-        option.hidden = allow.length === 0 || (value !== '' && !allow.includes(value));
+        option.hidden =
+          (darkScheme && filter === 'palette') ||
+          allow.length === 0 ||
+          (value !== '' && !allow.includes(value));
         if (!option.hidden) visible += 1;
       });
 
@@ -502,6 +596,7 @@ const groups: Group[] = [
     });
 
     paintPaletteSwatches(themeButton);
+    paintThemeCardSwatches(themeButton);
   }
 
   /** Свотчи палитр берём у темы: одна и та же палитра в разных темах своя. */
@@ -521,6 +616,27 @@ const groups: Group[] = [
       option.querySelectorAll<HTMLElement>('[data-swatch]').forEach((dot, index) => {
         dot.style.background = swatch ? swatch[index] : '';
       });
+    });
+  }
+
+  /**
+   * Свотч в карточке темы показывает ТЕКУЩУЮ схему: у светлых тем по
+   * умолчанию светлый набор, у nordic — тёмный. Когда заказчик переключает
+   * схему, карточка перекрашивается, поэтому паспорт темы не врёт.
+   */
+  function paintThemeCardSwatches(themeButton: HTMLElement) {
+    const natural = themeButton.dataset.metaScheme === settings.scheme;
+    const raw = natural ? themeButton.dataset.metaSwatch : themeButton.dataset.metaSwatchAlt;
+
+    let colors: string[] = [];
+    try {
+      colors = JSON.parse(raw ?? '[]') as string[];
+    } catch {
+      colors = [];
+    }
+
+    themeButton.querySelectorAll<HTMLElement>('[data-theme-swatch]').forEach((dot, index) => {
+      dot.style.background = colors[index] ?? '';
     });
   }
 
@@ -554,8 +670,39 @@ const groups: Group[] = [
    */
   function syncThemeColor(themeButton: HTMLElement) {
     const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
-    const color = palettesOf(themeButton)[settings.palette ?? '']?.[1] ?? themeButton.dataset.metaColor;
+
+    /** Палитра есть только в светлой схеме; её акцент важнее акцента темы. */
+    const paletteAccent = palettesOf(themeButton)[settings.palette ?? '']?.[1];
+    const schemeAccent =
+      settings.scheme === themeButton.dataset.metaScheme
+        ? themeButton.dataset.metaColor
+        : themeButton.dataset.metaColorDark;
+
+    const color = paletteAccent ?? schemeAccent;
     if (meta && color) meta.content = color;
+  }
+
+  /**
+   * Сводит две цветовые оси вместе: выбор схемы и выбор палитры.
+   *
+   * Схема — ось поверх темы: в тёмной схеме палитры не предлагаются, значит
+   * её надо снять (иначе data-palette остался бы висеть, хотя группа скрыта).
+   * При возврате к светлой — подставляем палитру темы, но только если
+   * заказчик не выбирал свою: ручной выбор приоритетнее.
+   */
+  function applySchemeRules(themeButton: HTMLElement) {
+    if (settings.scheme === 'dark') {
+      settings.palette = '';
+      applyOne('palette', '');
+    } else if (!touched.includes('palette')) {
+      const palette = themeButton.dataset.metaPalette ?? '';
+      settings.palette = palette;
+      applyOne('palette', palette);
+    }
+
+    syncThemeOptions(themeButton);
+    syncThemeColor(themeButton);
+    syncPressed();
   }
 
   function themeButtonOf(themeId: string) {
@@ -567,21 +714,24 @@ const groups: Group[] = [
     applyOne(setting, value);
 
     if (setting === 'theme') {
-      // тема приносит свои умолчания...
+      // тема приносит свои умолчания (в т.ч. натуральную схему)...
       const themeButton = themeButtonOf(value);
       if (themeButton) {
         applyThemeDefaults(themeButton);
-        syncThemeColor(themeButton);
+        // ...и правила сочетания осей: схема темы может снять палитру.
+        applySchemeRules(themeButton);
       }
     } else {
       // ...но ручной выбор пользователя всегда приоритетнее
       if (!touched.includes(setting)) touched.push(setting);
 
+      const themeButton = themeButtonOf(settings.theme ?? '');
+
       // палитра меняет ещё и акцент в адресной строке браузера
-      if (setting === 'palette') {
-        const themeButton = themeButtonOf(settings.theme ?? '');
-        if (themeButton) syncThemeColor(themeButton);
-      }
+      if (setting === 'palette' && themeButton) syncThemeColor(themeButton);
+
+      // схема управляет ещё и доступностью палитры
+      if (setting === 'scheme' && themeButton) applySchemeRules(themeButton);
     }
 
     syncPressed();
@@ -592,6 +742,42 @@ const groups: Group[] = [
     element.addEventListener('click', () => {
       set(element.dataset.setting ?? '', element.dataset.value ?? '');
     });
+  });
+
+  /**
+   * Быстрый переключатель схемы в углу стенда: то же, что выбрать
+   * «Светлая / Тёмная» в панели, но одним кликом и без её открытия. Идёт
+   * через set(), поэтому учитывает правила сочетания осей (палитра в тёмной
+   * схеме) и сохраняется.
+   *
+   * Рядом с «Настройками» он нужен потому, что это орган управления СТЕНДОМ:
+   * кнопка в шапке (SchemeSwitch.astro) — функция сайта и есть в проде,
+   * а эта живёт только на страницах демо-сборки.
+   */
+  schemeToggle?.addEventListener('click', () => {
+    set('scheme', settings.scheme === 'dark' ? 'light' : 'dark');
+  });
+
+  /**
+   * Схему могли переключить кнопкой в шапке сайта — она видна и на стенде.
+   * Тогда состояние панели надо догнать: иначе подсветка в группе «Схема»
+   * осталась бы на прошлом значении, а палитра — скрытой или доступной
+   * неправильно. Схема к <html> уже применена общим модулем, поэтому здесь
+   * обновляем только состояние панели (без повторного applyOne — иначе
+   * получилось бы кольцо из событий).
+   */
+  document.addEventListener(SCHEME_EVENT, (event) => {
+    const scheme = (event as CustomEvent<{ scheme?: Scheme }>).detail?.scheme;
+    if (!scheme || scheme === settings.scheme) return;
+
+    settings.scheme = scheme;
+    if (!touched.includes('scheme')) touched.push('scheme');
+
+    const themeButton = themeButtonOf(settings.theme ?? '');
+    if (themeButton) applySchemeRules(themeButton);
+    else syncPressed();
+
+    save();
   });
 
   function openPanel(open: boolean) {
@@ -620,10 +806,7 @@ const groups: Group[] = [
     Object.entries(settings).forEach(([key, value]) => applyOne(key, value));
 
     const themeButton = themeButtonOf(settings.theme ?? '');
-    if (themeButton) {
-      syncThemeOptions(themeButton);
-      syncThemeColor(themeButton);
-    }
+    if (themeButton) applySchemeRules(themeButton);
 
     syncPressed();
     save();
@@ -631,7 +814,7 @@ const groups: Group[] = [
 
   /** Случайная комбинация — помогает найти неожиданное удачное сочетание. */
   document.querySelector('[data-panel-random]')?.addEventListener('click', () => {
-    const movable = ['theme', 'accent', 'radius', 'font', 'density', 'card', 'button', 'hero'];
+    const movable = ['theme', 'scheme', 'accent', 'radius', 'font', 'density', 'card', 'button', 'hero'];
 
     for (const setting of movable) {
       // берём только видимые варианты: набор шрифтов ограничен активной темой
@@ -653,6 +836,7 @@ const groups: Group[] = [
     const report = JSON.stringify(
       {
         theme: settings.theme,
+        scheme: settings.scheme || null,
         accentHue: settings.accent ? Number(settings.accent) : null,
         radius: settings.radius ? Number(settings.radius) : null,
         headingFont: settings.font ?? null,
@@ -709,10 +893,7 @@ const groups: Group[] = [
   Object.entries(settings).forEach(([key, value]) => applyOne(key, value));
 
   const currentTheme = themeButtonOf(settings.theme ?? '');
-  if (currentTheme) {
-    syncThemeOptions(currentTheme);
-    syncThemeColor(currentTheme);
-  }
+  if (currentTheme) applySchemeRules(currentTheme);
 
   syncPressed();
 </script>

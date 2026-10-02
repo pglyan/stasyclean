@@ -6,11 +6,21 @@
  * поэтому в прод-сборку разметка и JS панели не попадают вообще.
  */
 
-.panel-toggle {
+/* Плавающие кнопки стенда: переключатель схемы и открытие панели.
+   Один контейнер — так кнопки не накладываются друг на друга при любых
+   отступах и плотности (--s* зависят от --d), а отступ между ними задаёт gap. */
+.panel-fabs {
   position: fixed;
   inset-block-end: var(--s4);
   inset-inline-end: var(--s4);
   z-index: 70;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--s2);
+}
+
+.panel-toggle {
   display: inline-flex;
   align-items: center;
   gap: var(--s2);
@@ -23,6 +33,17 @@
   font-weight: 600;
 }
 
+/* Быстрый переключатель схемы — светлее основной кнопки: это второе действие.
+   Меньше паддинги, поэтому высоту добираем min-block-size: без него кнопка
+   выходила ~35px и не проходила проверку цели нажатия 44px (check:mobile). */
+.panel-toggle--scheme {
+  min-block-size: 2.75rem;
+  padding: var(--s2) var(--s3);
+  background: var(--surface);
+  color: var(--ink);
+  border: var(--bw) solid var(--line);
+}
+
 @media (hover: hover) {
   .panel-toggle:hover {
     background: var(--ink);
@@ -30,9 +51,23 @@
   }
 }
 
+/*
+  Показываем ту схему, в которую кнопка переключит (её помечает
+  data-scheme-show). Иконку и подпись берём из разметки и прячем CSS по
+  data-scheme на <html> — JS состояние кнопки не дублирует.
+*/
+[data-scheme-show] {
+  display: none;
+}
+
+[data-scheme='light'] [data-scheme-show='dark'],
+[data-scheme='dark'] [data-scheme-show='light'] {
+  display: inline-flex;
+}
+
 @media (max-width: 61.999rem) {
-  .panel-toggle {
-    /* На телефоне кнопка панели уходит под шапку: внизу уже живут панель
+  .panel-fabs {
+    /* На телефоне кнопки уходят под шапку: внизу уже живут панель
        действий и баннер cookie, и три fixed-элемента в одной зоне
        накладывались друг на друга (бар накрывал кнопку, баннер — обоих). */
     inset-block-end: auto;

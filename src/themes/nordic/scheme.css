@@ -1,0 +1,27 @@
+/**
+ * Схема «Северной ночи» (nordic) — светлая вариация.
+ *
+ * У этой темы натуральная схема тёмная (её базовый блок), поэтому здесь —
+ * обратный случай: `data-scheme='light'` даёт светлый вариант. Так у каждой
+ * темы есть обе схемы и переключатель в панели работает единообразно.
+ *
+ * Значения проходят `npm run check:colors` (пороги WCAG AA с запасом).
+ */
+
+[data-skin='nordic'][data-scheme='light'] {
+  color-scheme: light;
+
+  --brand-h: 174;
+  --brand-s: 55%;
+  --brand-l: 30%;
+  --brand-ink: #ffffff;
+
+  --bg: #f4f7f9;
+  --surface: #ffffff;
+  --surface-2: #e7eef3;
+  --ink: #0e1a20;
+  --ink-soft: #50636e;
+  --line: #d5e0e7;
+
+  --shadow-color: 210 25% 22%;
+}

@@ -115,11 +115,18 @@ const preloadFont = themeFontUrls?.[locale];
  * Цвет интерфейса браузера (адресная строка на телефоне) — акцент темы,
  * а не константа: он должен совпадать с тем, что видит посетитель.
  *
+ * У темы две схемы, и у каждой свой акцент: `swatch` описывает натуральную
+ * (её `kind`), `swatchAlt` — вариацию. Панель в демо обновляет мету сама
+ * (syncThemeColor), здесь — значение для сборки.
+ *
  * Обращаемся к designForBuild напрямую, а не через локальный `theme`:
  * Astro поднимает объявления, которые нужны шаблону, наверх тела компонента,
  * и ссылка на `theme` оказалась бы выше его объявления.
  */
-const themeColor = designForBuild.theme.swatch[1];
+const themeColor =
+  designForBuild.scheme === designForBuild.theme.kind
+    ? designForBuild.theme.swatch[1]
+    : designForBuild.theme.swatchAlt[1];
 
 /**
  * Пока в проекте нет фотографий, вместо og:image используется
@@ -184,6 +191,30 @@ const DemoPanel = demoMode
         вырез, а отступ под индикатор «домой» в закреплённой панели действий
         становится нулевым. Сами отступы — в base.css и components-footer.css. */}
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+    {/*
+      Раннее восстановление схемы.
+
+      На сборке data-scheme приходит из design.config.json (activeDesign.ts),
+      а выбор посетителя лежит в localStorage. Считать его в конце разбора
+      страницы поздно: у вернувшегося посетителя страница успела бы мигнуть
+      светлой темой из конфига. Поэтому крошечный inline-скрипт — без
+      импортов и без модуля, он обязан выполниться до первой отрисовки.
+      Ключ тот же, что у общего механизма схемы (src/scripts/scheme.ts).
+
+      Скрипт один на все страницы и в прод, и в демо: в демо панель затем
+      применяет поверх своё сохранённое состояние.
+    */}
+    <script is:inline>
+      try {
+        const savedScheme = localStorage.getItem('stasyclean:scheme');
+        if (savedScheme === 'light' || savedScheme === 'dark') {
+          document.documentElement.dataset.scheme = savedScheme;
+        }
+      } catch {
+        /* приватный режим: остаётся схема из design.config.json */
+      }
+    </script>
 
     <title>{pageTitle}</title>
     <meta name="description" content={pageDescription} />

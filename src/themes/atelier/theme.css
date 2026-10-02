@@ -16,6 +16,7 @@
 
 @import '../../fonts/playfair-display.css';
 @import '../../fonts/manrope.css';
+@import './scheme.css';
 
 [data-skin='atelier'] {
   color-scheme: light;

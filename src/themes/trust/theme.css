@@ -7,6 +7,7 @@
 
 @import '../../fonts/manrope.css';
 @import '../../fonts/lora.css';
+@import './scheme.css';
 
 [data-skin='trust'] {
   color-scheme: light;

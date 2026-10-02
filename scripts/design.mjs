@@ -62,11 +62,16 @@ function describe(settings) {
   const palette = settings.palette ?? theme.defaults.palette;
   assertThemePalettes(theme, settings, palette);
 
+  const scheme = settings.scheme ?? theme.kind;
+
   const families = [...new Set([headingFont, bodyFont].filter((kind) => kind !== 'system'))];
 
   console.log(`\ndesign.config.json — ${configPath}\n`);
   console.log(serialize(settings).trimEnd());
   console.log(`\n  Тема:            ${theme.id} (${theme.name.ru} / ${theme.name.en})`);
+  console.log(
+    `  Схема:           ${scheme} (${scheme === theme.kind ? 'натуральная схема темы' : 'вариация'})`,
+  );
   console.log(`  Шрифт заголовков: ${headingFont}`);
   console.log(`  Шрифт текста:     ${bodyFont}`);
   console.log(

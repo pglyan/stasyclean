@@ -33,11 +33,18 @@ import type {
   SurfaceKind,
   SwitchKind,
   TextureKind,
+  ThemeKind,
 } from '../themes/types';
 
 export interface DesignSettings {
   /** Идентификатор темы — см. src/data/themes.ts */
   theme: string;
+  /**
+   * Схема (светлая/тёмная). null — натуральная схема темы (её поле `kind`).
+   * Ось ортогональна палитре: схема меняет только цвета и переключается
+   * атрибутом data-scheme, поэтому работает на любой теме.
+   */
+  scheme: ThemeKind | null;
   /** Тон акцента (H). null — тон берётся из темы. */
   accentHue: number | null;
   /** Базовый радиус, px. null — радиус берётся из темы. */
@@ -71,6 +78,7 @@ export interface DesignSettings {
  */
 export const designDefaults: DesignSettings = {
   theme: 'fresh',
+  scheme: null,
   accentHue: null,
   radius: null,
   density: null,
@@ -94,6 +102,7 @@ export const designDefaults: DesignSettings = {
 
 /** Допустимые значения перечислимых настроек. */
 export const DESIGN_KINDS = {
+  scheme: ['light', 'dark'],
   density: ['compact', 'normal', 'spacious'],
   card: ['flat', 'outline', 'shadow', 'hard', 'sticker'],
   button: ['solid', 'soft', 'outline', 'link', 'hard'],
@@ -201,6 +210,7 @@ export function resolveDesign(input: unknown, themeIds: readonly string[]): Desi
   return {
     theme: (oneOf('theme', source.theme ?? designDefaults.theme, themeIds) ??
       designDefaults.theme) as string,
+    scheme: oneOf('scheme', source.scheme, DESIGN_KINDS.scheme),
     accentHue: hueOrNull('accentHue', source.accentHue),
     radius: radiusOrNull('radius', source.radius),
     density: oneOf('density', source.density, DESIGN_KINDS.density),

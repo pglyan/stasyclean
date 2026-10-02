@@ -1,0 +1,24 @@
+/**
+ * Схема «Цитрусовой энергии» (citrus) — тёмная вариация.
+ *
+ * См. комментарий в src/themes/fresh/scheme.css: ось схемы меняет только
+ * цвета. Значения проходят `npm run check:colors` (пороги WCAG AA с запасом).
+ */
+
+[data-skin='citrus'][data-scheme='dark'] {
+  color-scheme: dark;
+
+  --brand-h: 28;
+  --brand-s: 85%;
+  --brand-l: 58%;
+  --brand-ink: #241403;
+
+  --bg: #1a1713;
+  --surface: #231e18;
+  --surface-2: #2c251d;
+  --ink: #f2ede6;
+  --ink-soft: #b3a897;
+  --line: #3a3128;
+
+  --shadow-color: 28 30% 3%;
+}

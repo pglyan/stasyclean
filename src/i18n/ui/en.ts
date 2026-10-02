@@ -138,10 +138,19 @@ export const en = {
     pendingLegal: 'Company details will be added before launch',
   },
 
+  /** Scheme switch in the site header (also present in the production build). */
+  scheme: {
+    toLight: 'Light theme',
+    toDark: 'Dark theme',
+  },
+
   panel: {
     title: 'Demo settings',
     subtitle: 'A stand for choosing the style. Your choice is stored in the browser.',
     presets: 'Themes',
+    scheme: 'Colour scheme',
+    schemeLight: 'Light',
+    schemeDark: 'Dark',
     appearance: 'Appearance',
     accent: 'Accent colour',
     radius: 'Corner radius',

@@ -1,0 +1,25 @@
+/**
+ * Схема «Ателье» (atelier) — тёмная вариация.
+ *
+ * «Ночная галерея»: тот же журнальный разворот, но на почти чёрной бумаге.
+ * См. комментарий в src/themes/fresh/scheme.css: ось схемы меняет только
+ * цвета. Значения проходят `npm run check:colors` (пороги WCAG AA с запасом).
+ */
+
+[data-skin='atelier'][data-scheme='dark'] {
+  color-scheme: dark;
+
+  --brand-h: 12;
+  --brand-s: 55%;
+  --brand-l: 58%;
+  --brand-ink: #1a0c06;
+
+  --bg: #14120f;
+  --surface: #1c1916;
+  --surface-2: #241f1a;
+  --ink: #f0ebe3;
+  --ink-soft: #b0a495;
+  --line: #332c25;
+
+  --shadow-color: 24 18% 3%;
+}

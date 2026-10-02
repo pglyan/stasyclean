@@ -238,6 +238,77 @@
   color: var(--brand-ink);
 }
 
+/* ---------- Переключатель схемы (светлая / тёмная) ---------- */
+
+/*
+  Кнопка есть и в прод-сборке: тёмная вариация темы уже едет в CSS
+  (src/themes/<id>/scheme.css), но без кнопки посетитель не мог её включить.
+  Размер держим как у бургера: на телефоне это icon-only цель 44×44px
+  (Apple HIG, Material, WCAG 2.5.8), потому что подпись там скрыта из кадра.
+*/
+.scheme-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s2);
+  min-inline-size: 2.75rem;
+  min-block-size: 2.75rem;
+  padding-inline: var(--s3);
+  border: var(--bw) solid var(--line);
+  border-radius: var(--r-pill);
+  color: var(--ink);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+
+@media (hover: hover) {
+  .scheme-switch:hover {
+    background: var(--surface-2);
+  }
+}
+
+/*
+  Видна ровно одна пара «иконка + подпись» — та, в которую кнопка переключит
+  (её помечает data-scheme-show). Правила привязаны к .scheme-switch, а не к
+  data-scheme-show вообще: в демо-сборке такой же переключатель есть у панели
+  (components-panel.css), и общие правила заставили бы обе кнопки показывать
+  одно и то же состояние.
+*/
+.scheme-switch [data-scheme-show] {
+  display: none;
+}
+
+[data-scheme='light'] .scheme-switch [data-scheme-show='dark'],
+[data-scheme='dark'] .scheme-switch [data-scheme-show='light'] {
+  display: inline-flex;
+}
+
+.scheme-switch__icon {
+  align-items: center;
+}
+
+/*
+  На телефоне остаётся только иконка: с подписью кнопка занимала бы треть
+  шапки, а на 320px места нет вовсе. Текст при этом НЕ исчезает из
+  доступности — свойства те же, что у .visually-hidden в base.css
+  (прячем из кадра, а не из дерева доступности), иначе у иконочной кнопки
+  не осталось бы имени.
+*/
+@media (max-width: 47.999rem) {
+  .scheme-switch__label {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+}
+
 /* ---------- Кнопка-бургер ---------- */
 
 .burger {

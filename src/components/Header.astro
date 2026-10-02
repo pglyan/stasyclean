@@ -6,6 +6,7 @@ import { site, siteText } from '../data/site';
 import { services } from '../data/services';
 
 import Icon from './ui/Icon.astro';
+import SchemeSwitch from './ui/SchemeSwitch.astro';
 import LangSwitch from './LangSwitch.astro';
 
 interface Props {
@@ -80,6 +81,13 @@ const isServicePage = ['general', 'regular', 'smart', 'reno', 'services'].includ
     </nav>
 
     <div class="site-header__actions">
+      {/*
+        Схема — функция сайта, поэтому переключатель стоит первым в шапке:
+        он виден и в прод-сборке, и в демо. Ссылка ?panel=0 убирает только
+        кнопку стенда, этой кнопки не касается.
+      */}
+      <SchemeSwitch locale={locale} />
+
       <LangSwitch locale={locale} routeKey={routeKey} />
 
       <a class="btn header-cta" href={site.telegramUrl} target="_blank" rel="noopener noreferrer">
@@ -157,7 +165,14 @@ const isServicePage = ['general', 'regular', 'smart', 'reno', 'services'].includ
    * Без зависимостей: около 1 КБ минифицированного JS на всю страницу.
    * Выпадающее меню «Услуги» на десктопе работает вообще без JS
    * (CSS :hover/:focus-within), здесь только мобильный drawer.
+   *
+   * Сюда же подключён переключатель схемы: он общий для прода и демо
+   * (src/scripts/scheme.ts), а не часть стенда.
    */
+  import { initScheme } from '../scripts/scheme';
+
+  initScheme();
+
   const header = document.querySelector<HTMLElement>('[data-header]');
   const drawer = document.querySelector<HTMLElement>('[data-drawer]');
   const openBtn = document.querySelector<HTMLButtonElement>('[data-menu-open]');

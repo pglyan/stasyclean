@@ -9,6 +9,7 @@
 
 @import '../../fonts/manrope.css';
 @import '../../fonts/lora.css';
+@import './scheme.css';
 
 [data-skin='nordic'] {
   color-scheme: dark;

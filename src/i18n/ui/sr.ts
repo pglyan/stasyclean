@@ -138,10 +138,19 @@ export const sr = {
     pendingLegal: 'Podaci o firmi biće dodati pre puštanja sajta u rad',
   },
 
+  /** Prekidač sheme u zaglavlju sajta (dugme postoji i u produkcionom buildu). */
+  scheme: {
+    toLight: 'Svetla tema',
+    toDark: 'Tamna tema',
+  },
+
   panel: {
     title: 'Podešavanja demo prikaza',
     subtitle: 'Pult za izbor stila. Izbor se čuva u pregledaču.',
     presets: 'Teme',
+    scheme: 'Shema',
+    schemeLight: 'Svetla',
+    schemeDark: 'Tamna',
     appearance: 'Izgled',
     accent: 'Akcentna boja',
     radius: 'Zaobljenje uglova',

@@ -19,6 +19,8 @@
  *   • свотч темы и каждой палитры сверяется с реальным --brand. До этой
  *     проверки у пяти тем из восьми паспорт расходился с CSS: в панели была
  *     одна плашка, а на сайте (и в <meta name="theme-color">) — другой цвет;
+ *   • вторая схема каждой темы (блок [data-scheme] в scheme.css) проверяется
+ *     так же, как палитра: контраст и сверка свотча swatchAlt;
  *   • набор палитр в файле темы сверяется с полем available.palettes;
  *   • литеральные цвета (#hex, rgb()) допустимы только внутри блоков токенов.
  *     Всё остальное оформление обязано считаться из переменных через
@@ -275,7 +277,7 @@ function findLiterals(css) {
 
 /** ------ Прогон по темам ------ */
 
-const report = { problems: [], rows: [], palettes: 0 };
+const report = { problems: [], rows: [], palettes: 0, schemes: 0 };
 
 for (const theme of themePresets) {
   const themeFile = join(root, 'src', 'themes', theme.id, 'theme.css');
@@ -355,6 +357,44 @@ for (const theme of themePresets) {
       report.rows.push(scope);
     }
   }
+
+  /**
+   * Схема: у каждой темы есть вариация второй схемы — блок
+   * [data-skin='<id>'][data-scheme='<противоположная>'] в scheme.css.
+   * У светлых тем это тёмная вариация, у nordic — светлая. Проверяем её так
+   * же, как палитру: пороги контраста и свотч паспорта (swatchAlt).
+   */
+  const schemeFile = join(root, 'src', 'themes', theme.id, 'scheme.css');
+  if (!existsSync(schemeFile)) {
+    report.problems.push(
+      `Тема «${theme.id}»: нет файла src/themes/${theme.id}/scheme.css — ` +
+        'у темы нет вариации второй схемы, переключатель схемы не сработает.',
+    );
+  } else {
+    const schemeCss = await readFile(schemeFile, 'utf8');
+    const altScheme = theme.kind === 'dark' ? 'light' : 'dark';
+    const tokens = tokensOf(schemeCss, `[data-skin='${theme.id}'][data-scheme='${altScheme}']`);
+
+    if (!tokens) {
+      report.problems.push(
+        `Тема «${theme.id}»: нет блока [data-skin='${theme.id}'][data-scheme='${altScheme}'] ` +
+          'в scheme.css.',
+      );
+    } else {
+      report.schemes += 1;
+      const scope = evaluate(`${theme.id} · ${altScheme}`, { ...baseTokens, ...tokens }, report);
+      if (scope) {
+        checkSwatch(`схема ${theme.id} · ${altScheme}`, theme.swatchAlt, scope.brand, report);
+        report.rows.push(scope);
+      }
+    }
+
+    for (const literal of findLiterals(schemeCss)) {
+      report.problems.push(
+        `Тема «${theme.id}»: литеральный цвет ${literal} вне блока токенов (scheme.css).`,
+      );
+    }
+  }
 }
 
 /** ------ Отчёт ------ */
@@ -362,7 +402,7 @@ for (const theme of themePresets) {
 const header = ['набор', ...Object.keys(LIMITS)];
 const width = [18, ...Object.keys(LIMITS).map(() => 15)];
 
-console.log(`\nПроверка контраста: ${themePresets.length} тем, ${report.palettes} палитр\n`);
+console.log(`\nПроверка контраста: ${themePresets.length} тем, ${report.palettes} палитр, ${report.schemes} схем\n`);
 console.log(
   '  ' + header.map((cell, index) => cell.padEnd(width[index])).join(''),
 );
