@@ -64,10 +64,3 @@ export const pageBlocks: Record<PageKey, BlockId[]> = {
   privacy: ['pageHero', 'legal'],
   terms: ['pageHero', 'legal'],
 };
-
-/** Страницы, для которых нужен конкретный вид услуги. */
-export const servicePageKeys = ['general', 'regular', 'smart', 'reno'] as const;
-
-export function isServicePage(routeKey: PageKey): boolean {
-  return (servicePageKeys as readonly string[]).includes(routeKey);
-}

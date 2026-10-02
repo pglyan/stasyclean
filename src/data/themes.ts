@@ -6,10 +6,10 @@
  * то, что нужно панели для показа и сборке для подстановки значений:
  *
  *   name / description — локализованные подписи для заказчика;
- *   swatch / swatchAlt — паспорт темы в демо-панели: натуральная схема и вторая;
- *   layout             — схема раскладки для мини-превью;
  *   defaults           — умолчания параметров (radius, шрифты, карточки…);
- *   available          — какие шрифты тема разрешает (и, значит, везёт).
+ *   available          — какие шрифты и палитры тема разрешает.
+ * Цвета — в src/themes/tokens.ts (единственный источник, свотчи выводятся
+ * оттуда же через swatchOf), оформление — в src/themes/<id>/theme.css.
  *
  * Само оформление — в src/themes/<id>/theme.css. В прод-сборку попадает
  * CSS только выбранной темы (см. алиас `@skin` в astro.config.mjs),
@@ -28,9 +28,6 @@ export const themePresets: ThemePreset[] = [
       ru: 'Светлый, чистый, ассоциируется с эко-уборкой и свежестью.',
     },
     kind: 'light',
-    swatch: ['#ffffff', '#157f5f', '#0b2b22'],
-    swatchAlt: ['#0c1512', '#31c498', '#e6f0eb'],
-    layout: 'split',
     defaults: {
       radius: 16,
       density: 'normal',
@@ -63,9 +60,6 @@ export const themePresets: ThemePreset[] = [
       ru: 'Надёжность и сервис. Классика для сферы услуг, хорошо читается в рекламе.',
     },
     kind: 'light',
-    swatch: ['#ffffff', '#145ca3', '#0b2138'],
-    swatchAlt: ['#0a1420', '#4794e1', '#e3ecf6'],
-    layout: 'split',
     defaults: {
       radius: 12,
       density: 'normal',
@@ -98,9 +92,6 @@ export const themePresets: ThemePreset[] = [
       ru: 'Яркий акцент и плотные заголовки. Заметно выделяется среди конкурентов.',
     },
     kind: 'light',
-    swatch: ['#ffffff', '#ad560b', '#191919'],
-    swatchAlt: ['#1a1713', '#ef8e39', '#f2ede6'],
-    layout: 'center',
     defaults: {
       radius: 8,
       density: 'compact',
@@ -133,9 +124,6 @@ export const themePresets: ThemePreset[] = [
       ru: 'Спокойный премиальный тон: тёплый фон, терракота, засечный шрифт.',
     },
     kind: 'light',
-    swatch: ['#faf6f1', '#a35533', '#2b2620'],
-    swatchAlt: ['#1a1512', '#cd7651', '#efe8e0'],
-    layout: 'poster',
     defaults: {
       radius: 4,
       density: 'spacious',
@@ -168,9 +156,6 @@ export const themePresets: ThemePreset[] = [
       ru: 'Тёмная тема для современных проектов. Минимализм и аквамариновый акцент.',
     },
     kind: 'dark',
-    swatch: ['#0e1216', '#39d0c1', '#e8eef3'],
-    swatchAlt: ['#f4f7f9', '#22776e', '#0e1a20'],
-    layout: 'banded',
     defaults: {
       radius: 12,
       density: 'normal',
@@ -203,9 +188,6 @@ export const themePresets: ThemePreset[] = [
       ru: 'Журнальный разворот: крупная засечная типографика, линейки, нумерация секций, двухцветные фото.',
     },
     kind: 'light',
-    swatch: ['#f6f3ee', '#8d4634', '#15120e'],
-    swatchAlt: ['#14120f', '#cf7159', '#f0ebe3'],
-    layout: 'poster',
     defaults: {
       radius: 0,
       density: 'spacious',
@@ -238,9 +220,6 @@ export const themePresets: ThemePreset[] = [
       ru: 'Тёплая и дружелюбная подача: округлый шрифт, мягкие формы, наклейки, точечная текстура.',
     },
     kind: 'light',
-    swatch: ['#fff9f5', '#ca2b53', '#3f2f35'],
-    swatchAlt: ['#1a1316', '#d65173', '#f2e9ec'],
-    layout: 'split',
     defaults: {
       radius: 26,
       density: 'normal',
@@ -261,12 +240,7 @@ export const themePresets: ThemePreset[] = [
     available: {
       heading: ['nunito', 'manrope', 'system'],
       body: ['nunito', 'manrope', 'system'],
-      palettes: [
-        { id: 'rose', swatch: ['#fff9f5', '#ca2b53', '#3f2f35'] },
-        { id: 'peach', swatch: ['#fffaf6', '#ef9a61', '#3a2b22'] },
-        { id: 'butter', swatch: ['#fffcf3', '#f0bf4c', '#38311e'] },
-        { id: 'lilac', swatch: ['#fbf9ff', '#7b42bd', '#322b3d'] },
-      ],
+      palettes: ['rose', 'peach', 'butter', 'lilac'],
     },
   },
   {
@@ -278,9 +252,6 @@ export const themePresets: ThemePreset[] = [
       ru: 'Светлая «мыльная» подача: округлая геометрия, пузырьки и пастельное небо.',
     },
     kind: 'light',
-    swatch: ['#f4faff', '#76bae5', '#0d2b3a'],
-    swatchAlt: ['#0b1219', '#4cabe6', '#e4eef6'],
-    layout: 'banded',
     defaults: {
       radius: 24,
       density: 'normal',
@@ -301,12 +272,7 @@ export const themePresets: ThemePreset[] = [
     available: {
       heading: ['comfortaa', 'manrope', 'system'],
       body: ['manrope', 'comfortaa', 'system'],
-      palettes: [
-        { id: 'sky', swatch: ['#f4faff', '#76bae5', '#0d2b3a'] },
-        { id: 'mist', swatch: ['#f7fbfd', '#9abbd6', '#1f2f3a'] },
-        { id: 'milk', swatch: ['#fdfeff', '#b9d4df', '#22313b'] },
-        { id: 'aqua', swatch: ['#f3fbfa', '#6ec8cf', '#0f2f2d'] },
-      ],
+      palettes: ['sky', 'mist', 'milk', 'aqua'],
     },
   },
   {
@@ -318,9 +284,6 @@ export const themePresets: ThemePreset[] = [
       ru: 'Лилово-персиковая мягкость: округлые формы, искры и «чешуйчатая» текстура.',
     },
     kind: 'light',
-    swatch: ['#fbf9ff', '#b486ea', '#322b3d'],
-    swatchAlt: ['#100c16', '#9f65e2', '#ece6f4'],
-    layout: 'zigzag',
     defaults: {
       radius: 20,
       density: 'normal',
@@ -341,12 +304,7 @@ export const themePresets: ThemePreset[] = [
     available: {
       heading: ['nunito', 'manrope', 'system'],
       body: ['manrope', 'nunito', 'system'],
-      palettes: [
-        { id: 'lilac', swatch: ['#fbf9ff', '#b486ea', '#322b3d'] },
-        { id: 'peach', swatch: ['#fffaf6', '#f4a171', '#3a2b22'] },
-        { id: 'sky', swatch: ['#f5faff', '#86c3ea', '#14303d'] },
-        { id: 'butter', swatch: ['#fffdf4', '#f2cd5f', '#38311e'] },
-      ],
+      palettes: ['lilac', 'peach', 'sky', 'butter'],
     },
   },
   {
@@ -358,9 +316,6 @@ export const themePresets: ThemePreset[] = [
       ru: 'Брутализм и самиздат: жёсткие рамки, сдвинутые тени, капс и типографская лента.',
     },
     kind: 'light',
-    swatch: ['#f4f1ea', '#ffce0a', '#0f0f0c'],
-    swatchAlt: ['#14140f', '#ffd11a', '#f2efe4'],
-    layout: 'center',
     defaults: {
       radius: 0,
       density: 'normal',

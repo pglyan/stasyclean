@@ -13,27 +13,8 @@
 
 @import '../../fonts/manrope.css';
 @import '../../fonts/lora.css';
-@import './scheme.css';
+@import '../generated/fresh.css';
 
 [data-skin='fresh'] {
-  color-scheme: light;
-
-  --brand-h: 162;
-  --brand-s: 72%;
-  /* 29% вместо исходных 34%: на 34% белый текст кнопки давал 3.76:1, то есть
-     ниже AA. На 29% — 4.95:1 с запасом. Оттенок остаётся той же мятой,
-     разница на глаз не читается; проверка — `npm run check:colors`. */
-  --brand-l: 29%;
-  --brand-ink: #ffffff;
-
-  --bg: #ffffff;
-  --surface: #f5faf7;
-  --surface-2: #e8f4ee;
-  --ink: #0b2b22;
-  --ink-soft: #4c6862;
-  --line: #d9e8e0;
-
-  --shadow-color: 165 25% 18%;
-
   --radius: 16px;
 }

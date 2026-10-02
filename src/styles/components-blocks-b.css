@@ -120,16 +120,6 @@
   color: var(--ink-soft);
 }
 
-/* Заголовок группы внутри таблицы доп. услуг */
-.price-table__group th {
-  background: var(--surface);
-  font-size: var(--fs-xs);
-  font-weight: 700;
-  letter-spacing: var(--tracking-wide);
-  text-transform: uppercase;
-  color: var(--brand-strong);
-}
-
 /* ==================== Таблица цен на телефоне: карточки ==================== */
 /**
  * На 320–412px таблица из 7 колонок не читается: видно 326px из 695px, то

@@ -163,7 +163,7 @@
   display: none;
   align-items: center;
   justify-content: center;
-  /* Не меньше 44px: цель нажатия для тач-ввода (см. check-mobile). */
+  /* Не меньше 44px: цель нажатия для тач-ввода. */
   min-block-size: 2.75rem;
   padding: 0;
   border: 0;
@@ -224,12 +224,6 @@
   display: flex;
   justify-content: space-between;
   gap: var(--s3);
-}
-
-.calc__lines b {
-  color: var(--ink);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
 }
 
 .calc__note {

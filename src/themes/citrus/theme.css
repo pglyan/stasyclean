@@ -7,24 +7,9 @@
 
 @import '../../fonts/manrope.css';
 @import '../../fonts/lora.css';
-@import './scheme.css';
+@import '../generated/citrus.css';
 
 [data-skin='citrus'] {
-  color-scheme: light;
-
-  --brand-h: 28;
-  --brand-s: 88%;
-  --brand-l: 36%;
-  --brand-ink: #ffffff;
-
-  --bg: #ffffff;
-  --surface: #fdf8f1;
-  --surface-2: #faeede;
-  --ink: #1a1a1a;
-  --ink-soft: #5c5750;
-  --line: #ebe3d7;
-
-  --shadow-color: 28 25% 18%;
 
   --radius: 8px;
 }

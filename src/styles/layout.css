@@ -37,29 +37,9 @@
   padding-block: var(--section-y);
 }
 
-/* Секция без верхнего отступа — когда предыдущая уже дала воздух */
-.section--flush-top {
-  padding-block-start: 0;
-}
-
 /* Визуально отделённая секция (например, прайс на сером фоне) */
 .section--surface {
   background: var(--surface);
-}
-
-.section--surface-2 {
-  background: var(--surface-2);
-}
-
-.section--dark {
-  background: var(--ink);
-  color: var(--bg);
-}
-
-.section--dark h2,
-.section--dark h3,
-.section--dark h4 {
-  color: var(--bg);
 }
 
 /* ---------- Заголовок секции ---------- */
@@ -67,11 +47,6 @@
 .section-head {
   max-inline-size: var(--measure);
   margin-block-end: var(--s10);
-}
-
-.section-head--center {
-  margin-inline: auto;
-  text-align: center;
 }
 
 .section-head__lead {
@@ -112,14 +87,6 @@
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
 }
 
-.grid--3 {
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
-}
-
-.grid--4 {
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
-}
-
 /* Сайдбар + основное содержимое: типично для страниц услуг */
 .split {
   display: grid;
@@ -142,15 +109,6 @@
 
 .prose {
   max-inline-size: var(--measure);
-}
-
-.measure {
-  max-inline-size: var(--measure);
-}
-
-.lead {
-  font-size: var(--fs-lg);
-  color: var(--ink-soft);
 }
 
 .muted {

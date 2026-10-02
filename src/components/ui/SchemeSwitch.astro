@@ -2,6 +2,7 @@
 import type { Locale } from '../../i18n/config';
 import { useUI } from '../../i18n/ui';
 import { designForBuild } from '../../data/activeDesign';
+import { schemeBrand, themeColors } from '../../themes/tokens';
 
 import Icon from './Icon.astro';
 
@@ -11,16 +12,18 @@ import Icon from './Icon.astro';
  * Это функция самого сайта, а не демо-стенда: посетитель должен уметь
  * выбрать тёмную тему на боевом домене, поэтому компонент рендерится
  * в Header.astro всегда, независимо от PUBLIC_DEMO. Тёмная вариация темы
- * уже едет в прод-CSS (src/themes/<id>/scheme.css), не хватало только
+ * уже едет в прод-CSS (generated-файл темы), не хватало только
  * кнопки — она и здесь.
  *
- * Подпись называет схему, В КОТОРУЮ переключит клик («Тёмная тема», пока
- * открыта светлая). Доступное имя — ровно этот же текст: aria-label не
- * ставим, чтобы имя и видимая подпись не разъезжались (WCAG 2.5.3
- * «Label in name»). На телефоне подпись убирается из кадра CSS, но из
- * дерева доступности не исчезает — имя остаётся.
+ * Кнопка — только иконка на всех размерах: подпись с текстом
+ * переносилась внутри кнопки и расширяла шапку. Подпись называет
+ * схему, В КОТОРУЮ переключит клик («Тёмная тема», пока открыта
+ * светлая), и служит доступным именем: CSS прячет её из кадра, но
+ * не из дерева доступности (свойства те же, что у .visually-hidden),
+ * поэтому у иконочной кнопки имя остаётся. aria-label не ставим —
+ * имя даёт этот же текст.
  *
- * Иконку и подпись показывает CSS по data-scheme на <html> (правила —
+ * Иконку показывает CSS по data-scheme на <html> (правила —
  * в components-chrome.css), поэтому JS состояние кнопки не дублирует:
  * он умеет только попросить применить противоположную схему
  * (initScheme из src/scripts/scheme.ts).
@@ -35,13 +38,11 @@ const ui = useUI(locale);
 
 /**
  * Акценты обеих схем для <meta name="theme-color">. Натуральная схема темы
- * описана её swatch (её kind), вторая — swatchAlt, поэтому «светлый» и
- * «тёмный» акценты берутся из разных полей у nordic и у остальных тем.
- * Та же логика, что в Base.astro для меты на сборке.
+ * (её kind) — base-токены, вторая — alt. Та же логика, что в Base.astro.
  */
 const theme = designForBuild.theme;
-const accentOf = (scheme: 'light' | 'dark') =>
-  theme.kind === scheme ? theme.swatch[1] : theme.swatchAlt[1];
+const colors = themeColors[theme.id];
+const accentOf = (scheme: 'light' | 'dark') => schemeBrand(colors, theme.kind, scheme);
 ---
 
 <button

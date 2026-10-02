@@ -15,31 +15,9 @@
  */
 
 @import '../../fonts/manrope.css';
-@import './scheme.css';
+@import '../generated/zine.css';
 
 [data-skin='zine'] {
-  color-scheme: light;
-
-  --brand-h: 48;
-  --brand-s: 100%;
-  --brand-l: 52%;
-  --brand-ink: #0f0f0c;
-  /* Цвет ссылок задан явно: производный от жёлтого акцента (78% акцента +
-     чернила) давал 2.25:1 — ссылки в этой теме были практически нечитаемы,
-     а жёлтый на бумаге не годится для текста вообще. Тёмная олива сохраняет
-     «печатный» характер темы и проходит AA (4.93:1). Проверка —
-     `npm run check:colors`. */
-  --brand-strong: #7c6620;
-
-  --bg: #f4f1ea;
-  --surface: #ffffff;
-  --surface-2: #eae4d7;
-  --ink: #0f0f0c;
-  --ink-soft: #4b463c;
-  --line: #0f0f0c;
-
-  --shadow-color: 45 30% 15%;
-
   --radius: 0px;
 
   --hard-bw: 2px;

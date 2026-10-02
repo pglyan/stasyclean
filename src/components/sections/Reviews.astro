@@ -23,16 +23,14 @@ interface Props {
   locale: Locale;
   withHead?: boolean;
   limit?: number;
-  surface?: boolean;
-  id?: string;
 }
 
-const { locale, withHead = true, limit, surface = false, id = 'reviews' } = Astro.props;
+const { locale, withHead = true, limit } = Astro.props;
 const ui = useUI(locale);
 const items = reviews.slice(0, limit ?? reviews.length);
 ---
 
-<section class={`section ${surface ? 'section--surface' : ''}`.trim()} id={id}>
+<section class="section" id="reviews">
   <div class="container">
     {withHead && <SectionHead title={ui.home.reviewsTitle} lead={ui.home.reviewsLead} />}
 

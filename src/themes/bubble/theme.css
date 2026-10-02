@@ -9,7 +9,7 @@
  *   • капсулы с нижней гранью, пунктирные швы и «гребёнка» на крае CTA и подвала;
  *   • фото-слоты и карточки — «наклейки» с органичной формой (blob).
  *
- * Тема не дублирует палитру целиком: цвета лежат в palettes.css, здесь —
+ * Цвета лежат в src/themes/tokens.ts, здесь —
  * базовый набор (он же палитра «Небо») плюс всё, что делает тему собой.
  * Правило, за которым следит `npm run check:colors`: литеральные цвета
  * допустимы только в блоках токенов (этот и блоки палитр), всё остальное
@@ -18,26 +18,10 @@
 
 @import '../../fonts/comfortaa.css';
 @import '../../fonts/manrope.css';
-@import './palettes.css';
-@import './scheme.css';
+@import '../generated/bubble.css';
 
 [data-skin='bubble'] {
-  color-scheme: light;
 
-  --brand-h: 203;
-  --brand-s: 68%;
-  --brand-l: 68%;
-  --brand-ink: #0d2b3a;
-  --brand-strong: #1a5f89;
-
-  --bg: #f4faff;
-  --surface: #ffffff;
-  --surface-2: #e8f4fb;
-  --ink: #0d2b3a;
-  --ink-soft: #5a6f7c;
-  --line: #cfe7f6;
-
-  --shadow-color: 203 40% 34%;
   --shadow-md: 0 10px 26px -10px hsl(var(--shadow-color) / 0.22);
   --shadow-lg: 0 28px 60px -22px hsl(var(--shadow-color) / 0.3);
 

@@ -54,8 +54,6 @@ const activeThemeId = designConfig.theme;
  * CSS и только её шрифты — остальные темы физически не существуют в dist.
  * В демо алиас ведёт на «сводные» входы со всеми темами: стенду нужно
  * переключать тему в браузере.
- *
- * Проверка, что в прод-артефактах нет чужих тем, — scripts/check-clean.mjs.
  */
 const themeEntry = (path) => fileURLToPath(new URL(path, import.meta.url));
 

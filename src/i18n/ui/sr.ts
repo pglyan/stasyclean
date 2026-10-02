@@ -22,8 +22,6 @@ export const sr = {
     details: 'Detaljnije',
     allServices: 'Sve usluge',
     toPrices: 'Pogledaj cene',
-    showAll: 'Prikaži sve',
-    collapse: 'Skupi',
     back: 'Na početnu',
     menu: 'Meni',
     close: 'Zatvori',

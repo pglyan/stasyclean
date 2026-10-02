@@ -77,7 +77,7 @@ function describe(settings) {
   console.log(
     `  Палитра:          ${
       palette
-        ? `${palette} — из ${theme.available.palettes.map((item) => item.id).join(' | ')}`
+        ? `${palette} — из ${theme.available.palettes.join(' | ')}`
         : 'как в теме (у этой темы палитр нет)'
     }`,
   );
@@ -89,7 +89,7 @@ function describe(settings) {
   console.log(
     '\n  В прод-сборку попадут CSS и шрифты только этой темы (см. алиас @skin в astro.config.mjs).',
   );
-  console.log('  Проверка после сборки: npm run build:prod && npm run check:clean\n');
+  console.log('  Проверка после сборки: npm run build:prod && npm run check:colors\n');
 }
 
 async function write(settings) {

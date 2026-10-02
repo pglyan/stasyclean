@@ -8,6 +8,9 @@ dist-demo/
 # OG-картинки генерируются на сборке (scripts/make-og.mjs)
 public/og/
 
+# Токены тем генерируются из src/themes/tokens.ts (scripts/gen-theme-tokens.mjs)
+src/themes/generated/
+
 # Файлы шрифтов копируются из пакетов Fontsource (scripts/sync-fonts.mjs):
 # в репозиторий не попадают, чтобы версия шрифта не разъезжалась с npm.
 # Шаг есть в «Быстром старте», в deploy/README.md и в CI перед сборкой.
@@ -38,3 +41,5 @@ npm-debug.log*
 # temp
 *.tmp
 .cache/
+
+.commandcode/

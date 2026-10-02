@@ -16,24 +16,9 @@
 
 @import '../../fonts/playfair-display.css';
 @import '../../fonts/manrope.css';
-@import './scheme.css';
+@import '../generated/atelier.css';
 
 [data-skin='atelier'] {
-  color-scheme: light;
-
-  --brand-h: 12;
-  --brand-s: 46%;
-  --brand-l: 38%;
-  --brand-ink: #fffaf7;
-
-  --bg: #f6f3ee;
-  --surface: #ffffff;
-  --surface-2: #ece7df;
-  --ink: #15120e;
-  --ink-soft: #6d6459;
-  --line: #ded7cd;
-
-  --shadow-color: 24 18% 20%;
 
   --radius: 0px;
 

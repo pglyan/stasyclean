@@ -22,8 +22,6 @@ export const en = {
     details: 'Learn more',
     allServices: 'All services',
     toPrices: 'See prices',
-    showAll: 'Show all',
-    collapse: 'Collapse',
     back: 'Back to home',
     menu: 'Menu',
     close: 'Close',

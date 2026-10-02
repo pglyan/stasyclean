@@ -2,6 +2,9 @@
 import { LOCALE_META } from '../i18n/config';
 import { localeSwitchLinks, type PageKey } from '../i18n/routes';
 import type { Locale } from '../i18n/config';
+import { useUI } from '../i18n/ui';
+
+import Icon from './ui/Icon.astro';
 
 /**
  * Переключатель языка.
@@ -10,8 +13,19 @@ import type { Locale } from '../i18n/config';
  * а не на главную. Это обеспечивает реестр маршрутов, где у каждой
  * страницы есть переведённый слаг (/cene → /en/prices → /ru/ceny).
  *
- * Сделано обычными ссылками: поисковики видят все локали, JS не нужен,
+ * Сделан обычными ссылками: поисковики видят все локали, JS не нужен,
  * вес — ноль. Атрибут aria-current помогает скринридеру.
+ *
+ * Два вида одного переключателя:
+ *   • .lang — три короткие ссылки в ряд. Это основной вид: десктопная
+ *     шапка, шторка мобильного меню, подвал;
+ *   • .lang-mobile — круглая кнопка с дропдауном. Её включает CSS
+ *     только в шапке на узком экране: три ссылки в ряд занимали треть
+ *     шапки. Дропдаун раскрывает JS (Header.astro), ссылки внутри —
+ * те же, что в .lang. Компонент рендерится дважды на странице
+ * (шапка + шторка), поэтому id дропдауна уникален: фронтматтер
+ * выполняется в Node на сборке, crypto.randomUUID() даёт
+ * уникальный id для каждого экземпляра.
  */
 
 interface Props {
@@ -20,7 +34,9 @@ interface Props {
 }
 
 const { locale, routeKey } = Astro.props;
+const ui = useUI(locale);
 const links = localeSwitchLinks(locale, routeKey);
+const menuId = crypto.randomUUID();
 ---
 
 <nav class="lang" aria-label={LOCALE_META[locale].label}>
@@ -37,3 +53,28 @@ const links = localeSwitchLinks(locale, routeKey);
     </a>
   ))}
 </nav>
+
+<div class="lang-mobile">
+  <button
+    class="lang-toggle"
+    type="button"
+    data-lang-toggle
+    aria-expanded="false"
+    aria-controls={menuId}
+    aria-label={ui.nav.language}
+  >
+    <Icon name="globe" />
+  </button>
+  <div class="lang-menu" id={menuId} data-lang-menu>
+    {links.map((link) => (
+      <a
+        href={link.href}
+        hreflang={LOCALE_META[link.locale].htmlLang}
+        lang={LOCALE_META[link.locale].htmlLang}
+        aria-current={link.isCurrent ? 'true' : undefined}
+      >
+        {LOCALE_META[link.locale].label}
+      </a>
+    ))}
+  </div>
+</div>

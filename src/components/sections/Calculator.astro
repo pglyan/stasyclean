@@ -26,15 +26,13 @@ import SectionHead from './SectionHead.astro';
 interface Props {
   locale: Locale;
   withHead?: boolean;
-  surface?: boolean;
-  id?: string;
 }
 
-const { locale, withHead = true, surface = true, id = 'calculator' } = Astro.props;
+const { locale, withHead = true } = Astro.props;
 const ui = useUI(locale);
 
 /** id для aria-controls кнопки-тоггла состава (см. разметку ниже). */
-const detailsId = `${id}-details`;
+const detailsId = 'calculator-details';
 
 /** Опции формата уборки: для каждой услуги — её тарифы. */
 const serviceOptions = services.map((service) => ({
@@ -47,7 +45,7 @@ const serviceOptions = services.map((service) => ({
 const calcExtras = extraServices.filter((line) => line.unit === 'flat');
 ---
 
-<section class={`section ${surface ? 'section--surface' : ''}`.trim()} id={id}>
+<section class="section section--surface" id="calculator">
   <div class="container">
     {withHead && <SectionHead title={ui.home.calculatorTitle} lead={ui.home.calculatorLead} />}
 
