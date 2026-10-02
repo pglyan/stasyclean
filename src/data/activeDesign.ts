@@ -82,7 +82,7 @@ export function resolveForBuild(design: DesignSettings = activeDesign): BuildDes
   const palette = design.palette ?? theme.defaults.palette;
   /**
    * Схема: у каждой темы есть обе (натуральная — её `kind`, вариация — блок
-   * [data-scheme] в её scheme.css). Атрибут ставим всегда, поэтому CSS темы
+   * [data-scheme] в её generated-файле. Атрибут ставим всегда, поэтому CSS темы
    * и мини-превью панели читают одно и то же значение.
    */
   const scheme: ThemeKind = design.scheme ?? theme.kind;
@@ -134,7 +134,7 @@ export function resolveForBuild(design: DesignSettings = activeDesign): BuildDes
    * ровно так, как её написал автор.
    *
    * Ещё одно условие — схема: палитры объявлены для натуральной схемы темы
-   * (data-scheme её `kind`). В тёмной вариации цвета даёт scheme.css, а
+   * (data-scheme её `kind`). В тёмной вариации цвета даёт alt-набор, а
    * палитры не предлагаются, поэтому атрибут не ставим — иначе он висел бы
    * вопреки правилу «в тёмной схеме палитры нет».
    */

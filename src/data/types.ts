@@ -6,7 +6,7 @@ import type { ServiceKey } from '../i18n/routes';
  *
  * Это главный механизм защиты от рассинхрона контента при ×3 переводах:
  * если у сущности не заполнена хотя бы одна локаль, TypeScript не даст
- * собрать проект. Пустую строку тоже легко поймать — см. scripts/check-i18n.mjs.
+ * собрать проект. Пустую строку ловит TypeScript (Localized требует все три языка).
  */
 export type Localized<T = string> = Record<Locale, T>;
 

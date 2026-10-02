@@ -191,7 +191,7 @@ for (const locale of Object.keys(LOCALE_META)) {
    *
    * Палитра 256 цветов + дизеринг: полноцветный PNG с плавным градиентом
    * весил 83 КБ, палитровый — вдвое меньше при том же виде в ленте соцсети.
-   * Именно поэтому у OG-картинок в check-size отдельный бюджет 80 КБ.
+   * Именно поэтому у OG-картинок бюджет 80 КБ.
    */
   const buffer = await sharp(Buffer.from(svg(locale)), { density: 72 })
     .png({ compressionLevel: 9, palette: true, colours: 256, dither: 1 })
