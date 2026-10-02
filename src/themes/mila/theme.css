@@ -11,26 +11,10 @@
  */
 
 @import '../../fonts/nunito.css';
-@import './palettes.css';
-@import './scheme.css';
+@import '../generated/mila.css';
 
 [data-skin='mila'] {
-  color-scheme: light;
 
-  --brand-h: 345;
-  --brand-s: 65%;
-  --brand-l: 48%;
-  --brand-ink: #ffffff;
-  --brand-strong: #aa324c;
-
-  --bg: #fff9f5;
-  --surface: #ffffff;
-  --surface-2: #ffeee9;
-  --ink: #3f2f35;
-  --ink-soft: #77686c;
-  --line: #f2e0dc;
-
-  --shadow-color: 5 35% 45%;
   --shadow-md: 0 10px 24px -8px hsl(var(--shadow-color) / 0.22);
   --shadow-lg: 0 26px 60px -20px hsl(var(--shadow-color) / 0.3);
 

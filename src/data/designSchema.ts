@@ -280,13 +280,13 @@ export function assertThemeFonts(
  * один цвет в панели, а в сборке оставить другой.
  */
 export function assertThemePalettes(
-  theme: { id: string; available: { palettes: { id: string }[] } },
+  theme: { id: string; available: { palettes: string[] } },
   settings: DesignSettings,
   resolved: string | null,
 ): void {
   if (resolved === null) return;
 
-  const ids = theme.available.palettes.map((palette) => palette.id);
+  const ids = theme.available.palettes;
   if (!ids.includes(resolved)) {
     throw new Error(
       `Тема «${theme.id}» не имеет палитры «${resolved}» ` +

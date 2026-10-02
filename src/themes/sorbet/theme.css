@@ -17,26 +17,10 @@
 
 @import '../../fonts/nunito.css';
 @import '../../fonts/manrope.css';
-@import './palettes.css';
-@import './scheme.css';
+@import '../generated/sorbet.css';
 
 [data-skin='sorbet'] {
-  color-scheme: light;
 
-  --brand-h: 268;
-  --brand-s: 70%;
-  --brand-l: 72%;
-  --brand-ink: #322b3d;
-  --brand-strong: #7e60a1;
-
-  --bg: #fbf9ff;
-  --surface: #ffffff;
-  --surface-2: #efe8fb;
-  --ink: #322b3d;
-  --ink-soft: #6b6575;
-  --line: #e2d7f5;
-
-  --shadow-color: 268 28% 42%;
   --shadow-md: 0 10px 24px -10px hsl(var(--shadow-color) / 0.2);
   --shadow-lg: 0 26px 60px -22px hsl(var(--shadow-color) / 0.28);
 

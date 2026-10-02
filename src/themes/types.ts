@@ -161,21 +161,6 @@ export interface ThemeEntry {
   fonts: Partial<Record<FontKind, FontUrls>>;
 }
 
-/**
- * Паспорт палитры внутри темы: чем палитра выглядит в демо-панели.
- *
- * Почему цвета палитры продублированы здесь, хотя живут в CSS темы: панель
- * рисует свотчи ДО применения палитры и подставляет её цвет в
- * `<meta name="theme-color">`, то есть цвета нужны в данных, а не только в
- * стилях. Тот же приём уже используется для свотча самой темы (поле swatch).
- * Расхождение с CSS ловит `npm run check:colors`.
- */
-export interface PaletteSwatch {
-  id: PaletteKind;
-  /** Цвета паспорта, в том же порядке, что у темы: фон, акцент, текст. */
-  swatch: [string, string, string];
-}
-
 /** Значения параметров по умолчанию для темы. */
 export interface ThemeDefaults {
   radius: number;
@@ -208,16 +193,6 @@ export interface ThemePreset {
   /** Одно предложение о том, какое ощущение создаёт тема. */
   description: Localized;
   kind: ThemeKind;
-  /** Свотч паспорта: фон, акцент, текст — для натуральной схемы (`kind`). */
-  swatch: [string, string, string];
-  /**
-   * Свотч второй схемы: у светлых тем это тёмная вариация, у единственной
-   * тёмной (`nordic`) — светлая. Так у каждой темы есть обе схемы, а
-   * переключатель в панели работает единообразно. Три цвета в том же
-   * порядке, что у `swatch`: фон, акцент, текст. Сверяется с реальным
-   * `--brand` блоков CSS темы командой `npm run check:colors`.
-   */
-  swatchAlt: [string, string, string];
   /** Схема раскладки для мини-превью. */
   layout: LayoutSketch;
   defaults: ThemeDefaults;
@@ -234,9 +209,9 @@ export interface ThemePreset {
     body: FontKind[];
     /**
      * Палитры темы. Пустой список — тема живёт с одной палитрой, и группа
-     * палитр в панели для неё не показывается. Цвета палитр заданы в CSS
-     * темы (src/themes/<id>/palettes.css), здесь — только их паспорт.
+     * палитр в панели для неё не показывается. Цвета — в src/themes/tokens.ts,
+     * свотчи для панели выводятся оттуда же (swatchOf), дублировать нечего.
      */
-    palettes: PaletteSwatch[];
+    palettes: PaletteKind[];
   };
 }

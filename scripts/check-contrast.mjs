@@ -1,52 +1,18 @@
 #!/usr/bin/env node
 /**
- * Проверка контраста палитр.
+ * Проверка контраста цветов тем.
  *
- * Зачем отдельный скрипт. Палитра — это несколько цветов, которые видит
- * посетитель: фон, подложки, основной и приглушённый текст, акцент и текст на
- * акценте. Ошибка в одном числе не видна на макете, но делает текст
- * нечитаемым на телефоне в солнечный день. Поэтому цвета проверяются машиной
- * на каждой сборке — и у темы, и у каждой её палитры.
- *
- * Что проверяется (пороги — WCAG AA с запасом):
- *   ink/bg              ≥ 8     основной текст на фоне
- *   ink-soft/bg         ≥ 4.5   приглушённый текст на фоне
- *   ink-soft/surface-2  ≥ 4.5   приглушённый текст на цветной подложке
- *   brand-strong/bg     ≥ 4.6   ссылки и иконки
- *   brand-ink/brand     ≥ 4.6   текст на брендовой заливке (кнопки, полосы)
- *
- * Дополнительно проверяется то, что ломается незаметно:
- *   • свотч темы и каждой палитры сверяется с реальным --brand. До этой
- *     проверки у пяти тем из восьми паспорт расходился с CSS: в панели была
- *     одна плашка, а на сайте (и в <meta name="theme-color">) — другой цвет;
- *   • вторая схема каждой темы (блок [data-scheme] в scheme.css) проверяется
- *     так же, как палитра: контраст и сверка свотча swatchAlt;
- *   • набор палитр в файле темы сверяется с полем available.palettes;
- *   • литеральные цвета (#hex, rgb()) допустимы только внутри блоков токенов.
- *     Всё остальное оформление обязано считаться из переменных через
- *     color-mix(), иначе палитра перестаёт перекрашивать тему целиком.
- *
- * Границы честные: производные значения (color-mix, hsl от токенов) скрипт
- * посчитать не может — он читает литеральные hex и тройку --brand-h/-s/-l.
- * Единственное исключение — --brand-strong: если тема не задала его явно,
- * скрипт считает тот же микс, что описан в tokens.css (78% акцента + чернила),
- * и помечает значение в отчёте как производное. Остальные производные токены
- * (--brand-soft, --brand-ring, --accent-2) в проверку не входят — это написано
- * и в отчёте, чтобы зелёный итог не создавал ложной уверенности.
+ * Читает src/themes/tokens.ts (единственный источник цветов) и считает
+ * пары WCAG. Пороги: ink/bg ≥ 8, ink-soft ≥ 4.5, ссылка ≥ 4.6, текст на
+ * акценте ≥ 4.6. Сгенерированный CSS сверять не с чем: он производится
+ * из этих же токенов скриптом gen-theme-tokens.mjs.
  *
  * Запуск: node scripts/check-contrast.mjs
  */
 
-import { existsSync } from 'node:fs';
-import { readFile } from 'node:fs/promises';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-
 import { themePresets } from '../src/data/themes.ts';
+import { brandHex, themeColors } from '../src/themes/tokens.ts';
 
-const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-
-/** Пороги контраста: имя пары → минимум. */
 const LIMITS = {
   'инк/фон': 8,
   'мягкий/фон': 4.5,
@@ -54,8 +20,6 @@ const LIMITS = {
   'ссылка/фон': 4.6,
   'текст на акценте': 4.6,
 };
-
-/** ------ Цвет: перевод, контраст, микс в oklab (как в CSS color-mix) ------ */
 
 const HEX_RE = /^#([0-9a-f]{6})$/i;
 
@@ -79,7 +43,6 @@ function linearToSrgb(channel) {
   return c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055;
 }
 
-/** Относительная яркость по WCAG: вход — sRGB 0…1. */
 function luminance(rgb) {
   const [r, g, b] = rgb.map(srgbToLinear);
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
@@ -120,7 +83,6 @@ function oklabToSrgb(lab) {
   ].map(linearToSrgb);
 }
 
-/** color-mix(in oklab, a weightA%, b) — то же, что делает CSS. */
 function mixOklab(a, b, weightA) {
   const labA = srgbToOklab(a);
   const labB = srgbToOklab(b);
@@ -137,90 +99,24 @@ function hslToRgb(hue, saturation, lightness) {
   return [f(0), f(8), f(4)];
 }
 
-/** Значение CSS-токена из блока: '34%' → 34. */
 function number(token) {
   return parseFloat(String(token).replace('%', '').trim());
 }
 
-/** ------ Разбор CSS темы ------ */
-
-const BLOCK_RE = /([^{}]+)\{([^{}]*)\}/g;
-
-/** Экранирует селектор для использования в регулярном выражении. */
-function escapeSelector(selector) {
-  return selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-/**
- * Токены блока с точным селектором (`[data-skin='mila']`,
- * `[data-skin='bubble'][data-palette='sky']`).
- *
- * Почему по точному селектору, а не «все блоки подряд»: перед блоками лежат
- * комментарии и @import, и любой разбор «от скобки до скобки» ловит их текст
- * в селектор. Точный поиск заодно не путает блок темы с блоками её правил
- * (`[data-skin='mila'] .photo { … }`).
- */
-function tokensOf(css, selector) {
-  const source = css.replace(/\/\*[\s\S]*?\*\//g, '');
-  const pattern = new RegExp(`${escapeSelector(selector)}\\s*\\{([^{}]*)\\}`);
-  const match = pattern.exec(source);
-  if (!match) return null;
-
-  const tokens = {};
-  for (const declaration of match[1].matchAll(/--([\w-]+)\s*:\s*([^;]+);/g)) {
-    tokens[declaration[1]] = declaration[2].trim();
-  }
-  return Object.keys(tokens).length ? tokens : null;
-}
-
-/** Идентификаторы палитр, для которых в файле есть блок токенов. */
-function paletteIdsIn(css) {
-  const source = css.replace(/\/\*[\s\S]*?\*\//g, '');
-  return [...source.matchAll(/\[data-palette='([\w-]+)'\]/g)].map((match) => match[1]);
-}
-
-/**
- * Убирает комментарии и тела блоков с переменными, оставляя всё остальное.
- * Именно к остатку применяется правило «литеральные цвета — только в токенах».
- */
-function outsideTokens(css) {
-  const withoutComments = css.replace(/\/\*[\s\S]*?\*\//g, '');
-  return withoutComments.replace(new RegExp(BLOCK_RE), (whole, selector, body) => {
-    return /--[\w-]+\s*:/.test(body) ? `${selector}{}` : whole;
-  });
-}
-
-/** ------ Проверка одного набора цветов (тема или палитра) ------ */
-
-const REQUIRED = ['brand-h', 'brand-s', 'brand-l', 'brand-ink', 'bg', 'surface-2', 'ink', 'ink-soft'];
-
-/** Считает пары контраста для набора токенов и отмечает проблемные. */
-function evaluate(label, tokens, report) {
-  const missing = REQUIRED.filter((token) => tokens[token] === undefined);
-  if (missing.length) {
-    report.problems.push(`${label}: нет токенов ${missing.map((token) => `--${token}`).join(', ')}.`);
-    return null;
-  }
-
-  const brand = hslToRgb(number(tokens['brand-h']), number(tokens['brand-s']), number(tokens['brand-l']));
-  const bg = parseHex(tokens.bg);
-  const surface2 = parseHex(tokens['surface-2']);
-  const ink = parseHex(tokens.ink);
-  const inkSoft = parseHex(tokens['ink-soft']);
-  const brandInk = parseHex(tokens['brand-ink']);
+function evaluate(label, t, report) {
+  const brand = hslToRgb(number(t.brandH), number(t.brandS), number(t.brandL));
+  const bg = parseHex(t.bg);
+  const surface2 = parseHex(t.surface2);
+  const ink = parseHex(t.ink);
+  const inkSoft = parseHex(t.inkSoft);
+  const brandInk = parseHex(t.brandInk);
 
   if (!bg || !surface2 || !ink || !inkSoft || !brandInk) {
-    report.problems.push(`${label}: цветовые токены заданы не литеральными hex — проверка невозможна.`);
+    report.problems.push(`${label}: токены заданы не hex — проверка невозможна.`);
     return null;
   }
 
-  /**
-   * Цвет ссылок: если тема задала его явно — берём как есть; если нет,
-   * считаем тот же микс, что описан в tokens.css (78% акцента + чернила),
-   * и помечаем в отчёте как производное.
-   */
-  const declared = tokens['brand-strong'];
-  const literal = declared ? parseHex(declared) : null;
+  const literal = t.brandStrong ? parseHex(t.brandStrong) : null;
   const strong = literal ?? mixOklab(brand, ink, 0.78);
 
   const ratios = {
@@ -235,177 +131,56 @@ function evaluate(label, tokens, report) {
     if (value < LIMITS[pair]) {
       report.problems.push(
         `${label}: контраст «${pair}» = ${value.toFixed(2)} < ${LIMITS[pair]} ` +
-          `(ink ${toHex(ink)}, ink-soft ${toHex(inkSoft)}, bg ${toHex(bg)}, подложка ${toHex(surface2)}, ` +
-          `акцент ${toHex(brand)}, текст на акценте ${toHex(brandInk)}).`,
+          `(акцент ${brandHex(t)}, ink-soft ${t.inkSoft}, bg ${t.bg}).`,
       );
     }
   }
 
-  return {
-    label,
-    ratios,
-    brand: toHex(brand),
-    derivedStrong: !literal,
-    strong: toHex(strong),
-  };
+  return { label, ratios, brand: brandHex(t), derivedStrong: !literal, strong: toHex(strong) };
 }
-
-/** Сверка паспортного свотча темы/палитры с реальным акцентом из CSS. */
-function checkSwatch(label, swatch, brandHex, report) {
-  if (swatch[1].toLowerCase() !== brandHex.toLowerCase()) {
-    report.problems.push(
-      `${label}: свотч паспорта ${swatch[1]} не совпадает с акцентом ${brandHex}. ` +
-        'Паспорт показывается в демо-панели и уходит в <meta name="theme-color">: ' +
-        'обновите swatch в src/data/themes.ts.',
-    );
-    return false;
-  }
-  return true;
-}
-
-/** Ищет литеральные цвета вне блоков токенов (комментарии уже убраны). */
-function findLiterals(css) {
-  const found = [];
-  const hex = /\B#[0-9a-f]{3,8}\b/gi;
-  const rgb = /\brgba?\(/gi;
-  for (const pattern of [hex, rgb]) {
-    const match = pattern.exec(outsideTokens(css));
-    if (match) found.push(match[0]);
-  }
-  return found;
-}
-
-/** ------ Прогон по темам ------ */
 
 const report = { problems: [], rows: [], palettes: 0, schemes: 0 };
 
 for (const theme of themePresets) {
-  const themeFile = join(root, 'src', 'themes', theme.id, 'theme.css');
-  const palettesFile = join(root, 'src', 'themes', theme.id, 'palettes.css');
-
-  if (!existsSync(themeFile)) {
-    report.problems.push(`Тема «${theme.id}»: нет файла src/themes/${theme.id}/theme.css.`);
+  const colors = themeColors[theme.id];
+  if (!colors) {
+    report.problems.push(`Тема «${theme.id}»: нет токенов в src/themes/tokens.ts.`);
     continue;
   }
 
-  const themeCss = await readFile(themeFile, 'utf8');
-  const baseTokens = tokensOf(themeCss, `[data-skin='${theme.id}']`);
-  if (!baseTokens) {
-    report.problems.push(`Тема «${theme.id}»: нет блока токенов [data-skin='${theme.id}'].`);
-    continue;
-  }
-
-  for (const literal of findLiterals(themeCss)) {
+  const declared = [...theme.available.palettes].sort();
+  const inTokens = Object.keys(colors.palettes).sort();
+  const same = declared.length === inTokens.length && declared.every((id, i) => id === inTokens[i]);
+  if (!same) {
     report.problems.push(
-      `Тема «${theme.id}»: литеральный цвет ${literal} вне блока токенов ` +
-        '(theme.css). Цвета должны считаться из переменных через color-mix(): ' +
-        'иначе палитра не перекрасит это место.',
+      `Тема «${theme.id}»: палитры в available (${declared.join(', ') || '—'}) ` +
+        `не совпадают с tokens.ts (${inTokens.join(', ') || '—'}).`,
     );
   }
 
-  const base = evaluate(`тема ${theme.id}`, baseTokens, report);
-  if (base) {
-    checkSwatch(`тема ${theme.id}`, theme.swatch, base.brand, report);
-    report.rows.push(base);
-  }
+  const altScheme = theme.kind === 'dark' ? 'light' : 'dark';
 
-  /** Палитры: набор в CSS обязан совпадать с available.palettes. */
-  const paletteIds = theme.available.palettes.map((palette) => palette.id);
-  const hasFile = existsSync(palettesFile);
-  const palettesCss = hasFile ? await readFile(palettesFile, 'utf8') : '';
+  const base = evaluate(`тема ${theme.id}`, colors.base, report);
+  if (base) report.rows.push(base);
 
-  if (!hasFile && paletteIds.length) {
-    report.problems.push(
-      `Тема «${theme.id}»: объявлено палитр ${paletteIds.length} (${paletteIds.join(', ')}), ` +
-        `но нет файла src/themes/${theme.id}/palettes.css.`,
-    );
-  }
-  if (hasFile && !paletteIds.length) {
-    report.problems.push(
-      `Тема «${theme.id}»: есть palettes.css, но available.palettes пуст — ` +
-        'панель не покажет ни одной палитры.',
-    );
-  }
-
-  /** Палитры, объявленные в CSS, но забытые в данных (и наоборот). */
-  const inCss = paletteIdsIn(palettesCss);
-  for (const id of inCss.filter((id) => !paletteIds.includes(id))) {
-    report.problems.push(
-      `Тема «${theme.id}»: палитра «${id}» описана в palettes.css, но её нет в available.palettes.`,
-    );
-  }
-  for (const literal of findLiterals(palettesCss)) {
-    report.problems.push(
-      `Тема «${theme.id}»: литеральный цвет ${literal} вне блока токенов (palettes.css).`,
-    );
-  }
-
-  for (const palette of theme.available.palettes) {
-    const tokens = tokensOf(palettesCss, `[data-skin='${theme.id}'][data-palette='${palette.id}']`);
-    if (!tokens) {
-      report.problems.push(
-        `Тема «${theme.id}»: палитра «${palette.id}» объявлена в available.palettes, ` +
-          `но блока [data-skin='${theme.id}'][data-palette='${palette.id}'] в palettes.css нет.`,
-      );
-      continue;
-    }
-
+  for (const pid of declared) {
+    const tokens = colors.palettes[pid];
+    if (!tokens) continue;
     report.palettes += 1;
-    const scope = evaluate(`${theme.id} · ${palette.id}`, { ...baseTokens, ...tokens }, report);
-    if (scope) {
-      checkSwatch(`палитра ${theme.id} · ${palette.id}`, palette.swatch, scope.brand, report);
-      report.rows.push(scope);
-    }
+    const scope = evaluate(`${theme.id} · ${pid}`, tokens, report);
+    if (scope) report.rows.push(scope);
   }
 
-  /**
-   * Схема: у каждой темы есть вариация второй схемы — блок
-   * [data-skin='<id>'][data-scheme='<противоположная>'] в scheme.css.
-   * У светлых тем это тёмная вариация, у nordic — светлая. Проверяем её так
-   * же, как палитру: пороги контраста и свотч паспорта (swatchAlt).
-   */
-  const schemeFile = join(root, 'src', 'themes', theme.id, 'scheme.css');
-  if (!existsSync(schemeFile)) {
-    report.problems.push(
-      `Тема «${theme.id}»: нет файла src/themes/${theme.id}/scheme.css — ` +
-        'у темы нет вариации второй схемы, переключатель схемы не сработает.',
-    );
-  } else {
-    const schemeCss = await readFile(schemeFile, 'utf8');
-    const altScheme = theme.kind === 'dark' ? 'light' : 'dark';
-    const tokens = tokensOf(schemeCss, `[data-skin='${theme.id}'][data-scheme='${altScheme}']`);
-
-    if (!tokens) {
-      report.problems.push(
-        `Тема «${theme.id}»: нет блока [data-skin='${theme.id}'][data-scheme='${altScheme}'] ` +
-          'в scheme.css.',
-      );
-    } else {
-      report.schemes += 1;
-      const scope = evaluate(`${theme.id} · ${altScheme}`, { ...baseTokens, ...tokens }, report);
-      if (scope) {
-        checkSwatch(`схема ${theme.id} · ${altScheme}`, theme.swatchAlt, scope.brand, report);
-        report.rows.push(scope);
-      }
-    }
-
-    for (const literal of findLiterals(schemeCss)) {
-      report.problems.push(
-        `Тема «${theme.id}»: литеральный цвет ${literal} вне блока токенов (scheme.css).`,
-      );
-    }
-  }
+  report.schemes += 1;
+  const alt = evaluate(`${theme.id} · ${altScheme}`, colors.alt, report);
+  if (alt) report.rows.push(alt);
 }
-
-/** ------ Отчёт ------ */
 
 const header = ['набор', ...Object.keys(LIMITS)];
 const width = [18, ...Object.keys(LIMITS).map(() => 15)];
 
 console.log(`\nПроверка контраста: ${themePresets.length} тем, ${report.palettes} палитр, ${report.schemes} схем\n`);
-console.log(
-  '  ' + header.map((cell, index) => cell.padEnd(width[index])).join(''),
-);
+console.log('  ' + header.map((cell, index) => cell.padEnd(width[index])).join(''));
 console.log('  ' + '-'.repeat(width.reduce((sum, value) => sum + value, 0)));
 
 for (const row of report.rows) {
@@ -416,14 +191,7 @@ for (const row of report.rows) {
   console.log('  ' + row.label.padEnd(18) + cells.join(''));
 }
 
-const derived = report.rows.filter((row) => row.derivedStrong).length;
-console.log(
-  `\n  ~ — цвет ссылок производный (78% акцента + чернила), как в tokens.css: ${derived} наборов.` +
-    '\n  Производные токены (--brand-soft, --brand-ring, --accent-2) и color-mix() вне этих пар' +
-    '\n  этой проверкой не покрыты: считается только то, что задано литерально.' +
-    '\n  Пороги: ink/bg ≥ 8 · ink-soft к фону и подложке ≥ 4.5 · ссылка к фону ≥ 4.6 ·' +
-    '\n  текст на акценте ≥ 4.6.',
-);
+console.log('\n  ~ — цвет ссылок производный (78% акцента + чернила).');
 
 if (report.problems.length) {
   console.error(`\n✗ Проблем: ${report.problems.length}\n`);
@@ -431,4 +199,4 @@ if (report.problems.length) {
   process.exit(1);
 }
 
-console.log('\n✓ Все палитры проходят пороги контраста, свотчи совпадают с CSS.\n');
+console.log('\n✓ Все наборы проходят пороги контраста.\n');

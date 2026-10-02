@@ -43,6 +43,7 @@ import '@skin';
  */
 import themeEntry from '@theme';
 import { designForBuild } from '../data/activeDesign';
+import { schemeBrand, themeColors } from '../themes/tokens';
 
 interface Props {
   locale: Locale;
@@ -114,19 +115,18 @@ const preloadFont = themeFontUrls?.[locale];
 /**
  * Цвет интерфейса браузера (адресная строка на телефоне) — акцент темы,
  * а не константа: он должен совпадать с тем, что видит посетитель.
- *
- * У темы две схемы, и у каждой свой акцент: `swatch` описывает натуральную
- * (её `kind`), `swatchAlt` — вариацию. Панель в демо обновляет мету сама
- * (syncThemeColor), здесь — значение для сборки.
+ * Натуральная схема темы (её `kind`) — base-токены, вторая — alt.
+ * Панель в демо обновляет мету сама (syncThemeColor), здесь — значение сборки.
  *
  * Обращаемся к designForBuild напрямую, а не через локальный `theme`:
  * Astro поднимает объявления, которые нужны шаблону, наверх тела компонента,
  * и ссылка на `theme` оказалась бы выше его объявления.
  */
-const themeColor =
-  designForBuild.scheme === designForBuild.theme.kind
-    ? designForBuild.theme.swatch[1]
-    : designForBuild.theme.swatchAlt[1];
+const themeColor = schemeBrand(
+  themeColors[designForBuild.theme.id],
+  designForBuild.theme.kind,
+  designForBuild.scheme,
+);
 
 /**
  * Пока в проекте нет фотографий, вместо og:image используется

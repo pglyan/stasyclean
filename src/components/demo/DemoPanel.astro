@@ -5,6 +5,7 @@ import { href, type PageKey } from '../../i18n/routes';
 import { useUI } from '../../i18n/ui';
 import type { Localized } from '../../data/types';
 import { themePresets } from '../../data/themes';
+import { swatchOf, themeColors } from '../../themes/tokens';
 import {
   accentOptions,
   buttonOptions,
@@ -319,7 +320,14 @@ const groups: Group[] = [
     <div class="panel__group">
       <span class="panel__label">{ui.panel.presets}</span>
       <div class="panel__themes">
-        {themePresets.map((preset) => (
+        {themePresets.map((preset) => {
+          const colors = themeColors[preset.id];
+          const swatch = swatchOf(colors.base);
+          const swatchAlt = swatchOf(colors.alt);
+          const paletteSwatches = Object.fromEntries(
+            preset.available.palettes.map((id) => [id, swatchOf(colors.palettes[id])]),
+          );
+          return (
           <button
             class="panel__theme"
             type="button"
@@ -343,25 +351,24 @@ const groups: Group[] = [
             data-meta-heading={preset.available.heading.join(',')}
             data-meta-body={preset.available.body.join(',')}
             data-meta-scheme={preset.kind}
-            data-meta-swatch={JSON.stringify(preset.swatch)}
-            data-meta-swatch-alt={JSON.stringify(preset.swatchAlt)}
-            data-meta-color={preset.swatch[1]}
-            data-meta-color-dark={preset.swatchAlt[1]}
+            data-meta-swatch={JSON.stringify(swatch)}
+            data-meta-swatch-alt={JSON.stringify(swatchAlt)}
+            data-meta-color={swatch[1]}
+            data-meta-color-dark={swatchAlt[1]}
             data-meta-palette={preset.defaults.palette ?? ''}
-            data-meta-palettes={JSON.stringify(
-              Object.fromEntries(preset.available.palettes.map((item) => [item.id, item.swatch])),
-            )}
+            data-meta-palettes={JSON.stringify(paletteSwatches)}
             data-kind={preset.kind}
             title={preset.description[locale]}
           >
             <span class="panel__theme-swatch" aria-hidden="true">
-              {preset.swatch.map((color) => (
+              {swatch.map((color) => (
                 <span data-theme-swatch style={`background:${color}`}></span>
               ))}
             </span>
             <span class="panel__theme-name">{preset.name[locale]}</span>
           </button>
-        ))}
+          );
+        })}
       </div>
     </div>
 

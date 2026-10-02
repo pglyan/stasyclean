@@ -77,7 +77,7 @@ function describe(settings) {
   console.log(
     `  Палитра:          ${
       palette
-        ? `${palette} — из ${theme.available.palettes.map((item) => item.id).join(' | ')}`
+        ? `${palette} — из ${theme.available.palettes.join(' | ')}`
         : 'как в теме (у этой темы палитр нет)'
     }`,
   );

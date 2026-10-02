@@ -7,24 +7,9 @@
 
 @import '../../fonts/manrope.css';
 @import '../../fonts/lora.css';
-@import './scheme.css';
+@import '../generated/trust.css';
 
 [data-skin='trust'] {
-  color-scheme: light;
-
-  --brand-h: 210;
-  --brand-s: 78%;
-  --brand-l: 36%;
-  --brand-ink: #ffffff;
-
-  --bg: #ffffff;
-  --surface: #f3f7fc;
-  --surface-2: #e6eff9;
-  --ink: #0b2138;
-  --ink-soft: #4a6076;
-  --line: #d8e3ef;
-
-  --shadow-color: 214 35% 20%;
 
   --radius: 12px;
 }

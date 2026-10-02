@@ -9,9 +9,9 @@
     "npm": ">=9.6.5"
   },
   "scripts": {
-    "dev": "node scripts/make-og.mjs && PUBLIC_DEMO=on astro dev",
-    "build:demo": "node scripts/make-og.mjs && PUBLIC_DEMO=on astro build --mode demo",
-    "build:prod": "node scripts/make-og.mjs && astro build --mode production",
+    "dev": "node scripts/gen-theme-tokens.mjs && node scripts/make-og.mjs && PUBLIC_DEMO=on astro dev",
+    "build:demo": "node scripts/gen-theme-tokens.mjs && node scripts/make-og.mjs && PUBLIC_DEMO=on astro build --mode demo",
+    "build:prod": "node scripts/gen-theme-tokens.mjs && node scripts/make-og.mjs && astro build --mode production",
     "preview:demo": "astro preview --outDir dist-demo",
     "preview:prod": "astro preview",
     "check": "astro check",

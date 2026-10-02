@@ -9,24 +9,9 @@
 
 @import '../../fonts/manrope.css';
 @import '../../fonts/lora.css';
-@import './scheme.css';
+@import '../generated/nordic.css';
 
 [data-skin='nordic'] {
-  color-scheme: dark;
-
-  --brand-h: 174;
-  --brand-s: 62%;
-  --brand-l: 52%;
-  --brand-ink: #06231f;
-
-  --bg: #0e1216;
-  --surface: #171e25;
-  --surface-2: #1f2831;
-  --ink: #e9eff4;
-  --ink-soft: #9db0be;
-  --line: #2a3541;
-
-  --shadow-color: 210 45% 3%;
 
   --radius: 12px;
 }
