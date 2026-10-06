@@ -68,14 +68,13 @@ export const NON_DEFAULT_LOCALES = LOCALES.filter(
 ) as Locale[];
 
 /**
- * BASE_URL от Vite: '/' для прод-сборки (nginx, корень домена)
- * и '/stasyclean/' для демо-сборки на GitHub Pages.
+ * BASE_URL от Vite: '/' для сборки из корня домена.
  *
  * ВАЖНО: Astro нормализует base через prependForwardSlash(removeTrailingForwardSlash())
- * (core/config/schemas/relative.js), поэтому в демо-сборке import.meta.env.BASE_URL
- * приходит БЕЗ завершающего слэша — '/stasyclean'. Склейка `${BASE}${path}`
- * давала '/stasycleanru/' вместо '/stasyclean/ru/', то есть все внутренние
- * ссылки, canonical, hreflang и JSON-LD демо-стенда вели в никуда.
+ * (core/config/schemas/relative.js), поэтому import.meta.env.BASE_URL
+ * может прийти БЕЗ завершающего слэша. Склейка `${BASE}${path}`
+ * дала бы '...ru/' вместо '.../ru/', то есть все внутренние
+ * ссылки, canonical, hreflang и JSON-LD вели в никуда.
  * Нормализуем один раз здесь: это единственная точка, где base попадает в адреса.
  */
 export const BASE = import.meta.env.BASE_URL.endsWith('/')
@@ -84,7 +83,7 @@ export const BASE = import.meta.env.BASE_URL.endsWith('/')
 
 /**
  * Путь к файлу из public/ с учётом base.
- * asset('favicon.svg') → '/favicon.svg' (прод) | '/stasyclean/favicon.svg' (демо)
+ * asset('favicon.svg') → '/favicon.svg'
  */
 export function asset(path: string): string {
   return `${BASE}${path.replace(/^\//, '')}`;
@@ -99,7 +98,7 @@ export function routePath(locale: Locale, key: PageKey): string {
 
 /**
  * Готовый href с учётом base и завершающего слэша.
- * href('ru', 'prices') → '/ru/ceny/'  (демо: '/stasyclean/ru/ceny/')
+ * href('ru', 'prices') → '/ru/ceny/'
  */
 export function href(locale: Locale, key: PageKey): string {
   const path = routePath(locale, key);

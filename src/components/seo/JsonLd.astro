@@ -33,8 +33,8 @@ const url = (key: PageKey) => new URL(href(locale, key), origin).href;
 
 /**
  * Корень сайта с учётом base — он же стабильный @id организации.
- * Без base получалось `https://pglyan.github.io/#business`, что не совпадало
- * с url страницы (`https://pglyan.github.io/stasyclean/`) в демо-сборке.
+ * Без base получалось `https://stasyclean.com/#business`, что не совпадало
+ * с url страницы (`https://stasyclean.com/`).
  */
 const siteRoot = new URL(BASE, origin).href;
 

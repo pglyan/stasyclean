@@ -6,10 +6,9 @@ import { useUI } from '../i18n/ui';
 /**
  * Баннер cookie.
  *
- * Сайт не подключает стороннюю аналитику по умолчанию, поэтому в прод-сборке
- * баннер не показывается (нечего согласовывать). Он появляется, только если
- * включена аналитика через PUBLIC_ANALYTICS=on, а также всегда в демо-сборке —
- * чтобы заказчик видел, как это выглядит.
+ * Сайт не подключает стороннюю аналитику по умолчанию, поэтому баннер
+ * не показывается (нечего согласовывать). Он появляется, только если
+ * включена аналитика через PUBLIC_ANALYTICS=on.
  *
  * Текст — заготовка: юридическую формулировку должен утвердить юрист
  * (в Сербии действует ZZPL, «Сл. гласник РС» 87/2018).
@@ -22,8 +21,7 @@ interface Props {
 const { locale } = Astro.props;
 const ui = useUI(locale);
 
-const analyticsEnabled = import.meta.env.PUBLIC_ANALYTICS === 'on';
-const shouldRender = import.meta.env.PUBLIC_DEMO === 'on' || analyticsEnabled;
+const shouldRender = import.meta.env.PUBLIC_ANALYTICS === 'on';
 
 const text: Record<Locale, string> = {
   sr: 'Koristimo tehničke kolačiće za rad sajta. Analitičke kolačiće uvodimo samo uz vašu saglasnost.',
@@ -49,8 +47,6 @@ const text: Record<Locale, string> = {
 <script>
   /**
    * Показываем баннер только если согласие ещё не сохранено.
-   * Демо-панель умеет сбрасывать это состояние, чтобы баннер
-   * можно было показать заказчику повторно.
    */
   const banner = document.querySelector<HTMLElement>('[data-cookie]');
 

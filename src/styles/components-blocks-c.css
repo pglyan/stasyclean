@@ -434,27 +434,9 @@
   /*
    * Кнопку «Написать в Telegram» в самой панели прячем: на телефоне заказ
    * отправляет кнопка «Заказать» в футере — она несёт состав, когда посетитель
-   * что-то выбрал. Если бар отключён демо-панелью, кнопку оставляем, иначе
-   * заказ отправлять нечем.
+   * что-то выбрал.
    */
-  [data-sticky='on'] .calc__cta {
-    display: none;
-  }
-
-  /* Бар скрыт: панель ни с чем не смыкается — возвращаем ей вид карточки. */
-  [data-sticky='off'] .calc__result {
-    inset-block-end: var(--s4);
-    margin-inline: 0;
-    padding: var(--s4) var(--s5);
-    border-radius: var(--r-lg);
-    border-block-start: var(--bw) solid var(--line);
-    border-block-end: var(--bw) solid var(--line);
-    background: var(--surface);
-    backdrop-filter: none;
-  }
-
-  /* …и убираем «язычок»: он метит кромку слияния с баром, которой тут нет. */
-  [data-sticky='off'] .calc__result::before {
+  .calc__cta {
     display: none;
   }
 

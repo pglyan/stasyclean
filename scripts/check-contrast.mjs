@@ -139,7 +139,7 @@ function evaluate(label, t, report) {
   return { label, ratios, brand: brandHex(t), derivedStrong: !literal, strong: toHex(strong) };
 }
 
-const report = { problems: [], rows: [], palettes: 0, schemes: 0 };
+const report = { problems: [], rows: [], schemes: 0 };
 
 for (const theme of themePresets) {
   const colors = themeColors[theme.id];
@@ -148,28 +148,10 @@ for (const theme of themePresets) {
     continue;
   }
 
-  const declared = [...theme.available.palettes].sort();
-  const inTokens = Object.keys(colors.palettes).sort();
-  const same = declared.length === inTokens.length && declared.every((id, i) => id === inTokens[i]);
-  if (!same) {
-    report.problems.push(
-      `Тема «${theme.id}»: палитры в available (${declared.join(', ') || '—'}) ` +
-        `не совпадают с tokens.ts (${inTokens.join(', ') || '—'}).`,
-    );
-  }
-
   const altScheme = theme.kind === 'dark' ? 'light' : 'dark';
 
   const base = evaluate(`тема ${theme.id}`, colors.base, report);
   if (base) report.rows.push(base);
-
-  for (const pid of declared) {
-    const tokens = colors.palettes[pid];
-    if (!tokens) continue;
-    report.palettes += 1;
-    const scope = evaluate(`${theme.id} · ${pid}`, tokens, report);
-    if (scope) report.rows.push(scope);
-  }
 
   report.schemes += 1;
   const alt = evaluate(`${theme.id} · ${altScheme}`, colors.alt, report);
@@ -179,7 +161,7 @@ for (const theme of themePresets) {
 const header = ['набор', ...Object.keys(LIMITS)];
 const width = [18, ...Object.keys(LIMITS).map(() => 15)];
 
-console.log(`\nПроверка контраста: ${themePresets.length} тем, ${report.palettes} палитр, ${report.schemes} схем\n`);
+console.log(`\nПроверка контраста: ${themePresets.length} тем, ${report.schemes} схем\n`);
 console.log('  ' + header.map((cell, index) => cell.padEnd(width[index])).join(''));
 console.log('  ' + '-'.repeat(width.reduce((sum, value) => sum + value, 0)));
 

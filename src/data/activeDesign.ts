@@ -1,133 +1,40 @@
 /**
- * Выбранный стиль сайта на момент сборки.
+ * Данные оформления сайта для разметки.
  *
- * Единственный источник правды — design.config.json в корне репозитория.
- * Его читают:
- *   • этот модуль — чтобы отрендерить <html data-…> в прод-сборке
- *     и подставить выбранные значения в демо-стенд как стартовые;
- *   • astro.config.mjs — чтобы выбрать алиас `@skin`/`@theme`
- *     (только CSS выбранной темы попадает в прод-сборку);
- *   • scripts/design.mjs — CLI, который меняет конфиг и показывает,
- *     что именно уедет в сборку.
+ * Значения параметров (плотность, карточки, текстуры, акцент, радиус…)
+ * запечены в CSS — в src/styles/params.css и в теме, поэтому здесь остаётся
+ * ровно то, что нужно <html>: тема, шрифты и два атрибута —
+ *   data-skin   — область селекторов токенов темы;
+ *   data-scheme — переключатель светлой/тёмной темы (src/scripts/scheme.ts).
  *
  * Ничего из этого файла не попадает в клиентский JS: значения считаются
  * на сборке, в разметку уходят только готовые атрибуты.
  */
 
-import raw from '../../design.config.json';
-import {
-  assertThemeFonts,
-  assertThemePalettes,
-  resolveDesign,
-  type DesignSettings,
-} from './designSchema';
-import { getThemePreset, themePresets } from './themes';
-import type { FontKind, PaletteKind, ThemeKind, ThemePreset } from '../themes/types';
-
-/** Идентификаторы всех тем — нужны валидации конфига. */
-export const themeIds = themePresets.map((preset) => preset.id);
-
-/** Проверенный выбор из design.config.json. */
-export const activeDesign: DesignSettings = resolveDesign(raw, themeIds);
+import { getThemePreset } from './themes';
+import type { FontKind, ThemeKind, ThemePreset } from '../themes/types';
 
 export interface BuildDesign {
-  settings: DesignSettings;
+  /** Пресет темы сайта — её CSS и шрифты (алиасы @skin/@theme). */
   theme: ThemePreset;
+  /** Шрифт заголовков — для предзагрузки нужного субсета. */
   headingFont: FontKind;
+  /** Шрифт текста. */
   bodyFont: FontKind;
-  /** Палитра темы после подстановки умолчания. null — у темы их нет. */
-  palette: PaletteKind | null;
-  /** Итоговая схема: выбор из конфига либо натуральная схема темы (её `kind`). */
+  /** Схема по умолчанию; посетитель может переключить её в шапке. */
   scheme: ThemeKind;
-  /** Атрибуты на <html>: значения темы, перекрытые выбором из конфига. */
+  /** Атрибуты на <html>. */
   attributes: Record<string, string>;
-  /** Инлайновые переменные: акцент и радиус, если их переопределили. */
-  style: string;
-}
-
-/**
- * Итоговые значения для разметки: настройки конфига поверх умолчаний темы.
- *
- * Тема отвечает за то, «как выглядит» (CSS), а её умолчания параметров
- * живут здесь — в данных. Так у параметра ровно один механизм применения
- * (атрибут на <html>), и не бывает ситуации, когда CSS темы и переключатель
- * из панели спорят за одну и ту же переменную.
- */
-export function resolveForBuild(design: DesignSettings = activeDesign): BuildDesign {
-  const theme = getThemePreset(design.theme);
-
-  const headingFont = design.headingFont ?? theme.defaults.headingFont;
-  const bodyFont = design.bodyFont ?? theme.defaults.bodyFont;
-  const palette = design.palette ?? theme.defaults.palette;
-  /**
-   * Схема: у каждой темы есть обе (натуральная — её `kind`, вариация — блок
-   * [data-scheme] в её generated-файле. Атрибут ставим всегда, поэтому CSS темы
-   * и мини-превью панели читают одно и то же значение.
-   */
-  const scheme: ThemeKind = design.scheme ?? theme.kind;
-
-  assertThemeFonts(theme, design, { headingFont, bodyFont });
-  assertThemePalettes(theme, design, palette);
-
-  const values = {
-    density: design.density ?? theme.defaults.density,
-    card: design.card ?? theme.defaults.card,
-    button: design.button ?? theme.defaults.button,
-    container: design.container ?? theme.defaults.container,
-    hero: design.hero ?? theme.defaults.hero,
-    sections: design.sections ?? theme.defaults.sections,
-    texture: design.texture ?? theme.defaults.texture,
-    surface: design.surface ?? theme.defaults.surface,
-    decor: design.decor ?? theme.defaults.decor,
-    photo: design.photo ?? theme.defaults.photo,
-    photoShape: design.photoShape ?? theme.defaults.photoShape,
-  };
-
-  const attributes: Record<string, string> = {
-    'data-skin': theme.id,
-    'data-scheme': scheme,
-    'data-font': headingFont,
-    'data-body-font': bodyFont,
-    'data-density': values.density,
-    'data-card': values.card,
-    'data-button': values.button,
-    'data-container': values.container,
-    'data-hero': values.hero,
-    'data-sections': values.sections,
-    'data-texture': values.texture,
-    'data-surface': values.surface,
-    'data-decor': values.decor,
-    'data-photo': values.photo,
-    'data-motion': design.motion,
-    'data-sticky': design.stickyCta,
-    'data-order-hint': design.orderHint,
-  };
-
-  /** Форма фото-слота: null у темы — значит «базовое скругление», без атрибута. */
-  if (values.photoShape) attributes['data-photo-shape'] = values.photoShape;
-
-  /**
-   * Палитры есть не у каждой темы, и «палитра по умолчанию» темы — это не
-   * отдельный цвет, а тот, что уже описан в её токенах. Поэтому атрибут
-   * ставим только когда палитра выбрана осознанно: без него тема выглядит
-   * ровно так, как её написал автор.
-   *
-   * Ещё одно условие — схема: палитры объявлены для натуральной схемы темы
-   * (data-scheme её `kind`). В тёмной вариации цвета даёт alt-набор, а
-   * палитры не предлагаются, поэтому атрибут не ставим — иначе он висел бы
-   * вопреки правилу «в тёмной схеме палитры нет».
-   */
-  if (palette && scheme === theme.kind) attributes['data-palette'] = palette;
-
-  const style = [
-    design.accentHue !== null ? `--brand-h:${design.accentHue}` : '',
-    design.radius !== null ? `--radius:${design.radius}px` : '',
-  ]
-    .filter(Boolean)
-    .join(';');
-
-  return { settings: design, theme, headingFont, bodyFont, palette, scheme, attributes, style };
 }
 
 /** Посчитано один раз на сборку. */
-export const designForBuild: BuildDesign = resolveForBuild();
+export const designForBuild: BuildDesign = {
+  theme: getThemePreset('nordic'),
+  headingFont: 'lora',
+  bodyFont: 'manrope',
+  scheme: 'light',
+  attributes: {
+    'data-skin': 'nordic',
+    'data-scheme': 'light',
+  },
+};

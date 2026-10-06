@@ -1,220 +1,43 @@
 /**
- * Сквозные параметры оформления.
+ * Параметры оформления — запеченные значения.
  *
- * Каждая настройка — это атрибут на <html> (data-font, data-density,
- * data-card, data-hero…), который превращается в набор CSS-переменных.
- * Так оформление параметризовано одинаково для всех тем: тема задаёт
- * токены (палитра, формы, графика), параметры — как они применяются.
+ * Эти параметры (шрифты, плотность, карточки, кнопки, первый экран,
+ * текстура фона) когда-то переключались атрибутами на <html>. Поскольку
+ * сайт один и форма одна, значения зафиксированы здесь обычными правилами.
  *
- * Важный принцип: значения по умолчанию для параметров живут в данных
- * темы (src/data/themes.ts → defaults), а не в её CSS. Поэтому у параметра
- * ровно один механизм применения и не бывает спора между CSS темы и
- * переключателем панели.
+ * Единственная ось, которая меняется на лету, — схема (data-scheme):
+ * её цвета приходят из CSS темы (src/themes/tokens.ts → generated),
+ * а здесь лежит только общее для схемы (blend текстуры).
  *
- * Селекторы намеренно без :root — тогда этот же CSS умеет рисовать
- * мини-превью темы внутри демо-панели (элемент с data-skin, data-card…),
- * а не только всю страницу.
+ * Значения лежат на :root и подключаются после tokens.css, поэтому тема
+ * (src/themes/<id>/theme.css, подключается последней) может переопределить
+ * любой из них у себя.
  */
 
-/* ==================== Шрифт заголовков ==================== */
-/* Выбор шрифта — это не только семейство, но и его метрики: у Comfortaa нет
-   веса выше 700, у Nunito характерный очень жирный набор, у засечных своя
-   плотность. Поэтому каждый вариант задаёт все токены роли сразу, а base.css
-   просто читает их и не знает, какой шрифт выбран.
-   Умолчания совпадают с прежним поведением макета (700 и −0.02em), поэтому
-   темы, которые ничего не настраивают, выглядят как раньше. */
+/* ==================== Шрифты ==================== */
+/* Шрифт — это не только семейство, но и его метрики. Поэтому здесь
+   роль задана целиком, а base.css просто читает токены и не знает,
+   какая гарнитура выбрана. */
 
-[data-font='manrope'] {
-  --font-heading: var(--font-manrope);
-  --font-heading-weight: 700;
-  --font-heading-tracking: var(--tracking-tight);
-}
-
-[data-font='lora'] {
+:root {
   --font-heading: var(--font-lora);
   --font-heading-weight: 700;
   --font-heading-tracking: var(--tracking-tight);
+  --font-body: var(--font-manrope);
 }
-
-[data-font='playfair'] {
-  --font-heading: var(--font-playfair);
-  --font-heading-weight: 700;
-  --font-heading-tracking: var(--tracking-tight);
-}
-
-/* Nunito — очень широкий диапазон веса и округлая форма: набор тяжёлый и
-   без агрессивного трекинга (так устроена «Милота»). */
-[data-font='nunito'] {
-  --font-heading: var(--font-nunito);
-  --font-heading-weight: 800;
-  --font-heading-tracking: -0.01em;
-}
-
-/* Comfortaa — верхний вес 700 и заведомо округлые буквы: минус в трекинге
-   только слипает слова, поэтому плотность мягкая. */
-[data-font='comfortaa'] {
-  --font-heading: var(--font-comfortaa);
-  --font-heading-weight: 700;
-  --font-heading-tracking: -0.005em;
-}
-
-[data-font='system'] {
-  --font-heading: var(--font-system);
-  --font-heading-weight: 700;
-  --font-heading-tracking: var(--tracking-tight);
-}
-
-/* ==================== Шрифт текста ==================== */
-
-[data-body-font='manrope'] { --font-body: var(--font-manrope); }
-[data-body-font='lora'] { --font-body: var(--font-lora); }
-[data-body-font='playfair'] { --font-body: var(--font-playfair); }
-[data-body-font='nunito'] { --font-body: var(--font-nunito); }
-[data-body-font='comfortaa'] { --font-body: var(--font-comfortaa); }
-[data-body-font='system'] { --font-body: var(--font-system); }
 
 /* ==================== Плотность ==================== */
+/* Масштабирует все внутренние отступы через --d. */
 
-[data-density='compact'] { --d: 0.86; }
-[data-density='normal'] { --d: 1; }
-[data-density='spacious'] { --d: 1.18; }
+:root {
+  --d: 0.86;
+}
 
 /* ==================== Стиль карточек ==================== */
+/* «Наклейка»: подложка, поворот и «мультяшная» тень. Состояние наведения
+   живёт в отдельных переменных, чтобы ховер не стал мягкой тенью. */
 
-[data-card='flat'] {
-  --card-bg: transparent;
-  --card-bw: 0px;
-  --card-shadow: none;
-}
-
-[data-card='outline'] {
-  --card-bg: var(--surface);
-  --card-bw: 1px;
-  --card-line: var(--line);
-  --card-shadow: none;
-}
-
-[data-card='shadow'] {
-  --card-bg: var(--surface);
-  --card-bw: 0px;
-  --card-shadow: var(--shadow-md);
-}
-
-/* ==================== Стиль кнопок ==================== */
-
-[data-button='solid'] {
-  --btn-bg: var(--brand);
-  --btn-ink: var(--brand-ink);
-  --btn-bw: 0px;
-  --btn-line: var(--brand);
-  --btn-bg-hover: var(--brand-hover);
-}
-
-[data-button='soft'] {
-  --btn-bg: var(--brand-soft);
-  --btn-ink: var(--brand-strong);
-  --btn-bw: 0px;
-  --btn-line: var(--brand);
-  --btn-bg-hover: color-mix(in oklab, var(--brand) 22%, var(--surface));
-}
-
-[data-button='outline'] {
-  --btn-bg: transparent;
-  --btn-ink: var(--brand-strong);
-  --btn-bw: 1.5px;
-  --btn-line: var(--brand);
-  --btn-bg-hover: var(--brand-soft);
-}
-
-/* ==================== Ширина контейнера ==================== */
-
-[data-container='normal'] { --container: 1200px; }
-[data-container='wide'] { --container: 1360px; }
-
-/* ==================== Раскладка первого экрана ==================== */
-/* Разметка одна (Hero.astro), меняется только CSS. */
-
-@media (min-width: 62rem) {
-  [data-hero='split'] .hero__inner {
-    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
-  }
-}
-
-/* Вариант «по центру» */
-[data-hero='center'] .hero__inner {
-  max-inline-size: 48rem;
-  margin-inline: auto;
-  text-align: center;
-}
-
-[data-hero='center'] .hero__lead {
-  margin-inline: auto;
-}
-
-[data-hero='center'] .hero__actions,
-[data-hero='center'] .hero__badges,
-[data-hero='center'] .hero__promise {
-  justify-content: center;
-}
-
-/* Вариант «фото на всю ширину» */
-[data-hero='full'] {
-  --on-photo: #ffffff;
-  --on-photo-soft: rgb(255 255 255 / 0.82);
-}
-
-[data-hero='full'] .hero {
-  position: relative;
-  isolation: isolate;
-  padding-block: calc(var(--s24) * 1.3);
-  color: var(--on-photo, #fff);
-}
-
-[data-hero='full'] .hero__media {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  border-radius: 0;
-  aspect-ratio: auto;
-}
-
-[data-hero='full'] .hero__media::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    100deg,
-    rgb(6 16 14 / 0.88) 0%,
-    rgb(6 16 14 / 0.62) 45%,
-    rgb(6 16 14 / 0.22) 100%
-  );
-}
-
-[data-hero='full'] .hero__inner {
-  grid-template-columns: minmax(0, 40rem);
-}
-
-[data-hero='full'] .hero__title,
-[data-hero='full'] .hero__lead,
-[data-hero='full'] .hero__promise {
-  color: var(--on-photo, #fff);
-}
-
-/* ==================== Стиль карточек: жёсткий и «наклейка» ==================== */
-/* Приёмы, которые сильно меняют характер страницы: брутализм (жёсткая
-   рамка со сдвинутой тенью) и «милота» (наклейка с поворотом). */
-
-[data-card='hard'] {
-  --card-bg: var(--bg);
-  --card-bw: var(--hard-bw);
-  --card-line: var(--ink);
-  --card-shadow: var(--hard-shadow) var(--ink);
-  --card-shadow-hover: calc(var(--hard-bw) * 1.5) calc(var(--hard-bw) * 1.5) 0 var(--ink);
-  --card-line-hover: var(--ink);
-  --card-lift: -1px;
-}
-
-[data-card='sticker'] {
+:root {
   --card-bg: var(--surface);
   --card-bw: 0px;
   --card-line: transparent;
@@ -224,179 +47,52 @@
   --card-lift: -3px;
 }
 
-[data-card='sticker'] .card:nth-child(odd) { rotate: -0.7deg; }
-[data-card='sticker'] .card:nth-child(even) { rotate: 0.6deg; }
+.card:nth-child(odd) {
+  rotate: -0.7deg;
+}
 
-/* ==================== Стиль кнопок: ссылка и «блок с тенью» ==================== */
-/* «Ссылка» — редакционный приём: капс, подчёркивание, никакой заливки.
-   «Блок с тенью» — брутализм: плотный прямоугольник со сдвинутой тенью. */
+.card:nth-child(even) {
+  rotate: 0.6deg;
+}
 
-[data-button='link'] {
-  --btn-bg: transparent;
-  --btn-ink: var(--ink);
+/* ==================== Стиль кнопок ==================== */
+/* Мягкие: заливка с акцентом, текст — производный цвет акцента. */
+
+:root {
+  --btn-bg: var(--brand-soft);
+  --btn-ink: var(--brand-strong);
   --btn-bw: 0px;
-  --btn-line: transparent;
-  --btn-bg-hover: transparent;
+  --btn-line: var(--brand);
+  --btn-bg-hover: color-mix(in oklab, var(--brand) 22%, var(--surface));
 }
 
-[data-button='link'] .btn {
-  padding: 0 0 0.3em;
-  border-radius: 0;
-  border-block-end: 1.5px solid currentColor;
-  font-size: var(--fs-xs);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-wide);
-}
+/* ==================== Ширина контейнера ==================== */
+/* Значение по умолчанию — 1200px (tokens.css, раздел «Сетка»). */
 
-[data-button='link'] .btn:hover {
-  color: var(--brand);
-}
+/* ==================== Раскладка первого экрана ==================== */
+/* Разметка одна (Hero.astro), меняется только CSS: текст слева, фото справа. */
 
-[data-button='link'] .btn--ghost {
-  border-block-end-color: var(--ink-soft);
-}
-
-[data-button='hard'] {
-  --btn-bg: var(--ink);
-  --btn-ink: var(--bg);
-  --btn-bw: var(--hard-bw);
-  --btn-line: var(--ink);
-  --btn-bg-hover: var(--brand);
-}
-
-[data-button='hard'] .btn {
-  border-radius: 0;
-  box-shadow: var(--hard-shadow) var(--ink);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-normal);
-}
-
-[data-button='hard'] .btn:hover {
-  box-shadow: 1px 1px 0 var(--ink);
-  transform: translate(3px, 3px);
-}
-
-
-[data-hero='full'] .hero__promise svg {
-  color: var(--on-photo, #fff);
-}
-
-/* ==================== Анимации ==================== */
-
-[data-motion='off'] {
-  --dur-fast: 0ms;
-  --dur: 0ms;
-  --dur-slow: 0ms;
-}
-
-/* ==================== Закреплённая кнопка на телефоне ==================== */
-/* Базовое оформление .sticky-cta живёт в components-footer.css. */
-
-[data-sticky='off'] .sticky-cta {
-  display: none;
-}
-
-/* Закреплённая кнопка не должна закрывать подвал на телефоне.
-   Резерв равен реальной высоте панели (--sticky-h): раньше это были два
-   независимых числа, и подпись в две строки делала бар выше резерва. */
-@media (max-width: 61.999rem) {
-  body {
-    padding-block-end: var(--sticky-h);
+@media (min-width: 62rem) {
+  .hero__inner {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
   }
-
-  [data-sticky='off'] body {
-    padding-block-end: 0;
-  }
-}
-
-/* ==================== Ритм секций ==================== */
-/* Самый заметный признак «другой вёрстки»: одна и та же разметка может
-   читаться как брошюра (полосы) или как журнал (нумерация и волосяные
-   линейки). Разметка при этом не меняется — только CSS. */
-
-[data-sections='banded'] > .section:not(.section--surface):not(.section--surface-2):not(.section--dark):nth-of-type(even) {
-  background: var(--band-bg);
-}
-
-[data-sections='editorial'] {
-  counter-reset: sec;
-}
-
-[data-sections='editorial'] .section {
-  counter-increment: sec;
-}
-
-[data-sections='editorial'] .section > .container > .section-head {
-  padding-block-start: var(--s6);
-  border-block-start: var(--bw) solid var(--line);
-}
-
-[data-sections='editorial'] .section-head h2::before {
-  content: counter(sec, decimal-leading-zero);
-  display: block;
-  margin-block-end: var(--s2);
-  font-family: var(--font-heading);
-  font-size: var(--fs-sm);
-  font-weight: 400;
-  letter-spacing: var(--tracking-wide);
-  color: var(--ink-soft);
-}
-
-/* ==================== Полотно страницы ==================== */
-/* data-surface — подложка под всем содержимым: ровный фон, тонировка, мягкий
-   градиент или «сетчатый» фон из нескольких пятен акцента и вторичного тона.
- *
- * Почему слоями, а не отдельным правилом с background-image: полотно и
- * текстура пишут в одно свойство body, и второй механизм молча затёр бы
- * первый. Поэтому полотно задаёт переменную --surface-layers, а правила
- * текстуры подставляют её первым слоем своей цепочки. Селектор с атрибутом
- * (а не просто `body`) нужен, чтобы не спорить с базовым `background`
- * из base.css, который сбрасывает background-image. */
-
-[data-surface] body {
-  background-image: var(--surface-layers, none);
-}
-
-[data-surface='flat'] {
-  --surface-layers: none;
-}
-
-[data-surface='tint'] {
-  --surface-layers: linear-gradient(var(--surface-2), var(--surface-2));
-}
-
-[data-surface='gradient'] {
-  --surface-layers: linear-gradient(
-    180deg,
-    var(--surface-2) 0%,
-    var(--bg) 55%,
-    var(--surface) 100%
-  );
-}
-
-[data-surface='mesh'] {
-  --surface-layers:
-    radial-gradient(60% 50% at 10% 6%, color-mix(in oklab, var(--brand) 30%, transparent), transparent 70%),
-    radial-gradient(48% 42% at 90% 16%, color-mix(in oklab, var(--accent-2) 34%, transparent), transparent 72%),
-    radial-gradient(70% 55% at 72% 98%, color-mix(in oklab, var(--brand) 20%, transparent), transparent 74%);
 }
 
 /* ==================== Схема (светлая / тёмная) ==================== */
 /* Схема — ось поверх темы (data-scheme): цвета для неё даёт CSS темы
-   (токены src/themes/tokens.ts), а здесь — то, что при тёмном фоне одинаково
-   для ВСЕХ тем. Селектор без :root, поэтому правило работает и в мини-
-   превью панели, а не только на <html>. */
+   (токены src/themes/tokens.ts), а здесь — то, что при тёмном фоне
+   одинаково независимо от темы. */
 
 [data-scheme='dark'] {
-  /* Зерно и другие текстуры на тёмном фоне должны светлеть, а не темнеть:
+  /* Зерно на тёмном фоне должен светлеть, а не темнеть:
      multiply на почти чёрной бумаге делает узор невидимым. */
   --texture-blend: screen;
 }
 
 /* ==================== Текстура фона ==================== */
+/* Зерно — тонкая графическая деталь поверх всей страницы. */
 
-[data-texture='grain'] body::after {
+body::after {
   content: '';
   position: fixed;
   inset: 0;
@@ -408,240 +104,13 @@
   background-size: 180px 180px;
 }
 
-[data-texture='dots'] body {
-  background-image: var(--surface-layers, none),
-    radial-gradient(color-mix(in oklab, var(--ink) 13%, transparent) 1px, transparent 1.4px);
-  background-size: auto, 22px 22px;
-}
+/* ==================== Закреплённая кнопка на телефоне ==================== */
+/* Закреплённая кнопка не должна закрывать подвал на телефоне.
+   Резерв равен реальной высоте панели (--sticky-h): раньше это были два
+   независимых числа, и подпись в две строки делала бар выше резерва. */
 
-[data-texture='grid'] body {
-  background-image: var(--surface-layers, none),
-    linear-gradient(to right, color-mix(in oklab, var(--ink) 8%, transparent) 1px, transparent 1px),
-    linear-gradient(to bottom, color-mix(in oklab, var(--ink) 8%, transparent) 1px, transparent 1px);
-  background-size: auto, 64px 64px, 64px 64px;
-}
-
-/* Четыре «мягких» текстуры: узор выводится из акцента через
-   --texture-color, поэтому едет за палитрой, а не остаётся нейтральным. */
-
-[data-texture='waves'] body {
-  background-image: var(--surface-layers, none),
-    repeating-radial-gradient(
-      circle at 50% 0,
-      transparent 0 64px,
-      var(--texture-color) 64px 65px,
-      transparent 65px 128px
-    );
-}
-
-[data-texture='stripes'] body {
-  background-image: var(--surface-layers, none),
-    repeating-linear-gradient(45deg, var(--texture-color) 0 2px, transparent 2px 16px);
-}
-
-[data-texture='scallops'] body {
-  background-image: var(--surface-layers, none),
-    radial-gradient(circle at 50% 100%, var(--texture-color) 0 6px, transparent 6.5px);
-  background-size: auto, 28px 14px;
-}
-
-[data-texture='checks'] body {
-  background-image: var(--surface-layers, none),
-    repeating-linear-gradient(45deg, var(--texture-color) 0 3px, transparent 3px 12px),
-    repeating-linear-gradient(-45deg, var(--texture-color) 0 3px, transparent 3px 12px);
-}
-
-/* ==================== Декор страницы ==================== */
-/* Лёгкий слой поверх полотна, но под содержимым: пузырьки, искры, конфетти,
-   круги на воде. Рисуется градиентами на ::before у body — без разметки и без
-   JS. Полосы секций со своей подложкой этот слой закрывают; тема может
-   сделать их полупрозрачными через --band-bg, если хочет видеть декор и там.
-   Позиция fixed: слой не «уезжает» при прокрутке и не влияет на макет. */
-
-[data-decor] body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  opacity: var(--decor-opacity, 0.5);
-  background-repeat: no-repeat;
-}
-
-[data-decor='bubbles'] body::before {
-  background-image:
-    radial-gradient(circle at 12% 18%, color-mix(in oklab, var(--brand) 42%, transparent) 0 16px, transparent 17px),
-    radial-gradient(circle at 84% 12%, color-mix(in oklab, var(--accent-2) 46%, transparent) 0 10px, transparent 11px),
-    radial-gradient(circle at 68% 62%, color-mix(in oklab, var(--brand) 32%, transparent) 0 26px, transparent 27px),
-    radial-gradient(circle at 24% 78%, color-mix(in oklab, var(--accent-2) 38%, transparent) 0 13px, transparent 14px),
-    radial-gradient(circle at 46% 40%, color-mix(in oklab, var(--brand) 22%, transparent) 0 8px, transparent 9px),
-    radial-gradient(circle at 92% 84%, color-mix(in oklab, var(--brand) 26%, transparent) 0 20px, transparent 21px);
-}
-
-[data-decor='sparkles'] body::before {
-  background-image:
-    radial-gradient(circle at 18% 22%, color-mix(in oklab, var(--brand) 62%, transparent) 0 3px, transparent 4px),
-    radial-gradient(circle at 72% 14%, color-mix(in oklab, var(--accent-2) 66%, transparent) 0 2px, transparent 3px),
-    radial-gradient(circle at 88% 44%, color-mix(in oklab, var(--brand) 55%, transparent) 0 4px, transparent 5px),
-    radial-gradient(circle at 36% 58%, color-mix(in oklab, var(--accent-2) 60%, transparent) 0 2px, transparent 3px),
-    radial-gradient(circle at 58% 82%, color-mix(in oklab, var(--brand) 50%, transparent) 0 3px, transparent 4px),
-    radial-gradient(circle at 10% 92%, color-mix(in oklab, var(--accent-2) 58%, transparent) 0 2px, transparent 3px);
-}
-
-[data-decor='confetti'] body::before {
-  background-image:
-    radial-gradient(9px 5px at 14% 26%, color-mix(in oklab, var(--brand) 58%, transparent), transparent 72%),
-    radial-gradient(7px 4px at 78% 16%, color-mix(in oklab, var(--accent-2) 62%, transparent), transparent 72%),
-    radial-gradient(10px 5px at 62% 54%, color-mix(in oklab, var(--brand) 46%, transparent), transparent 72%),
-    radial-gradient(8px 4px at 30% 74%, color-mix(in oklab, var(--accent-2) 54%, transparent), transparent 72%),
-    radial-gradient(7px 9px at 90% 68%, color-mix(in oklab, var(--brand) 42%, transparent), transparent 72%),
-    radial-gradient(6px 8px at 46% 92%, color-mix(in oklab, var(--accent-2) 50%, transparent), transparent 72%);
-}
-
-/* Круги на воде — единственный декор, который повторяется плиткой: иначе
-   анимировать background-position было бы нечего. */
-
-[data-decor='ripples'] body::before {
-  background-image: repeating-radial-gradient(
-    circle at 50% 50%,
-    transparent 0 18px,
-    color-mix(in oklab, var(--brand) 26%, transparent) 18px 19px
-  );
-  background-size: 120px 120px;
-  background-repeat: repeat;
-}
-
-/* ==================== Анимации декора ==================== */
-/* Два ограничителя, ровно как у ленты в «Бетоне и бумаге»: включённые
-   анимации в панели (data-motion='on') и системная настройка «меньше
-   движения». Оба обязательны: первый — выбор заказчика, второй — здоровье
-   посетителя. Петли описаны здесь один раз; тема только подключает их. */
-
-@media (prefers-reduced-motion: no-preference) {
-  [data-motion='on'][data-decor='bubbles'] body::before {
-    animation: float-up var(--anim-slow) ease-in-out infinite alternate;
-  }
-
-  [data-motion='on'][data-decor='sparkles'] body::before {
-    animation: shimmer var(--anim) ease-in-out infinite alternate;
-  }
-
-  [data-motion='on'][data-decor='confetti'] body::before {
-    animation: pop var(--anim) ease-in-out infinite alternate;
-  }
-
-  [data-motion='on'][data-decor='ripples'] body::before {
-    animation: ripple var(--anim-slow) linear infinite;
+@media (max-width: 61.999rem) {
+  body {
+    padding-block-end: var(--sticky-h);
   }
 }
-
-@keyframes float-up {
-  from {
-    translate: 0 0;
-  }
-  to {
-    translate: 0 -20px;
-  }
-}
-
-@keyframes bob {
-  from {
-    translate: 0 -5px;
-  }
-  to {
-    translate: 0 5px;
-  }
-}
-
-@keyframes pop {
-  from {
-    scale: 1;
-  }
-  to {
-    scale: 1.04;
-  }
-}
-
-@keyframes ripple {
-  from {
-    background-position: 0 0;
-  }
-  to {
-    background-position: 24px 24px;
-  }
-}
-
-@keyframes shimmer {
-  from {
-    opacity: calc(var(--decor-opacity, 0.5) * 0.55);
-  }
-  to {
-    opacity: var(--decor-opacity, 0.5);
-  }
-}
-
-/* ==================== Обработка фотографий ==================== */
-/* Пока настоящих снимков нет, приём видно на фото-заглушках: двухцветная
-   печать, растр, арка. Когда появятся файлы, те же правила начнут работать
-   с реальными изображениями — разметка не меняется. */
-
-[data-photo='duotone'] .photo {
-  background:
-    radial-gradient(120% 90% at 20% 10%, var(--brand-soft) 0%, transparent 60%),
-    linear-gradient(150deg, var(--surface-2) 0%, var(--brand-soft) 100%);
-}
-
-[data-photo='duotone'] .photo::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: color-mix(in oklab, var(--brand) 45%, transparent);
-  mix-blend-mode: multiply;
-}
-
-[data-photo='duotone'] .photo img,
-[data-photo='halftone'] .photo img {
-  filter: grayscale(1) contrast(1.08);
-}
-
-[data-photo='halftone'] .photo::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0.4;
-  mix-blend-mode: multiply;
-  background-image: radial-gradient(var(--ink) 1.1px, transparent 1.5px);
-  background-size: 6px 6px;
-}
-
-/* Форма фото-слота — отдельный параметр (data-photo-shape), потому что это
-   не то же самое, что «обработка» снимка: растр можно положить в пузырь,
-   в арку или в строгий прямоугольник. Раньше арка была одним из значений
-   data-photo, и сочетать её с дуотоном было нельзя. */
-
-[data-photo-shape='rect'] .photo,
-[data-photo-shape='rect'] .ba,
-[data-photo-shape='rect'] .ba__layer {
-  border-radius: 0;
-}
-
-[data-photo-shape='round'] .photo,
-[data-photo-shape='round'] .ba,
-[data-photo-shape='round'] .ba__layer {
-  border-radius: var(--r-xl);
-}
-
-[data-photo-shape='arch'] .photo,
-[data-photo-shape='arch'] .ba,
-[data-photo-shape='arch'] .ba__layer {
-  border-radius: var(--arch-top, 7rem) var(--arch-top, 7rem) var(--r-md) var(--r-md);
-}
-
-[data-photo-shape='blob'] .photo,
-[data-photo-shape='blob'] .ba,
-[data-photo-shape='blob'] .ba__layer {
-  border-radius: var(--photo-radius);
-}
-

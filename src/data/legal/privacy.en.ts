@@ -63,7 +63,7 @@ export const privacyEn: LegalContent = {
       title: 'Cookies and local storage',
       paragraphs: [
         'This site loads no third-party analytics, advertising pixels or tracking systems. Technical cookies are not used to identify visitors.',
-        'The demo settings panel on this stand stores your chosen theme in the browser’s local storage. That data never leaves your browser and is removed when you clear site data.',
+        'Your light/dark scheme choice (and cookie consent, if given) is stored in your browser’s local storage. That data never leaves your browser and is removed when you clear site data.',
       ],
     },
     {

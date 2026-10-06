@@ -3,7 +3,6 @@ node_modules/
 
 # build output
 dist/
-dist-demo/
 
 # OG-картинки генерируются на сборке (scripts/make-og.mjs)
 public/og/
@@ -25,9 +24,6 @@ src/assets/fonts/
 .env
 .env.local
 .env.*.local
-# .env.demo — не секрет: в нём только PUBLIC_DEMO=on для демо-сборки,
-# и он нужен CI, поэтому коммитится.
-!.env.demo
 !.env.example
 
 # tooling

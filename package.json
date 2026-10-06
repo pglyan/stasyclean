@@ -3,20 +3,17 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "StasyClean — статический сайт клининговой компании (RU / EN / SR). Демо-стенд + прод-сборка для nginx.",
+  "description": "StasyClean — статический сайт клининговой компании (RU / EN / SR). Прод-сборка для nginx.",
   "engines": {
     "node": ">=22.18.0",
     "npm": ">=9.6.5"
   },
   "scripts": {
-    "dev": "node scripts/gen-theme-tokens.mjs && node scripts/make-og.mjs && PUBLIC_DEMO=on astro dev",
-    "build:demo": "node scripts/gen-theme-tokens.mjs && node scripts/make-og.mjs && PUBLIC_DEMO=on astro build --mode demo",
-    "build:prod": "node scripts/gen-theme-tokens.mjs && node scripts/make-og.mjs && astro build --mode production",
-    "preview:demo": "astro preview --outDir dist-demo",
-    "preview:prod": "astro preview",
+    "dev": "node scripts/gen-theme-tokens.mjs && node scripts/make-og.mjs && astro dev",
+    "build": "node scripts/gen-theme-tokens.mjs && node scripts/make-og.mjs && astro build",
+    "preview": "astro preview",
     "check": "astro check",
     "check:colors": "node scripts/check-contrast.mjs",
-    "design": "node scripts/design.mjs",
     "make:og": "node scripts/make-og.mjs"
   },
   "dependencies": {
@@ -26,11 +23,8 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
-    "@fontsource-variable/comfortaa": "^5.3.0",
     "@fontsource-variable/lora": "^5.3.0",
     "@fontsource-variable/manrope": "^5.3.0",
-    "@fontsource-variable/nunito": "^5.3.0",
-    "@fontsource-variable/playfair-display": "^5.3.0",
     "typescript": "^6.0.3"
   }
 }

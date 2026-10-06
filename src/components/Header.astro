@@ -81,11 +81,7 @@ const isServicePage = ['general', 'regular', 'smart', 'reno', 'services'].includ
     </nav>
 
     <div class="site-header__actions">
-      {/*
-        Схема — функция сайта, поэтому переключатель стоит первым в шапке:
-        он виден и в прод-сборке, и в демо. Ссылка ?panel=0 убирает только
-        кнопку стенда, этой кнопки не касается.
-      */}
+      {/* Схема — функция сайта, поэтому переключатель стоит первым в шапке. */}
       <SchemeSwitch locale={locale} />
 
       <LangSwitch locale={locale} routeKey={routeKey} />
@@ -166,8 +162,7 @@ const isServicePage = ['general', 'regular', 'smart', 'reno', 'services'].includ
    * Выпадающее меню «Услуги» на десктопе работает вообще без JS
    * (CSS :hover/:focus-within), здесь только мобильный drawer.
    *
-   * Сюда же подключён переключатель схемы: он общий для прода и демо
-   * (src/scripts/scheme.ts), а не часть стенда.
+   * Сюда же подключён переключатель схемы (src/scripts/scheme.ts).
    */
   import { initScheme } from '../scripts/scheme';
 

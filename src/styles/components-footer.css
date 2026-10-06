@@ -122,13 +122,11 @@
 /*
  * Кнопка «Заказать» меняет вид, когда посетитель что-то выбрал в калькуляторе:
  * скрипт калькулятора ставит на неё data-order-ready и подставляет в ссылку
- * состав заказа. Вариант подсказки — настройка orderHint в демо-панели: пять
- * слоёв поверх неизменной смены подписи, чтобы заказчик выбрал оформление.
+ * состав заказа. Оформление — комбинированное: текст + иконка + свечение.
  *
  * Смену текста и aria-label делает скрипт — правила ниже только визуальные.
- * Слои с анимацией опираются на --dur-slow, который обнуляется и демо-
- * переключателем «Анимации», и системным prefers-reduced-motion: пульс тогда
- * просто не проигрывается.
+ * Слои с анимацией опираются на --dur-slow, который обнуляется системным
+ * prefers-reduced-motion: пульс тогда просто не проигрывается.
  */
 .sticky-cta__order .btn__icon--ready,
 .sticky-cta__badge {
@@ -142,21 +140,18 @@
   background: var(--btn-ink);
 }
 
-/* 2 и 5: telegram → галочка */
-[data-order-hint='icon'] [data-order-ready='true'] .btn__icon--default,
-[data-order-hint='combo'] [data-order-ready='true'] .btn__icon--default {
+/* telegram → галочка */
+[data-order-ready='true'] .btn__icon--default {
   display: none;
 }
 
-[data-order-hint='icon'] [data-order-ready='true'] .btn__icon--ready,
-[data-order-hint='combo'] [data-order-ready='true'] .btn__icon--ready {
+[data-order-ready='true'] .btn__icon--ready {
   display: block;
 }
 
-/* 3 и 5: акцентное кольцо и один мягкий «пульс» при переходе.
-   outline, а не box-shadow: не затираем тень кнопок «жёстких» тем. */
-[data-order-hint='glow'] [data-order-ready='true'],
-[data-order-hint='combo'] [data-order-ready='true'] {
+/* Акцентное кольцо и один мягкий «пульс» при переходе.
+   outline, а не box-shadow: не затираем тень кнопок. */
+[data-order-ready='true'] {
   outline: 3px solid var(--brand-ring);
   outline-offset: 2px;
   animation: order-ready-pulse var(--dur-slow) var(--ease) 1;
@@ -179,19 +174,13 @@
   }
 }
 
-/* 4: точка рядом с подписью */
-[data-order-hint='badge'] [data-order-ready='true'] .sticky-cta__badge {
-  display: block;
-}
+/* 4: точка рядом с подписью (в комбинированном варианте не показывается) */
 
 @media (min-width: 62rem) {
   .sticky-cta {
     display: none;
   }
 }
-
-/* Переключатель закреплённой кнопки (data-sticky) живёт в params.css:
-   это сквозной параметр оформления. Ниже — только внешний вид панели. */
 
 /* ==================== Баннер cookie ==================== */
 
@@ -223,17 +212,11 @@
   }
 }
 
-/* С 62rem панель действий скрыта — подниматься над ней не нужно.
-   При выключенной панели (data-sticky='off') баннер у нижнего края на любом
-   экране, поэтому правило вынесено из media query. */
+/* С 62rem панель действий скрыта — подниматься над ней не нужно. */
 @media (min-width: 62rem) {
   .cookie {
     inset-block-end: var(--s4);
   }
-}
-
-[data-sticky='off'] .cookie {
-  inset-block-end: var(--s4);
 }
 
 .cookie[data-visible='true'] {

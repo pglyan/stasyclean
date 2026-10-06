@@ -14,13 +14,12 @@ import JsonLd from '../components/seo/JsonLd.astro';
 /**
  * Порядок подключения стилей важен:
  *   1) tokens  — инварианты и дефолты переменных;
- *   2) params  — сквозные параметры (акцент, плотность, карточки…);
+ *   2) params  — параметры оформления (акцент, плотность, карточки…);
  *   3) base/layout/components — сами правила;
- *   4) @skin   — CSS выбранной темы, поэтому её палитра перекрывает дефолты.
+ *   4) @skin   — CSS темы, поэтому её палитра перекрывает дефолты.
  *
- * @skin и @theme — алиасы из astro.config.mjs. В прод-сборке они ведут на
- * файлы ОДНОЙ темы из design.config.json, в демо — на «все темы сразу»
- * (src/themes/all.css и entries/all.ts).
+ * @skin и @theme — алиасы из astro.config.mjs: они указывают на CSS
+ * и шрифты темы сайта (src/themes/<id>/theme.css, src/themes/entries/<id>.ts).
  */
 import '../styles/tokens.css';
 import '../styles/params.css';
@@ -37,9 +36,7 @@ import '../styles/components-blocks-e.css';
 import '@skin';
 
 /**
- * Данные выбранной темы для сборки: id темы и адреса субсетов её шрифтов.
- * В прод-сборке это единственная тема, в демо — сводный список всех тем,
- * чтобы панель могла предзагрузить субсет любого выбранного шрифта.
+ * Данные темы сайта для сборки: id темы и адреса субсетов её шрифтов.
  */
 import themeEntry from '@theme';
 import { designForBuild } from '../data/activeDesign';
@@ -51,7 +48,7 @@ interface Props {
   /** Без title берётся общий заголовок бренда. */
   title?: string;
   description?: string;
-  /** true для служебных страниц (404, демо-библиотека блоков). */
+  /** true для служебных страниц (404). */
   noindex?: boolean;
   /** Основная сущность страницы для JSON-LD. */
   jsonLd?: Record<string, unknown>[];
@@ -86,8 +83,7 @@ const pageDescription = description ?? pageMeta.description;
  *
  * Берём origin из конфига (import.meta.env.SITE) — это надёжнее, чем
  * Astro.site, и одинаково работает на пререндере и в dev-режиме.
- * href() уже учитывает base, поэтому демо-сборка на GitHub Pages
- * отдаёт корректные адреса внутри подпапки /stasyclean/.
+ * href() уже учитывает base, поэтому адреса всегда собраны правильно.
  */
 const origin = import.meta.env.SITE || `https://${site.domain}`;
 const absolute = (value: string) => new URL(value, origin).href;
@@ -116,7 +112,6 @@ const preloadFont = themeFontUrls?.[locale];
  * Цвет интерфейса браузера (адресная строка на телефоне) — акцент темы,
  * а не константа: он должен совпадать с тем, что видит посетитель.
  * Натуральная схема темы (её `kind`) — base-токены, вторая — alt.
- * Панель в демо обновляет мету сама (syncThemeColor), здесь — значение сборки.
  *
  * Обращаемся к designForBuild напрямую, а не через локальный `theme`:
  * Astro поднимает объявления, которые нужны шаблону, наверх тела компонента,
@@ -133,33 +128,30 @@ const themeColor = schemeBrand(
  * сгенерированная на сборке картинка (scripts/make-og.mjs).
  *
  * Путь собираем через asset(): склейка `${import.meta.env.BASE_URL}og/...`
- * в демо-сборке давала '/stasycleanog/sr.png' — base приходит без слэша.
+ * учитывает base — он приходит без слэша.
  */
 const ogImage = absolute(asset(`og/${locale}.png`));
 
-const demoMode = import.meta.env.PUBLIC_DEMO === 'on';
-
-/** Тема, выбранная на сборке: её CSS, её палитра, её умолчания. */
+/** Тема сайта: её CSS, её палитра, её умолчания. */
 const theme = designForBuild.theme;
 
 /**
- * Алиас @theme и design.config.json обязаны указывать на одну тему:
- * первый выбирает CSS, второй — значения параметров. В демо алиас ведёт на
- * сводный вход (id 'all'), потому что там тема меняется прямо в браузере.
+ * Алиас @theme и designForBuild обязаны указывать на одну тему:
+ * первый выбирает CSS, второй — параметры разметки.
  */
-if (!demoMode && themeEntry.id !== theme.id) {
+if (themeEntry.id !== theme.id) {
   throw new Error(
     `Расхождение темы: astro.config.mjs выбрал «${themeEntry.id}», ` +
-      `а design.config.json — «${theme.id}». ` +
-      'Пересоберите конфиг командой npm run design или проверьте алиас @theme.',
+      `а designForBuild — «${theme.id}». ` +
+      'Проверьте алиасы @skin и @theme в astro.config.mjs.',
   );
 }
 
 /**
  * Тема обязана поставлять все семейства, которые сама разрешает в поле
  * `available` (src/data/themes.ts). Иначе предзагрузка шрифта останется
- * без адреса, а браузер молча возьмёт fallback — и заказчик увидит не тот
- * шрифт, который выбирал в панели. Дешевле упасть на сборке.
+ * без адреса, а браузер молча возьмёт fallback — и на сайте окажется не тот
+ * шрифт, что заявлен в данных темы. Дешевле упасть на сборке.
  */
 const missingFonts = [...new Set([...theme.available.heading, ...theme.available.body])].filter(
   (kind) => kind !== 'system' && !themeEntry.fonts[kind],
@@ -172,18 +164,10 @@ if (missingFonts.length) {
       'адресов субсетов или уберите семейство из `available`.',
   );
 }
-
-const DemoPanel = demoMode
-  ? (await import('../components/demo/DemoPanel.astro')).default
-  : null;
 ---
 
 <!doctype html>
-<html
-  lang={meta.htmlLang}
-  {...designForBuild.attributes}
-  style={designForBuild.style || undefined}
->
+<html lang={meta.htmlLang} {...designForBuild.attributes}>
   <head>
     <meta charset="utf-8" />
     {/* viewport-fit=cover включает переменные safe-area (вырез камеры,
@@ -195,15 +179,12 @@ const DemoPanel = demoMode
     {/*
       Раннее восстановление схемы.
 
-      На сборке data-scheme приходит из design.config.json (activeDesign.ts),
-      а выбор посетителя лежит в localStorage. Считать его в конце разбора
+      На сборке data-scheme задаёт src/data/activeDesign.ts, а выбор
+      посетителя лежит в localStorage. Считать его в конце разбора
       страницы поздно: у вернувшегося посетителя страница успела бы мигнуть
-      светлой темой из конфига. Поэтому крошечный inline-скрипт — без
+      несохранённой схемой. Поэтому крошечный inline-скрипт — без
       импортов и без модуля, он обязан выполниться до первой отрисовки.
       Ключ тот же, что у общего механизма схемы (src/scripts/scheme.ts).
-
-      Скрипт один на все страницы и в прод, и в демо: в демо панель затем
-      применяет поверх своё сохранённое состояние.
     */}
     <script is:inline>
       try {
@@ -212,7 +193,7 @@ const DemoPanel = demoMode
           document.documentElement.dataset.scheme = savedScheme;
         }
       } catch {
-        /* приватный режим: остаётся схема из design.config.json */
+        /* приватный режим: остаётся схема сборки */
       }
     </script>
 
@@ -273,7 +254,5 @@ const DemoPanel = demoMode
     <Footer locale={locale} />
     <StickyCta locale={locale} />
     <CookieNotice locale={locale} />
-
-    {DemoPanel && <DemoPanel locale={locale} />}
   </body>
 </html>

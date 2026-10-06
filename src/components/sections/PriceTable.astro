@@ -21,11 +21,9 @@ import SectionHead from './SectionHead.astro';
 interface Props {
   locale: Locale;
   withHead?: boolean;
-  /** Показывать пометку «предварительные данные» — для демо-стенда. */
-  provisional?: boolean;
 }
 
-const { locale, withHead = true, provisional = false } = Astro.props;
+const { locale, withHead = true } = Astro.props;
 const ui = useUI(locale);
 
 /** Только тарифы, которые считаются по метражу. */
@@ -78,9 +76,7 @@ function planLabel(plan: (typeof plans)[number], service: (typeof columns)[numbe
 <section class="section section--surface" id="prices">
   <div class="container">
     {withHead && (
-      <SectionHead title={ui.home.pricesTitle} lead={ui.home.pricesLead}>
-        {provisional && <span class="provisional">{ui.common.provisional}</span>}
-      </SectionHead>
+      <SectionHead title={ui.home.pricesTitle} lead={ui.home.pricesLead} />
     )}
 
     <div class="price-table-wrap">

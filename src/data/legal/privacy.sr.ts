@@ -63,7 +63,7 @@ export const privacySr: LegalContent = {
       title: 'Kolačići i lokalno skladište',
       paragraphs: [
         'Sajt ne učitava analitiku trećih strana, reklamne piksele niti sisteme za praćenje. Tehnički kolačići se ne koriste za identifikaciju posetilaca.',
-        'Demo panel sa podešavanjima na ovom pultu čuva izabranu temu u lokalnom skladištu pregledača. Ti podaci ne napuštaju vaš pregledač i brišu se zajedno sa podacima sajta.',
+        'Izbor svetle ili tamne sheme (i saglasnost za kolačiće, ako je data) čuva se u lokalnom skladištu pregledača. Ti podaci ne napuštaju vaš pregledač i brišu se zajedno sa podacima sajta.',
       ],
     },
     {

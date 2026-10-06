@@ -9,7 +9,7 @@
 ```bash
 npm ci
 node scripts/sync-fonts.mjs
-npm run build:prod
+npm run build
 npm run check:colors
 
 rsync -avz --delete dist/ user@server:/var/www/stasyclean/
@@ -33,9 +33,6 @@ certbot (пути вместо `/etc/letsencrypt/live/stasyclean.com/`), доб�
 в `src/data/site.ts` и пересобрать.
 
 ## Разовое для репозитория
-
-Адрес стенда и базовый путь меняются только вместе: `DEMO_ORIGIN` и
-`DEMO_BASE` в `astro.config.mjs` (`/stasyclean` — имя репозитория).
 
 Если push отклоняется с `GH007` (приватная почта в `user.email`), у
 репозитория зафиксирован noreply-адрес:

@@ -46,8 +46,6 @@ interface Props {
 const { locale, routeKey } = Astro.props;
 const ui = useUI(locale);
 
-const isDemo = import.meta.env.PUBLIC_DEMO === 'on';
-
 type Entry = { Component: any; props: Record<string, unknown> };
 
 /** Порядок блоков и их опции для конкретной страницы. */
@@ -91,7 +89,7 @@ function buildBlocks(): Entry[] {
     },
     priceTable: {
       Component: PriceTable,
-      props: { locale, withHead: routeKey !== 'home', provisional: isDemo },
+      props: { locale, withHead: routeKey !== 'home' },
     },
     calculator: { Component: Calculator, props: { locale, withHead: routeKey !== 'home' } },
     checklist: {

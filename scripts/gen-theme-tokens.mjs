@@ -37,9 +37,6 @@ for (const preset of themePresets) {
   if (!colors) throw new Error(`Нет токенов для темы «${preset.id}» (src/themes/tokens.ts).`);
   const altScheme = preset.kind === 'dark' ? 'light' : 'dark';
   let css = `[data-skin='${preset.id}'] {\n  color-scheme: ${preset.kind};\n${block(colors.base)}\n}\n`;
-  for (const [pid, tokens] of Object.entries(colors.palettes)) {
-    css += `\n[data-skin='${preset.id}'][data-palette='${pid}'] {\n${block(tokens)}\n}\n`;
-  }
   css += `\n[data-skin='${preset.id}'][data-scheme='${altScheme}'] {\n  color-scheme: ${altScheme};\n${block(colors.alt)}\n}\n`;
   await writeFile(join(outDir, `${preset.id}.css`), css);
 }
