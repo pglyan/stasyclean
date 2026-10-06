@@ -5,9 +5,18 @@ import { fileURLToPath } from 'node:url';
 /**
  * StasyClean — статический сайт клининговой компании (Белград).
  *
- * Прод-сборка — обычный набор index.html + хешированные assets,
- * отдаётся nginx из корня домена и не требует Node на сервере:
+ * Одна цель сборки — прод для nginx:
  *   npm run build  →  site=https://stasyclean.com, base=/, dist/
+ *
+ * Площадка задаётся переменными окружения (нужно предпросмотру на
+ * GitHub Pages, где проектный сайт живёт в подпапке):
+ *   SITE_URL  — origin сайта; по умолчанию https://stasyclean.com
+ *   BASE_PATH — базовый путь;  по умолчанию /
+ * Пример сборки для Pages:
+ *   SITE_URL=https://pglyan.github.io BASE_PATH=/stasyclean/ npm run build
+ *
+ * Прод-сборка — обычный набор index.html + хешированные assets,
+ * отдаётся nginx из корня домена и не требует Node на сервере.
  */
 
 /**
@@ -24,6 +33,15 @@ const themeAlias = {
 
 const PROD_ORIGIN = 'https://stasyclean.com';
 
+/** Origin площадки: прод по умолчанию, можно переопределить для предпросмотра. */
+const siteUrl = process.env.SITE_URL || PROD_ORIGIN;
+/**
+ * Базовый путь: '/' у прода; GitHub Pages отдаёт проектный сайт
+ * из подпапки (/stasyclean/), поэтому предпросмотр собирается с ним.
+ * Astro нормализует значение сам (без завершающего слэша не останется).
+ */
+const basePath = process.env.BASE_PATH || '/';
+
 /**
  * Субсеты шрифтов.
  * Браузер скачивает файл только когда на странице встречается символ
@@ -35,8 +53,8 @@ const PROD_ORIGIN = 'https://stasyclean.com';
  */
 
 export default defineConfig({
-  site: PROD_ORIGIN,
-  base: '/',
+  site: siteUrl,
+  base: basePath,
   output: 'static',
   outDir: './dist',
   trailingSlash: 'ignore',

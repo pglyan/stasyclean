@@ -6,6 +6,9 @@
 (`index.html`, `_a/` — CSS/шрифты с хешем, страницы `cene/…`, `en/`, `ru/`,
 `404.html`, `robots.txt`, `sitemap-*.xml`).
 
+О предпросмотре на GitHub Pages — см. README, раздел «Предпросмотр
+на GitHub Pages» (публикуется автоматически с push в `main`).
+
 ```bash
 npm ci
 node scripts/sync-fonts.mjs

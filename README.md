@@ -22,6 +22,14 @@ npm run check                 # типы (astro check)
 Токены тем (`src/themes/generated/`) и OG-картинки (`public/og/`)
 генерируются автоматически при `dev`/`build`, в git не лежат.
 
+## Предпросмотр на GitHub Pages
+
+Push в `main` запускает `.github/workflows/deploy-pages.yml`: та же
+прод-сборка, но с `SITE_URL=https://pglyan.github.io` и
+`BASE_PATH=/stasyclean/`, публикуется на
+**https://pglyan.github.io/stasyclean/**. Предпросмотр закрыт от индексации
+(robots.txt), контент и оформление совпадают с продом.
+
 ## Где что менять
 
 | Что нужно | Файл |

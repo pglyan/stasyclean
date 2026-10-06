@@ -1,0 +1,73 @@
+# Сборка сайта и публикация предпросмотра на GitHub Pages.
+#
+# Предпросмотр — та же прод-сборка, но собранная под подпапку проектного
+# сайта (/stasyclean/): переменные SITE_URL/BASE_PATH меняют только адреса,
+# сам контент и оформление совпадают с продом. От индексации предпросмотр
+# закрыт на уровне robots.txt (см. src/pages/robots.txt.ts).
+
+name: Сайт → GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Права, необходимые для публикации на Pages (id-token для OIDC)
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Параллельные сборки одной ветки отменяют друг друга
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Забрать репозиторий
+        uses: actions/checkout@v4
+
+      - name: Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Установить зависимости
+        run: npm ci
+
+      # Файлы шрифтов лежат в src/assets и обновляются из пакетов Fontsource.
+      # Шаг воспроизводит их в CI, чтобы сборка не зависела от содержимого репозитория.
+      - name: Синхронизировать шрифты
+        run: node scripts/sync-fonts.mjs
+
+      - name: Проверить контраст цветов
+        run: npm run check:colors
+
+      - name: Собрать сайт для GitHub Pages
+        run: npm run build
+        env:
+          SITE_URL: https://pglyan.github.io
+          BASE_PATH: /stasyclean/
+
+      - name: Настроить Pages
+        uses: actions/configure-pages@v5
+
+      - name: Загрузить артефакт сборки
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Опубликовать на GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
