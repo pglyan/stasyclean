@@ -30,7 +30,7 @@ npm run check                 # типы (astro check)
 | Цены и тарифы | `src/data/prices.ts` |
 | Услуги, чек-листы, FAQ, отзывы | `src/data/services/`, `src/data/checklists/`, `src/data/faq.ts`, `src/data/reviews.ts` |
 | Цвета (светлая/тёмная схема) | `src/themes/tokens.ts` |
-| Запечённые параметры стиля (шрифты, плотность, карточки, кнопки…) | `src/styles/params.css` |
+| Запечённые параметры стиля (шрифты, плотность, карточки, кнопки, ритм секций…) | `src/styles/params.css` |
 | Характер темы (радиус, собственные правила) | `src/themes/nordic/theme.css` |
 | Данные темы (имя, натуральная схема, шрифты) | `src/data/themes.ts` |
 | Шрифты сайта | `src/fonts/`, вход темы — `src/themes/entries/nordic.ts` |
