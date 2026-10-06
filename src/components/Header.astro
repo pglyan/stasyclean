@@ -185,13 +185,15 @@ const isServicePage = ['general', 'regular', 'smart', 'reno', 'services'].includ
     document.documentElement.style.overflow = open ? 'hidden' : '';
 
     if (open) {
-      closeBtn?.focus();
+      // preventScroll: иначе браузер прокручивает документ, вписывая кнопку
+      // в зону видимости (scroll-padding-top 6rem выше шапки) — страница прыгала вверх.
+      closeBtn?.focus({ preventScroll: true });
       return;
     }
 
     // Возвращаем фокус на кнопку меню: иначе после закрытия он остаётся
     // «в никуда», и клавиатура со скринридером теряют место на странице.
-    openBtn.focus();
+    openBtn.focus({ preventScroll: true });
 
     // После анимации убираем панель из дерева доступности
     hideTimer = window.setTimeout(() => {
@@ -219,6 +221,8 @@ const isServicePage = ['general', 'regular', 'smart', 'reno', 'services'].includ
     const first = items[0];
     const last = items[items.length - 1];
 
+    // Элементы ловушки — внутри position: fixed шторки: документ они не двигают,
+    // а прокрутить саму шторку к элементу (если она переполнена) — нужно.
     if (event.shiftKey && document.activeElement === first) {
       event.preventDefault();
       last.focus();
@@ -275,7 +279,9 @@ const isServicePage = ['general', 'regular', 'smart', 'reno', 'services'].includ
       document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape' && menu.classList.contains('is-open')) {
           setOpen(false);
-          toggle.focus();
+          // Без preventScroll фокус в шапке заставлял браузер прокрутить
+          // страницу вверх (см. комментарий в setDrawer).
+          toggle.focus({ preventScroll: true });
         }
       });
     });

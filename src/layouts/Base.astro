@@ -95,18 +95,32 @@ const alternates = localeSwitchLinks(locale, routeKey).map((link) => ({
 }));
 
 /**
- * Предзагружаем РОВНО ОДИН файл — субсет шрифта заголовков, соответствующий
- * алфавиту локали. Заголовок почти всегда является элементом LCP, поэтому
- * один предзагруженный файл ускоряет первую отрисовку и не конкурирует
- * за канал с остальными ресурсами. Остальные субсеты подтянутся сами,
- * когда браузер встретит их символы.
+ * Список файлов шрифта для предзагрузки: оба семейства (заголовки + текст)
+ * × все их сабсеты. Порядок — по важности: алфавит локали (участует в LCP),
+ * затем latin (цифры, пунктуация), затем остальный; семейство заголовков
+ * идёт первым. Дубли схлопываются, но позиция первого вхождения сохраняется.
  *
- * Адреса берутся у выбранной темы (алиас @theme) и только для того
- * семейства, которое реально используется: тема без веб-шрифтов не
- * предзагружает ничего.
+ * Полный список, а не только «нужный алфавит»: замер показал, что страницы
+ * ЛЮБОЙ локали отрисовывают текст на всех трёх сабсетах — названия языков
+ * в переключателе, имена и цитаты в отзывах, альты картинок. Эти файлы
+ * браузер всё равно скачивает, preload лишь ставит их в начало очереди.
+ *
+ * Это пара к `font-display: optional` в src/fonts/*.css: предзагрузка
+ * стартует на первом байте HTML (не дожидаясь CSS с @font-face) и даёт
+ * шрифту шанс успеть к первой отрисовке. Если шрифт не успел — страница
+ * остаётся на системном шрифте до конца визита, но НЕ меняется после
+ * отрисовки: видимого «прыжка» шрифта не бывает ни при какой скорости сети.
+ *
+ * Тема без веб-шрифтов (шрифт = system) не предзагружает ничего.
  */
-const themeFontUrls = themeEntry.fonts[designForBuild.headingFont];
-const preloadFont = themeFontUrls?.[locale];
+const preloadFonts = [
+  ...new Set(
+    [designForBuild.headingFont, designForBuild.bodyFont].flatMap((family) => {
+      const familyUrls = themeEntry.fonts[family];
+      return familyUrls ? [familyUrls[locale], familyUrls.en, ...Object.values(familyUrls)] : [];
+    }),
+  ),
+];
 
 /**
  * Цвет интерфейса браузера (адресная строка на телефоне) — акцент темы,
@@ -233,11 +247,10 @@ if (missingFonts.length) {
     <link rel="manifest" href={asset('manifest.webmanifest')} />
     <meta name="theme-color" content={themeColor} />
 
-    {/* Один предзагруженный файл шрифта: субсет заголовков для этой локали.
-        Тема без веб-шрифтов (headingFont = system) не предзагружает ничего. */}
-    {preloadFont && (
-      <link rel="preload" href={preloadFont} as="font" type="font/woff2" crossorigin />
-    )}
+    {/* Критичные шрифты: список и обоснование — у preloadFonts выше. */}
+    {preloadFonts.map((href) => (
+      <link rel="preload" href={href} as="font" type="font/woff2" crossorigin />
+    ))}
 
     <JsonLd locale={locale} routeKey={routeKey} extra={jsonLd} />
   </head>
