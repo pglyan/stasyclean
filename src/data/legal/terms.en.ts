@@ -9,7 +9,6 @@ import type { LegalContent } from './types';
 
 export const termsEn: LegalContent = {
   updated: '2026-09-27',
-  updatedLabel: 'Last updated',
   sections: [
     {
       title: 'General',

@@ -11,6 +11,8 @@ export const en = {
     faq: 'FAQ',
     contact: 'Contact',
     language: 'Language',
+    /** Accessible name of the main navigation — distinct from the menu button. */
+    main: 'Main navigation',
   },
 
   cta: {
@@ -21,7 +23,7 @@ export const en = {
     calculate: 'Calculate the price',
     details: 'Learn more',
     allServices: 'All services',
-    toPrices: 'See prices',
+    /** The “back to home” button — used on the 404 page. */
     back: 'Back to home',
     menu: 'Menu',
     close: 'Close',
@@ -34,14 +36,10 @@ export const en = {
 
   price: {
     from: 'from',
-    perHour: 'per hour',
-    perArea: 'per m²',
     hour: 'hour',
     minimum: 'Minimum order',
     popular: 'Most popular choice',
     area: 'Area',
-    upTo: 'up to',
-    over: 'over',
     total: 'Estimated price',
     totalNote: 'The final price is confirmed by our manager on Telegram',
     included: 'What the price covers',
@@ -49,7 +47,14 @@ export const en = {
 
   common: {
     provisional: 'Provisional data',
-    fallbackCulture: 'Translation is partly automated and being refined',
+    /** Skip link for keyboard navigation (base.css, .skip-link). */
+    skipToContent: 'Skip to content',
+    /** Accessible name of the breadcrumb nav (PageHero.astro). */
+    breadcrumb: 'Breadcrumb',
+    /** Accessible name of the mobile menu dialog — distinct from the menu button. */
+    menuDialog: 'Site menu',
+    /** Date label on legal documents (Legal.astro). */
+    updated: 'Last updated',
   },
 
   home: {
@@ -78,6 +83,8 @@ export const en = {
     reviewsLead: 'Reviews reach us through Telegram and Instagram.',
     areasTitle: 'Where we work',
     areasLead: 'Belgrade, all central and residential districts.',
+    /** Note under the district list: coverage is still being confirmed. */
+    areasNote: 'The district list is preliminary — we will confirm it when you book.',
     faqTitle: 'Frequently asked questions',
     faqLead: 'The questions we hear most often before a booking.',
     formTitle: 'Send a request',
@@ -97,7 +104,7 @@ export const en = {
     detailsShow: 'Show details',
     detailsHide: 'Hide details',
     smartHint: 'With smart cleaning you pay by the hour, so the price is based on time.',
-    overLimit: 'The area is over 150 m² — we will quote you individually.',
+    overLimit: 'The area is over {max} — we will quote you individually.',
   },
 
   form: {
@@ -120,8 +127,8 @@ export const en = {
     successText: 'We opened Telegram with the message filled in — just press Send.',
     errorName: 'Please add your name so we know how to address you',
     errorContact: 'A phone number or Telegram username is required',
-    errorArea: 'Please choose the area',
     errorConsent: 'We cannot accept the request without your consent',
+    errorOpen: 'We could not open Telegram — use the direct button below',
   },
 
   footer: {
@@ -134,6 +141,27 @@ export const en = {
     rights: 'All rights reserved',
     disclaimer: 'Prices on this site are for information only and are not a binding offer.',
     pendingLegal: 'Company details will be added before launch',
+  },
+
+  /** Before/after comparison block (BeforeAfter.astro). */
+  beforeAfter: {
+    title: 'Before and after',
+    lead: 'The same spot photographed before and after cleaning.',
+    before: 'Before',
+    after: 'After',
+  },
+
+  /** Cookie banner (CookieNotice.astro) — only shown with analytics enabled. */
+  cookie: {
+    label: 'Cookies',
+    text: 'We use technical cookies to run the site. Analytics cookies are only set with your consent.',
+    accept: 'Accept',
+  },
+
+  /** The 404 page. Buttons reuse cta.back and cta.telegram. */
+  notFound: {
+    title: 'Page not found',
+    lead: 'The link may be outdated or there is a typo in the address.',
   },
 
   /** Scheme switch in the site header. */

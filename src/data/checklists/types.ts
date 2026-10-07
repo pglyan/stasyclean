@@ -1,4 +1,5 @@
 import type { Localized } from '../types';
+import type { ServiceKey } from '../../i18n/routes';
 
 /** Группа пунктов чек-листа — зона квартиры. */
 export interface ChecklistGroup {
@@ -12,7 +13,8 @@ export interface ChecklistGroup {
 }
 
 export interface Checklist {
-  serviceKey: string;
+  /** Услуга, к которой относится чек-лист. */
+  serviceKey: ServiceKey;
   lead?: Localized;
   groups: ChecklistGroup[];
   note?: Localized;

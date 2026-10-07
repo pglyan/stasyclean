@@ -1,0 +1,7 @@
+dist/
+node_modules/
+.astro/
+src/themes/generated/
+public/og/
+src/assets/fonts/
+package-lock.json

@@ -9,9 +9,9 @@
 .site-header {
   position: sticky;
   inset-block-start: 0;
-  z-index: 40;
+  z-index: var(--z-header);
   background: color-mix(in oklab, var(--bg) 86%, transparent);
-  backdrop-filter: blur(14px);
+  backdrop-filter: blur(var(--glass-blur));
   border-block-end: var(--bw) solid transparent;
   transition:
     border-color var(--dur) var(--ease),
@@ -164,11 +164,18 @@
   position: relative;
 }
 
-.nav__menu {
+/* ---------- Выпадающие списки ---------- */
+
+/*
+  Общий каркас для меню «Услуги» (.nav__menu) и языков (.lang-menu):
+  панель под кнопкой с общей анимацией появления. Раскрывают его
+  :hover/:focus-within (меню услуг) или класс is-open (языки — их
+  открывает JS в Header.astro). Закрыт visibility, поэтому ссылки
+  недоступны клавиатуре, пока список не открыт.
+*/
+.dropdown {
   position: absolute;
   inset-block-start: calc(100% + var(--s2));
-  inset-inline-start: 0;
-  min-inline-size: 16rem;
   padding: var(--s2);
   margin: 0;
   list-style: none;
@@ -185,19 +192,15 @@
     visibility var(--dur-fast);
 }
 
-.nav__item:hover .nav__menu,
-.nav__item:focus-within .nav__menu {
+.dropdown.is-open,
+.nav__item:hover .dropdown,
+.nav__item:focus-within .dropdown {
   opacity: 1;
   visibility: visible;
   translate: 0 0;
 }
 
-.nav__item:hover .nav__link svg,
-.nav__item:focus-within .nav__link svg {
-  transform: rotate(180deg);
-}
-
-.nav__menu a {
+.dropdown a {
   display: block;
   padding: var(--s2) var(--s3);
   border-radius: var(--r-sm);
@@ -207,10 +210,20 @@
 }
 
 @media (hover: hover) {
-  .nav__menu a:hover {
+  .dropdown a:hover {
     background: var(--surface-2);
     color: var(--ink);
   }
+}
+
+.nav__menu {
+  inset-inline-start: 0;
+  min-inline-size: 16rem;
+}
+
+.nav__item:hover .nav__link svg,
+.nav__item:focus-within .nav__link svg {
+  transform: rotate(180deg);
 }
 
 /* ---------- Переключатель языка ---------- */
@@ -225,7 +238,7 @@
 }
 
 .lang__item {
-  padding: 0.25rem 0.6rem;
+  padding: var(--s1) var(--s3);
   border-radius: var(--r-pill);
   color: var(--ink-soft);
   font-size: var(--fs-xs);
@@ -263,8 +276,8 @@
 .lang-toggle {
   display: grid;
   place-items: center;
-  inline-size: 2.75rem;
-  block-size: 2.75rem;
+  inline-size: var(--tap-min);
+  block-size: var(--tap-min);
   border: var(--bw) solid var(--line);
   border-radius: var(--r-pill);
   color: var(--ink);
@@ -281,53 +294,15 @@
   }
 }
 
-/*
-  Дропдаун раскрывает JS в Header.astro классом is-open — та же
-  анимация появления, что у выпадающего меню «Услуги» (.nav__menu).
-  Закрыт visibility, поэтому ссылки недоступны клавиатуре, пока
-  список не открыт.
-*/
 .lang-menu {
-  position: absolute;
-  inset-block-start: calc(100% + var(--s2));
   inset-inline-end: 0;
   min-inline-size: 9.5rem;
-  padding: var(--s2);
-  background: var(--surface);
-  border: var(--bw) solid var(--line);
-  border-radius: var(--r-md);
-  box-shadow: var(--shadow-md);
-  opacity: 0;
-  visibility: hidden;
-  translate: 0 -0.25rem;
-  transition:
-    opacity var(--dur-fast) var(--ease),
-    translate var(--dur-fast) var(--ease),
-    visibility var(--dur-fast);
-}
-
-.lang-menu.is-open {
-  opacity: 1;
-  visibility: visible;
-  translate: 0 0;
 }
 
 .lang-menu a {
   display: flex;
   align-items: center;
-  padding: var(--s2) var(--s3);
-  border-radius: var(--r-sm);
-  color: var(--ink);
-  font-size: var(--fs-sm);
-  text-decoration: none;
   white-space: nowrap;
-}
-
-@media (hover: hover) {
-  .lang-menu a:hover {
-    background: var(--surface-2);
-    color: var(--ink);
-  }
 }
 
 .lang-menu a[aria-current='true'] {
@@ -350,8 +325,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  inline-size: 2.75rem;
-  block-size: 2.75rem;
+  inline-size: var(--tap-min);
+  block-size: var(--tap-min);
   padding: 0;
   border: var(--bw) solid var(--line);
   border-radius: var(--r-pill);
@@ -384,32 +359,18 @@
 }
 
 /*
-  Подпись скрыта из кадра на всех размерах: кнопка — только иконка
-  (раньше на десктопе подпись показывалась, но её текст переносился
-  внутри кнопки). Текст при этом НЕ исчезает из доступности —
-  свойства те же, что у .visually-hidden в base.css (прячем из
-  кадра, а не из дерева доступности), поэтому у иконочной кнопки
-  остаётся имя: «Светлая тема» / «Тёмная тема».
+  Подпись скрыта из кадра классом .visually-hidden (base.css), но
+  остаётся в дереве доступности, поэтому у иконочной кнопки есть
+  имя: «Светлая тема» / «Тёмная тема».
 */
-.scheme-switch__label {
-  position: absolute;
-  inline-size: 1px;
-  block-size: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-  border: 0;
-}
 
 /* ---------- Кнопка-бургер ---------- */
 
 .burger {
   display: grid;
   place-items: center;
-  inline-size: 2.75rem;
-  block-size: 2.75rem;
+  inline-size: var(--tap-min);
+  block-size: var(--tap-min);
   border-radius: var(--r-sm);
   border: var(--bw) solid var(--line);
   color: var(--ink);
@@ -438,8 +399,9 @@
   inset: 0;
   /* Выше шапки (40), закреплённой панели (35) и баннера cookie (45),
      но ниже служебной ссылки «К содержанию» (100): открытое меню
-     перекрывает весь интерфейс страницы. */
-  z-index: 75;
+     перекрывает весь интерфейс страницы. Все значения — в шкале
+     --z-* (tokens.css). */
+  z-index: var(--z-drawer);
   display: flex;
   flex-direction: column;
   background: var(--bg);
@@ -457,6 +419,14 @@
 .drawer.is-open {
   translate: 0 0;
   visibility: visible;
+}
+
+/* Атрибут hidden должен прятать панель по-настоящему: display: flex
+   перебивал стиль браузера для [hidden], и раньше меню скрывалось только
+   через visibility. JS при открытии снимает hidden раньше класса is-open
+   (см. Header.astro) — поэтому выезд остаётся плавным. */
+.drawer[hidden] {
+  display: none;
 }
 
 .drawer__head {

@@ -76,7 +76,8 @@ export default defineConfig({
   },
 
   i18n: {
-    locales: ['sr', 'en', 'ru'],
+    // Порядок важности локалей: sr, ru, en.
+    locales: ['sr', 'ru', 'en'],
     defaultLocale: 'sr',
     // sr живёт в корне домена, en и ru — в подпапках.
     routing: { prefixDefaultLocale: false },
@@ -109,14 +110,14 @@ export default defineConfig({
     sitemap({
       i18n: {
         defaultLocale: 'sr',
-        locales: { sr: 'sr-Latn-RS', en: 'en', ru: 'ru' },
+        locales: { sr: 'sr-Latn-RS', ru: 'ru', en: 'en' },
       },
       changefreq: 'monthly',
       priority: 0.7,
     }),
   ],
 
-    devToolbar: { enabled: false },
+  devToolbar: { enabled: false },
 
   /**
    * Алиасы входа темы (см. комментарий выше): @skin — CSS темы,

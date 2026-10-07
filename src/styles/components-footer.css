@@ -95,7 +95,7 @@
   position: fixed;
   inset-block-end: 0;
   inset-inline: 0;
-  z-index: 35;
+  z-index: var(--z-sticky);
   display: flex;
   align-items: center;
   gap: var(--s2);
@@ -108,8 +108,8 @@
   block-size: calc(var(--sticky-h) + env(safe-area-inset-bottom, 0px));
   padding-block: var(--s2);
   padding-inline: var(--gutter);
-  background: color-mix(in oklab, var(--bg) 92%, transparent);
-  backdrop-filter: blur(14px);
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
   border-block-start: var(--bw) solid var(--line);
 }
 
@@ -128,16 +128,8 @@
  * Слои с анимацией опираются на --dur-slow, который обнуляется системным
  * prefers-reduced-motion: пульс тогда просто не проигрывается.
  */
-.sticky-cta__order .btn__icon--ready,
-.sticky-cta__badge {
+.sticky-cta__order .btn__icon--ready {
   display: none;
-}
-
-.sticky-cta__badge {
-  inline-size: 0.5rem;
-  block-size: 0.5rem;
-  border-radius: 50%;
-  background: var(--btn-ink);
 }
 
 /* telegram → галочка */
@@ -174,8 +166,6 @@
   }
 }
 
-/* 4: точка рядом с подписью (в комбинированном варианте не показывается) */
-
 @media (min-width: 62rem) {
   .sticky-cta {
     display: none;
@@ -194,7 +184,7 @@
      с одинаковыми полями (раньше при одной привязке он упирался в правый
      край экрана без отступа). */
   inset-inline: var(--s4);
-  z-index: 45;
+  z-index: var(--z-cookie);
   display: none;
   max-inline-size: 26rem;
   padding: var(--s4);

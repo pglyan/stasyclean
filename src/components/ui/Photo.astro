@@ -24,14 +24,7 @@ interface Props {
   class?: string;
 }
 
-const {
-  src,
-  alt,
-  ratio = '4 / 3',
-  hint,
-  priority = false,
-  class: className = '',
-} = Astro.props;
+const { src, alt, ratio = '4 / 3', hint, priority = false, class: className = '' } = Astro.props;
 ---
 
 <div class={`photo ${className}`.trim()} style={`--photo-ratio:${ratio}`}>

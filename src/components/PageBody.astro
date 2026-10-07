@@ -1,10 +1,13 @@
 ---
+import type { AstroComponentFactory } from 'astro/runtime/server/index.js';
 import type { Locale } from '../i18n/config';
-import type { PageKey } from '../i18n/routes';
+import { isServiceKey, type PageKey, type ServiceKey } from '../i18n/routes';
+import { getPageHead } from '../i18n/pagemeta';
 import { useUI } from '../i18n/ui';
 import { pageBlocks, type BlockId } from '../data/pages';
-import { getService } from '../data/services';
+import type { Checklist as ChecklistData } from '../data/checklists';
 import { checklists } from '../data/checklists';
+import { getService } from '../data/services';
 import { extraServices, windowServices } from '../data/extras';
 import { siteText } from '../data/site';
 
@@ -33,9 +36,8 @@ import Legal from './sections/Legal.astro';
  * Один блок — один компонент, поэтому одинаковый блок на разных страницах
  * выглядит одинаково и правится в одном месте.
  *
- * Заголовок и лид внутренней страницы формируются из данных:
- * для страниц услуг это название и описание самой услуги, для остальных —
- * подписи из словаря интерфейса.
+ * Заголовок и лид внутренней страницы приходят из src/i18n/pagemeta.ts —
+ * того же реестра, что даёт имена хлебным крошкам в JSON-LD.
  */
 
 interface Props {
@@ -46,123 +48,115 @@ interface Props {
 const { locale, routeKey } = Astro.props;
 const ui = useUI(locale);
 
-type Entry = { Component: any; props: Record<string, unknown> };
+type Entry = { Component: AstroComponentFactory; props: Record<string, unknown> };
+
+/**
+ * Пара «компонент + его пропсы»: generic связывает пропсы с конкретным
+ * компонентом, поэтому лишнее имя или забытый обязательный пропс ловит
+ * TypeScript здесь, а не разметка страницы в браузере.
+ */
+function block<P>(_component: (props: P) => unknown, props: P): Entry {
+  return {
+    Component: _component as AstroComponentFactory,
+    props: props as Record<string, unknown>,
+  };
+}
+
+/** Ключ услуги для блока serviceDetail — только у страниц услуг. */
+function serviceKeyOf(key: PageKey): ServiceKey {
+  if (!isServiceKey(key)) {
+    throw new Error(`Блок serviceDetail доступен только страницам услуг, получено «${key}».`);
+  }
+  return key;
+}
+
+/** Чек-лист услуги: отсутствие — ошибка данных, а не молчаливый пропуск. */
+function requireChecklist(key: ServiceKey): ChecklistData {
+  const list = checklists[key];
+  if (!list) throw new Error(`Чек-лист «${key}» не найден в src/data/checklists.`);
+  return list;
+}
 
 /** Порядок блоков и их опции для конкретной страницы. */
 function buildBlocks(): Entry[] {
-  const service = ['general', 'regular', 'smart', 'reno'].includes(routeKey)
-    ? getService(routeKey as 'general' | 'regular' | 'smart' | 'reno')
-    : null;
+  const service = isServiceKey(routeKey) ? getService(routeKey) : null;
+  const parentKey = service ? ('services' as const) : undefined;
+  const head = getPageHead(locale, routeKey);
 
-  const parentKey: PageKey | undefined = service ? 'services' : undefined;
-
-  const head = service
-    ? { title: service.name[locale], lead: service.lead[locale] }
-    : {
-        prices: { title: ui.nav.prices, lead: ui.home.pricesLead },
-        services: { title: ui.nav.services, lead: ui.home.servicesLead },
-        about: { title: ui.home.aboutTitle, lead: ui.home.aboutLead },
-        reviews: { title: ui.home.reviewsTitle, lead: ui.home.reviewsLead },
-        faq: { title: ui.home.faqTitle, lead: ui.home.faqLead },
-        contact: { title: ui.home.contactTitle, lead: ui.home.contactLead },
-        privacy: { title: ui.footer.privacy, lead: '' },
-        terms: { title: ui.footer.terms, lead: '' },
-      }[routeKey as string] ?? { title: siteText.tagline[locale], lead: '' };
-
-  const registry: Record<BlockId, Entry> = {
-    hero: { Component: Hero, props: { locale, routeKey } },
-    pageHero: {
-      Component: PageHero,
-      props: {
+  /**
+   * Реестр фабрик: пропсы собираются только для блоков, которые реально
+   * есть на странице, — serviceDetail иначе требовал бы услугу у всех.
+   */
+  const registry: Record<BlockId, () => Entry> = {
+    hero: () => block(Hero, { locale }),
+    pageHero: () =>
+      block(PageHero, {
         locale,
         routeKey,
         title: head.title,
         lead: head.lead || undefined,
         parentKey,
-        photoHint: routeKey === 'privacy' || routeKey === 'terms' ? undefined : ui.cta.book,
-      },
-    },
-    usp: { Component: Usp, props: { locale } },
-    services: {
-      Component: Services,
-      props: { locale, withHead: routeKey !== 'home' },
-    },
-    priceTable: {
-      Component: PriceTable,
-      props: { locale, withHead: routeKey !== 'home' },
-    },
-    calculator: { Component: Calculator, props: { locale, withHead: routeKey !== 'home' } },
-    checklist: {
-      Component: Checklist,
-      props: {
+        photoHint:
+          routeKey === 'privacy' || routeKey === 'terms'
+            ? undefined
+            : siteText.photoHintPage[locale],
+      }),
+    usp: () => block(Usp, { locale }),
+    services: () => block(Services, { locale, withHead: routeKey !== 'home' }),
+    priceTable: () => block(PriceTable, { locale, withHead: routeKey !== 'home', surface: true }),
+    calculator: () => block(Calculator, { locale, withHead: routeKey !== 'home', surface: true }),
+    checklist: () =>
+      block(Checklist, {
         locale,
         // На главной показываем генеральную уборку — самый содержательный список
-        checklist: checklists.general!,
-        withHead: true,
+        checklist: requireChecklist('general'),
         surface: true,
-      },
-    },
-    extras: {
-      Component: PriceList,
-      props: {
+      }),
+    extras: () =>
+      block(PriceList, {
         locale,
         title: ui.home.extrasTitle,
         lead: ui.home.extrasLead,
         lines: extraServices,
         id: 'extras',
-        withHead: true,
-      },
-    },
-    windows: {
-      Component: PriceList,
-      props: {
+      }),
+    windows: () =>
+      block(PriceList, {
         locale,
         title: ui.home.windowsTitle,
         lead: ui.home.windowsLead,
         lines: windowServices,
         id: 'windows',
         surface: true,
-      },
-    },
-    steps: { Component: Steps, props: { locale, withHead: true } },
-    beforeAfter: { Component: BeforeAfter, props: { locale } },
-    reviews: { Component: Reviews, props: { locale, withHead: routeKey === 'home', limit: 4 } },
-    areas: { Component: Areas, props: { locale } },
-    faq: {
-      Component: Faq,
-      props: {
+      }),
+    steps: () => block(Steps, { locale }),
+    beforeAfter: () => block(BeforeAfter, { locale }),
+    reviews: () => block(Reviews, { locale, withHead: routeKey === 'home', limit: 4 }),
+    areas: () => block(Areas, { locale, surface: true }),
+    faq: () =>
+      block(Faq, {
         locale,
-        withHead: routeKey !== 'faq' ? true : false,
+        withHead: routeKey !== 'faq',
         limit: routeKey === 'home' ? 6 : undefined,
         surface: routeKey !== 'home',
-      },
-    },
-    bookingForm: { Component: BookingForm, props: { locale, withHead: true } },
-    ctaBand: {
-      Component: CtaBand,
-      props: {
+      }),
+    bookingForm: () => block(BookingForm, { locale }),
+    ctaBand: () =>
+      block(CtaBand, {
         locale,
         title: routeKey === 'home' ? undefined : ui.home.contactTitle,
         text: routeKey === 'home' ? undefined : ui.home.contactLead,
-      },
-    },
-    serviceDetail: {
-      Component: ServiceDetail,
-      props: { locale, serviceKey: service?.key },
-    },
-    legal: {
-      Component: Legal,
-      props: {
-        locale,
-        doc: routeKey === 'terms' ? 'terms' : 'privacy',
-      },
-    },
+      }),
+    serviceDetail: () => block(ServiceDetail, { locale, serviceKey: serviceKeyOf(routeKey) }),
+    legal: () => block(Legal, { locale, doc: routeKey === 'terms' ? 'terms' : 'privacy' }),
   };
 
-  return pageBlocks[routeKey].map((id) => registry[id]);
+  return pageBlocks[routeKey].map((id) => registry[id]());
 }
 
 const blocks = buildBlocks();
 ---
 
-{blocks.map(({ Component, props }) => <Component {...props} />)}
+{blocks.map(({ Component, props }) => (
+  <Component {...props} />
+))}

@@ -105,11 +105,8 @@
   border-block-end: 0;
 }
 
-.price-table tr[data-popular] {
-  background: var(--brand-soft);
-}
-
-/* Подсветка колонки популярного тарифа */
+/* Подсветка популярного тарифа — ячеек и строк сразу (на телефоне
+   остаётся только строка: см. карточную раскладку ниже). */
 .price-table [data-popular] {
   background: var(--brand-soft);
 }
@@ -184,11 +181,6 @@
     margin-block-start: var(--s3);
   }
 
-  .price-table tbody tr:last-child th,
-  .price-table tbody tr:last-child td {
-    border-block-end: 0;
-  }
-
   /* Заголовок карточки: диапазон площади или название тарифа */
   .price-table tbody th {
     margin-block-end: var(--s3);
@@ -230,18 +222,16 @@
   }
 
   /* Подсветка популярного тарифа: в таблице это была колонка, в карточке —
-     строка, поэтому красим подпись, а не ячейку целиком. */
+     строка, поэтому красим подпись, а не ячейку целиком; фон остаётся
+     только у строки (базовое правило красит все [data-popular]). */
   .price-table td[data-popular]::before {
     color: var(--brand-strong);
     font-weight: 700;
   }
 
-  .price-table [data-popular] {
+  .price-table th[data-popular],
+  .price-table td[data-popular] {
     background: none;
-  }
-
-  .price-table tr[data-popular] {
-    background: var(--brand-soft);
   }
 }
 
@@ -254,32 +244,8 @@
   margin-block-end: var(--s6);
 }
 
-.tabs__tab {
-  padding: var(--s2) var(--s4);
-  border: 1.5px solid var(--line);
-  border-radius: var(--r-pill);
-  background: var(--surface);
-  color: var(--ink-soft);
-  font-size: var(--fs-sm);
-  font-weight: 600;
-  transition:
-    background-color var(--dur-fast) var(--ease),
-    border-color var(--dur-fast) var(--ease),
-    color var(--dur-fast) var(--ease);
-}
-
-@media (hover: hover) {
-  .tabs__tab:hover {
-    border-color: var(--brand-ring);
-    color: var(--ink);
-  }
-}
-
-.tabs__tab[aria-selected='true'] {
-  border-color: var(--brand);
-  background: var(--brand);
-  color: var(--brand-ink);
-}
+/* Вкладки — те же чипы (.chip, components-core.css): общий вид
+   и состояние выбора задаются там, здесь только контейнер. */
 
 .tabs__panel[hidden] {
   display: none;

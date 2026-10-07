@@ -1,8 +1,8 @@
 import type { Localized } from './types';
+import type { IconName } from '../components/ui/icons';
 
 export interface Step {
   id: string;
-  icon: string;
   title: Localized;
   text: Localized;
 }
@@ -15,7 +15,6 @@ export interface Step {
 export const steps: Step[] = [
   {
     id: 'request',
-    icon: 'chat',
     title: { sr: 'Zahtev', en: 'Request', ru: 'Заявка' },
     text: {
       sr: 'Pišete nam na Telegram: kvadratura, vrsta čišćenja, željeni datum i deo grada.',
@@ -25,7 +24,6 @@ export const steps: Step[] = [
   },
   {
     id: 'quote',
-    icon: 'calculator',
     title: { sr: 'Obračun', en: 'Quote', ru: 'Расчёт' },
     text: {
       sr: 'Razjašnjavamo detalje i dajemo fiksnu cenu pre izlaska. Bez naknadnih iznenađenja.',
@@ -35,7 +33,6 @@ export const steps: Step[] = [
   },
   {
     id: 'clean',
-    icon: 'spray',
     title: { sr: 'Čišćenje', en: 'Cleaning', ru: 'Уборка' },
     text: {
       sr: 'Član tima dolazi u dogovoreno vreme sa svojim usisivačem, hemijom i inventarom.',
@@ -45,7 +42,6 @@ export const steps: Step[] = [
   },
   {
     id: 'payment',
-    icon: 'wallet',
     title: { sr: 'Plaćanje', en: 'Payment', ru: 'Оплата' },
     text: {
       sr: 'Plaćate posle posla, kada pregledate urađeno. Gotovina ili transfer.',
@@ -58,7 +54,7 @@ export const steps: Step[] = [
 /** Отличительные свойства компании — из публичного описания клиента. */
 export interface Usp {
   id: string;
-  icon: string;
+  icon: IconName;
   title: Localized;
   text: Localized;
 }

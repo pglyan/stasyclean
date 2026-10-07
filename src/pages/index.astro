@@ -1,7 +1,7 @@
 ---
-import Base from '../layouts/Base.astro';
-import PageBody from '../components/PageBody.astro';
+import PageRoute from '../components/PageRoute.astro';
 import { DEFAULT_LOCALE } from '../i18n/config';
+import { generatedRoutes } from '../i18n/routes';
 
 /**
  * Главная страница языка по умолчанию — сербский (латиница).
@@ -13,10 +13,13 @@ import { DEFAULT_LOCALE } from '../i18n/config';
  * Главная собирает все блоки из src/data/pages.ts — по ней видно
  * оформление сайта целиком.
  */
-const locale = DEFAULT_LOCALE;
-const routeKey = 'home' as const;
+
+/** Главная — единственная страница реестра с пустым слагом. */
+const home = generatedRoutes([DEFAULT_LOCALE]).find((route) => route.key === 'home');
+
+if (!home) {
+  throw new Error('Главная страница отсутствует в реестре маршрутов.');
+}
 ---
 
-<Base locale={locale} routeKey={routeKey}>
-  <PageBody locale={locale} routeKey={routeKey} />
-</Base>
+<PageRoute locale={home.locale} routeKey={home.key} />

@@ -81,6 +81,14 @@
   color: var(--ink-soft);
 }
 
+/* Пометка о предварительном составе районов — под списком. */
+.areas__note {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  margin-block-start: var(--s6);
+}
+
 /* ==================== FAQ ==================== */
 
 .faq {

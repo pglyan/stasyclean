@@ -38,7 +38,11 @@ export const renoChecklist: Checklist = {
     },
     {
       id: 'surfaces',
-      title: { sr: 'Površine i sanitarije', en: 'Surfaces and sanitary ware', ru: 'Поверхности и сантехника' },
+      title: {
+        sr: 'Površine i sanitarije',
+        en: 'Surfaces and sanitary ware',
+        ru: 'Поверхности и сантехника',
+      },
       items: {
         sr: [
           'Mokro čišćenje podova i letvica, u dva prolaza',

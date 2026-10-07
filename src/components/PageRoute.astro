@@ -1,0 +1,25 @@
+---
+import Base from '../layouts/Base.astro';
+import PageBody from './PageBody.astro';
+import type { Locale } from '../i18n/config';
+import type { PageKey } from '../i18n/routes';
+
+/**
+ * Страница сайта: шапка, содержимое из реестра блоков, подвал.
+ *
+ * Маршрутизаторы (index, [...slug], [lang]/[...slug]) отличаются
+ * только тем, как получают locale и routeKey из реестра адресов —
+ * разметка страницы общая, её не правят в трёх местах.
+ */
+
+interface Props {
+  locale: Locale;
+  routeKey: PageKey;
+}
+
+const { locale, routeKey } = Astro.props;
+---
+
+<Base locale={locale} routeKey={routeKey}>
+  <PageBody locale={locale} routeKey={routeKey} />
+</Base>

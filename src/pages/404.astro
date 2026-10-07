@@ -1,8 +1,11 @@
 ---
 import Base from '../layouts/Base.astro';
-import { DEFAULT_LOCALE, type Locale } from '../i18n/config';
-import { href, localeSwitchLinks } from '../i18n/routes';
+import { DEFAULT_LOCALE, LOCALES, LOCALE_META, type Locale } from '../i18n/config';
+import { href } from '../i18n/routes';
 import { useUI } from '../i18n/ui';
+import { site } from '../data/site';
+
+import LangSwitch from '../components/LangSwitch.astro';
 
 /**
  * Страница 404.
@@ -11,36 +14,133 @@ import { useUI } from '../i18n/ui';
  * работает автоматически. Помечена noindex: поисковик не должен
  * индексировать страницу ошибки.
  *
+ * Один статический файл обслуживает все три локали: сервер отдаёт его для
+ * любого несуществующего адреса и не знает, какая локаль была запрошена.
+ * Поэтому переводы живут прямо в разметке — атрибуты data-msg-*
+ * (по одному на локаль), а tiny inline-скрипт подставляет свою по
+ * сегментам пути (/en/… → английский, /ru/… → русский, остальное —
+ * сербский, язык по умолчанию). Без JS остаётся сербский.
+ *
  * Пользователю предлагаем два выхода: на главную и в Telegram —
  * чаще всего человек попал сюда по устаревшей ссылке из мессенджера.
  */
 const locale: Locale = DEFAULT_LOCALE;
-const ui = useUI(locale);
+
+/** Тексты и адреса одной локали для 404. */
+function copy(code: Locale) {
+  const ui = useUI(code);
+  return {
+    title: ui.notFound.title,
+    lead: ui.notFound.lead,
+    back: ui.cta.back,
+    backHref: href(code, 'home'),
+    contact: ui.cta.telegram,
+  };
+}
+
+/** Без JS остаётся язык по умолчанию — его тексты и рисуем. */
+const fallback = copy(locale);
+
+/**
+ * Атрибуты data-msg-{key}-{locale} для всех локалей —
+ * единый канал переводов для клиентского скрипта.
+ */
+function msgText(key: 'title' | 'lead' | 'back' | 'contact'): Record<string, string> {
+  return Object.fromEntries(LOCALES.map((code) => [`data-msg-${key}-${code}`, copy(code)[key]]));
+}
+
+/** Адреса кнопки «назад» — единственная ссылка, которая меняется. */
+function msgHref(): Record<string, string> {
+  return Object.fromEntries(LOCALES.map((code) => [`data-msg-href-${code}`, copy(code).backHref]));
+}
+
+/** Язык документа per locale — скрипт ставит его на <html>. */
+function msgLang(): Record<string, string> {
+  return Object.fromEntries(
+    LOCALES.map((code) => [`data-msg-lang-${code}`, LOCALE_META[code].htmlLang]),
+  );
+}
 ---
 
-<Base locale={locale} routeKey="home" noindex title="404 — Stranica nije pronađena">
+<Base locale={locale} routeKey="home" noindex title={`404 — ${fallback.title}`}>
   <section class="section">
-    <div class="container" style="max-inline-size:40rem;text-align:center">
+    <div class="container page-404" data-msg-lang {...msgLang()}>
       <p class="eyebrow">404</p>
-      <h1 class="hero__title" style="font-size:var(--fs-h1)">
-        {locale === 'ru' ? 'Страница не найдена' : 'Stranica nije pronađena'}
+      <h1 class="page-404__title" data-msg-text="title" {...msgText('title')}>
+        {fallback.title}
       </h1>
-      <p class="hero__lead" style="margin-inline:auto">
-        {locale === 'ru'
-          ? 'Возможно, ссылка устарела или в адресе опечатка.'
-          : 'Moguće je da je link zastareo ili da u adresi postoji greška.'}
+      <p class="page-404__lead" data-msg-text="lead" {...msgText('lead')}>
+        {fallback.lead}
       </p>
 
-      <div class="hero__actions" style="justify-content:center;margin-block-start:var(--s8)">
-        <a class="btn btn--lg" href={href(locale, 'home')}>{ui.cta.back}</a>
-        <a class="btn btn--ghost btn--lg" href={href(locale, 'contact')}>{ui.cta.telegram}</a>
+      <div class="page-404__actions">
+        <a
+          class="btn btn--lg"
+          href={fallback.backHref}
+          data-msg-link="back"
+          {...msgText('back')}
+          {...msgHref()}
+        >
+          {fallback.back}
+        </a>
+        <a
+          class="btn btn--ghost btn--lg"
+          href={site.telegramUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          data-msg-text="contact"
+          {...msgText('contact')}
+        >
+          {fallback.contact}
+        </a>
       </div>
 
-      <div class="lang" style="justify-content:center;margin-block-start:var(--s10)">
-        {localeSwitchLinks(locale, 'home').map((link) => (
-          <a class="lang__item" href={link.href}>{link.locale.toUpperCase()}</a>
-        ))}
+      <div class="page-404__lang">
+        <LangSwitch locale={locale} routeKey="home" instance="error" />
       </div>
     </div>
   </section>
+
+  <script is:inline>
+    /**
+     * Выбирает переводы по сегментам адреса: /en/… → en,
+     * /ru/… → ru, иначе — sr (язык по умолчанию).
+     *
+     * Канал — data-msg-* атрибуты той же разметки: текст
+     * (data-msg-text), ссылка (data-msg-link), язык документа
+     * (data-msg-lang). Сервер уже отрисовал язык по умолчанию,
+     * поэтому без JS страница читаема.
+     */
+    const segments = location.pathname.split('/').filter(Boolean);
+    const locale = segments.includes('en') ? 'en' : segments.includes('ru') ? 'ru' : 'sr';
+    const suffix = locale.charAt(0).toUpperCase() + locale.slice(1);
+
+    for (const el of document.querySelectorAll('[data-msg-text]')) {
+      const text =
+        el.dataset[
+          'msg' + el.dataset.msgText.charAt(0).toUpperCase() + el.dataset.msgText.slice(1) + suffix
+        ];
+      if (text) el.textContent = text;
+    }
+    for (const el of document.querySelectorAll('[data-msg-link]')) {
+      const link =
+        el.dataset[
+          'msg' +
+            el.dataset.msgLink.charAt(0).toUpperCase() +
+            el.dataset.msgLink.slice(1) +
+            'Href' +
+            suffix
+        ];
+      if (link) el.setAttribute('href', link);
+    }
+
+    const root = document.querySelector('[data-msg-lang]');
+    const lang = root?.dataset['msgLang' + suffix];
+    if (lang) document.documentElement.lang = lang;
+
+    // Заголовок документа — «404 — » + заголовок страницы:
+    // префикс берём из уже отрисованного <title>, не дублируя его.
+    const title = document.querySelector('[data-msg-text="title"]');
+    if (title) document.title = document.title.replace(title.dataset.msgSr, title.textContent);
+  </script>
 </Base>

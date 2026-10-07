@@ -10,8 +10,9 @@ import Icon from './ui/Icon.astro';
  * Переключатель языка.
  *
  * Ключевое требование: ссылка ведёт на ТУ ЖЕ страницу в другой локали,
- * а не на главную. Это обеспечивает реестр маршрутов, где у каждой
- * страницы есть переведённый слаг (/cene → /en/prices → /ru/ceny).
+ * а не на главную. Это обеспечивает реестр маршрутов: слаг страницы
+ * общий для языков (/prices → /ru/prices → /en/prices), меняется
+ * только префикс локали.
  *
  * Сделан обычными ссылками: поисковики видят все локали, JS не нужен,
  * вес — ноль. Атрибут aria-current помогает скринридеру.
@@ -23,20 +24,22 @@ import Icon from './ui/Icon.astro';
  *     только в шапке на узком экране: три ссылки в ряд занимали треть
  *     шапки. Дропдаун раскрывает JS (Header.astro), ссылки внутри —
  * те же, что в .lang. Компонент рендерится дважды на странице
- * (шапка + шторка), поэтому id дропдауна уникален: фронтматтер
- * выполняется в Node на сборке, crypto.randomUUID() даёт
- * уникальный id для каждого экземпляра.
+ * (шапка + шторка), поэтому id дропдауна строится из переданного
+ * `instance`: значение стабильно между сборками (в отличие от
+ * crypto.randomUUID()) и уникально внутри страницы.
  */
 
 interface Props {
   locale: Locale;
   routeKey: PageKey;
+  /** Имя экземпляра («header» / «drawer») — для стабильного id дропдауна. */
+  instance: string;
 }
 
-const { locale, routeKey } = Astro.props;
+const { locale, routeKey, instance } = Astro.props;
 const ui = useUI(locale);
 const links = localeSwitchLinks(locale, routeKey);
-const menuId = crypto.randomUUID();
+const menuId = `lang-menu-${instance}`;
 ---
 
 <nav class="lang" aria-label={LOCALE_META[locale].label}>
@@ -65,7 +68,7 @@ const menuId = crypto.randomUUID();
   >
     <Icon name="globe" />
   </button>
-  <div class="lang-menu" id={menuId} data-lang-menu>
+  <div class="dropdown lang-menu" id={menuId} data-lang-menu>
     {links.map((link) => (
       <a
         href={link.href}

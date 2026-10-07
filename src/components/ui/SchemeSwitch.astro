@@ -1,8 +1,6 @@
 ---
 import type { Locale } from '../../i18n/config';
 import { useUI } from '../../i18n/ui';
-import { designForBuild } from '../../data/activeDesign';
-import { schemeBrand, themeColors } from '../../themes/tokens';
 
 import Icon from './Icon.astro';
 
@@ -12,15 +10,16 @@ import Icon from './Icon.astro';
  * Кнопка — только иконка на всех размерах: подпись с текстом
  * переносилась внутри кнопки и расширяла шапку. Подпись называет
  * схему, В КОТОРУЮ переключит клик («Тёмная тема», пока открыта
- * светлая), и служит доступным именем: CSS прячет её из кадра, но
- * не из дерева доступности (свойства те же, что у .visually-hidden),
- * поэтому у иконочной кнопки имя остаётся. aria-label не ставим —
+ * светлая), и служит доступным именем. aria-label не ставим —
  * имя даёт этот же текст.
  *
  * Иконку показывает CSS по data-scheme на <html> (правила —
  * в components-chrome.css), поэтому JS состояние кнопки не дублирует:
  * он умеет только попросить применить противоположную схему
  * (initScheme из src/scripts/scheme.ts).
+ *
+ * Подписи-цели переключения скрыты классом .visually-hidden,
+ * но остаются в дереве доступности — это имя иконочной кнопки.
  */
 
 interface Props {
@@ -29,29 +28,19 @@ interface Props {
 
 const { locale } = Astro.props;
 const ui = useUI(locale);
-
-/**
- * Акценты обеих схем для <meta name="theme-color">. Натуральная схема темы
- * (её kind) — base-токены, вторая — alt. Та же логика, что в Base.astro.
- */
-const theme = designForBuild.theme;
-const colors = themeColors[theme.id];
-const accentOf = (scheme: 'light' | 'dark') => schemeBrand(colors, theme.kind, scheme);
 ---
 
-<button
-  class="scheme-switch"
-  type="button"
-  data-scheme-switch
-  data-color-light={accentOf('light')}
-  data-color-dark={accentOf('dark')}
->
+<button class="scheme-switch" type="button" data-scheme-switch>
   <span class="scheme-switch__icon" data-scheme-show="dark" aria-hidden="true">
     <Icon name="moon" />
   </span>
   <span class="scheme-switch__icon" data-scheme-show="light" aria-hidden="true">
     <Icon name="sun" />
   </span>
-  <span class="scheme-switch__label" data-scheme-show="dark">{ui.scheme.toDark}</span>
-  <span class="scheme-switch__label" data-scheme-show="light">{ui.scheme.toLight}</span>
+  <span class="visually-hidden" data-scheme-show="dark">
+    {ui.scheme.toDark}
+  </span>
+  <span class="visually-hidden" data-scheme-show="light">
+    {ui.scheme.toLight}
+  </span>
 </button>

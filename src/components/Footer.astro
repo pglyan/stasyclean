@@ -1,8 +1,8 @@
 ---
 import type { Locale } from '../i18n/config';
-import { href } from '../i18n/routes';
+import { href, NAV_KEYS } from '../i18n/routes';
 import { useUI } from '../i18n/ui';
-import { site, siteText } from '../data/site';
+import { hasLegal, site, siteText } from '../data/site';
 import { services } from '../data/services';
 
 import Icon from './ui/Icon.astro';
@@ -15,11 +15,7 @@ const { locale } = Astro.props;
 const ui = useUI(locale);
 
 /** В подвале не дублируем все страницы подряд — только навигационные. */
-const navKeys = ['prices', 'about', 'reviews', 'faq', 'contact'] as const;
 const legalKeys = ['privacy', 'terms'] as const;
-
-/** Пока реквизитов нет, честно показываем это вместо выдуманных данных. */
-const hasLegal = Boolean(site.legal.pib || site.legal.mb || site.legal.address);
 ---
 
 <footer class="site-footer">
@@ -27,19 +23,21 @@ const hasLegal = Boolean(site.legal.pib || site.legal.mb || site.legal.address);
     <div class="footer__grid">
       <div class="footer__col">
         <span class="brand">
-          <span class="brand__mark" aria-hidden="true"><Icon name="sparkles" /></span>
+          <span class="brand__mark" aria-hidden="true">
+            <Icon name="sparkles" />
+          </span>
           <span class="brand__name">{site.brand}</span>
         </span>
-        <p class="footer__about">
-          {siteText.tagline[locale]}
-        </p>
+        <p class="footer__about">{siteText.tagline[locale]}</p>
       </div>
 
       <div class="footer__col">
         <h3>{ui.footer.services}</h3>
         <ul>
           {services.map((service) => (
-            <li><a href={href(locale, service.key)}>{service.name[locale]}</a></li>
+            <li>
+              <a href={href(locale, service.key)}>{service.name[locale]}</a>
+            </li>
           ))}
         </ul>
       </div>
@@ -47,8 +45,10 @@ const hasLegal = Boolean(site.legal.pib || site.legal.mb || site.legal.address);
       <div class="footer__col">
         <h3>{ui.footer.navigation}</h3>
         <ul>
-          {navKeys.map((key) => (
-            <li><a href={href(locale, key)}>{ui.nav[key]}</a></li>
+          {NAV_KEYS.map((key) => (
+            <li>
+              <a href={href(locale, key)}>{ui.nav[key]}</a>
+            </li>
           ))}
         </ul>
       </div>
@@ -66,8 +66,16 @@ const hasLegal = Boolean(site.legal.pib || site.legal.mb || site.legal.address);
               Instagram @{site.instagram}
             </a>
           </li>
-          {site.phone && <li><a href={`tel:${site.phone.replace(/\s/g, '')}`}>{site.phone}</a></li>}
-          {site.email && <li><a href={`mailto:${site.email}`}>{site.email}</a></li>}
+          {site.phone && (
+            <li>
+              <a href={`tel:${site.phone.replace(/\s/g, '')}`}>{site.phone}</a>
+            </li>
+          )}
+          {site.email && (
+            <li>
+              <a href={`mailto:${site.email}`}>{site.email}</a>
+            </li>
+          )}
         </ul>
       </div>
 
@@ -75,16 +83,20 @@ const hasLegal = Boolean(site.legal.pib || site.legal.mb || site.legal.address);
         <h3>{ui.footer.legal}</h3>
         <ul>
           {legalKeys.map((key) => (
-            <li><a href={href(locale, key)}>{ui.footer[key]}</a></li>
+            <li>
+              <a href={href(locale, key)}>{ui.footer[key]}</a>
+            </li>
           ))}
         </ul>
       </div>
     </div>
 
     <div class="footer__bottom">
-      <p>© {new Date().getFullYear()} {site.brand}. {ui.footer.rights}.</p>
+      <p>
+        © {new Date().getFullYear()} {site.brand}. {ui.footer.rights}.
+      </p>
       <p class="footer__disclaimer">{ui.footer.disclaimer}</p>
-      {!hasLegal && <p class="footer__legal-pending">{ui.footer.pendingLegal}</p>}
+      {!hasLegal() && <p class="footer__legal-pending">{ui.footer.pendingLegal}</p>}
     </div>
   </div>
 </footer>

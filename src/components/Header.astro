@@ -1,12 +1,13 @@
 ---
 import { type Locale } from '../i18n/config';
-import { href, type PageKey } from '../i18n/routes';
+import { href, isServiceKey, NAV_KEYS, type PageKey } from '../i18n/routes';
 import { useUI } from '../i18n/ui';
 import { site, siteText } from '../data/site';
 import { services } from '../data/services';
 
 import Icon from './ui/Icon.astro';
 import SchemeSwitch from './ui/SchemeSwitch.astro';
+import TgButton from './ui/TgButton.astro';
 import LangSwitch from './LangSwitch.astro';
 
 interface Props {
@@ -18,30 +19,26 @@ const { locale, routeKey } = Astro.props;
 const ui = useUI(locale);
 
 /** Пункты меню одинаковы для всех локалей — меняются подписи и адреса. */
-const menu: { key: PageKey; label: string }[] = [
-  { key: 'prices', label: ui.nav.prices },
-  { key: 'about', label: ui.nav.about },
-  { key: 'reviews', label: ui.nav.reviews },
-  { key: 'faq', label: ui.nav.faq },
-  { key: 'contact', label: ui.nav.contact },
-];
+const menu = NAV_KEYS.map((key) => ({ key, label: ui.nav[key] }));
 
 const serviceItems = services.map((service) => ({
   key: service.key,
   label: service.name[locale],
 }));
 
-const isServicePage = ['general', 'regular', 'smart', 'reno', 'services'].includes(routeKey);
+const isServicePage = routeKey === 'services' || isServiceKey(routeKey);
 ---
 
 <header class="site-header" data-header>
   <div class="container site-header__inner">
     <a class="brand" href={href(locale, 'home')}>
-      <span class="brand__mark" aria-hidden="true"><Icon name="sparkles" /></span>
+      <span class="brand__mark" aria-hidden="true">
+        <Icon name="sparkles" />
+      </span>
       <span class="brand__name">{site.brand}</span>
     </a>
 
-    <nav class="nav" aria-label={ui.cta.menu}>
+    <nav class="nav" aria-label={ui.nav.main}>
       <ul class="nav__list">
         <li class="nav__item">
           <a
@@ -50,10 +47,12 @@ const isServicePage = ['general', 'regular', 'smart', 'reno', 'services'].includ
             aria-current={isServicePage ? 'page' : undefined}
           >
             {ui.nav.services}
-            <Icon name="chevronDown" width={2} />
+            <Icon name="chevron-down" strokeWidth={2} />
           </a>
-          <ul class="nav__menu">
-            <li><a href={href(locale, 'services')}>{ui.cta.allServices}</a></li>
+          <ul class="dropdown nav__menu">
+            <li>
+              <a href={href(locale, 'services')}>{ui.cta.allServices}</a>
+            </li>
             {serviceItems.map((item) => (
               <li>
                 <a
@@ -84,12 +83,9 @@ const isServicePage = ['general', 'regular', 'smart', 'reno', 'services'].includ
       {/* Схема — функция сайта, поэтому переключатель стоит первым в шапке. */}
       <SchemeSwitch locale={locale} />
 
-      <LangSwitch locale={locale} routeKey={routeKey} />
+      <LangSwitch locale={locale} routeKey={routeKey} instance="header" />
 
-      <a class="btn header-cta" href={site.telegramUrl} target="_blank" rel="noopener noreferrer">
-        <Icon name="telegram" class="btn__icon" />
-        {ui.cta.telegram}
-      </a>
+      <TgButton locale={locale} class="header-cta" variant="telegram" />
 
       <button
         class="burger"
@@ -99,7 +95,7 @@ const isServicePage = ['general', 'regular', 'smart', 'reno', 'services'].includ
         aria-controls="mobile-menu"
         data-menu-open
       >
-        <Icon name="menu" width={2} />
+        <Icon name="menu" strokeWidth={2} />
       </button>
     </div>
   </div>
@@ -111,16 +107,18 @@ const isServicePage = ['general', 'regular', 'smart', 'reno', 'services'].includ
   data-drawer
   role="dialog"
   aria-modal="true"
-  aria-label={ui.cta.menu}
+  aria-label={ui.common.menuDialog}
   hidden
 >
   <div class="drawer__head">
     <span class="brand">
-      <span class="brand__mark" aria-hidden="true"><Icon name="sparkles" /></span>
+      <span class="brand__mark" aria-hidden="true">
+        <Icon name="sparkles" />
+      </span>
       <span class="brand__name">{site.brand}</span>
     </span>
     <button class="burger" type="button" aria-label={ui.cta.close} data-menu-close>
-      <Icon name="close" width={2} />
+      <Icon name="close" strokeWidth={2} />
     </button>
   </div>
 
@@ -129,21 +127,22 @@ const isServicePage = ['general', 'regular', 'smart', 'reno', 'services'].includ
       <a href={href(locale, 'services')}>{ui.nav.services}</a>
       <ul class="drawer__sub">
         {serviceItems.map((item) => (
-          <li><a href={href(locale, item.key)}>{item.label}</a></li>
+          <li>
+            <a href={href(locale, item.key)}>{item.label}</a>
+          </li>
         ))}
       </ul>
     </li>
     {menu.map((item) => (
-      <li><a href={href(locale, item.key)}>{item.label}</a></li>
+      <li>
+        <a href={href(locale, item.key)}>{item.label}</a>
+      </li>
     ))}
   </ul>
 
   <div class="drawer__foot">
-    <LangSwitch locale={locale} routeKey={routeKey} />
-    <a class="btn btn--lg" href={site.telegramUrl} target="_blank" rel="noopener noreferrer">
-      <Icon name="telegram" class="btn__icon" />
-      {ui.cta.telegram}
-    </a>
+    <LangSwitch locale={locale} routeKey={routeKey} instance="drawer" />
+    <TgButton locale={locale} class="btn--lg" variant="telegram" />
     {site.phone && (
       <a class="btn btn--ghost btn--lg" href={`tel:${site.phone.replace(/\s/g, '')}`}>
         <Icon name="phone" class="btn__icon" />
@@ -162,12 +161,9 @@ const isServicePage = ['general', 'regular', 'smart', 'reno', 'services'].includ
    * Выпадающее меню «Услуги» на десктопе работает вообще без JS
    * (CSS :hover/:focus-within), здесь только мобильный drawer.
    *
-   * Сюда же подключён переключатель схемы (src/scripts/scheme.ts).
+   * Переключатель схемы подключён в Base.astro: он общий для
+   * всех страниц и не должен зависеть от наличия шапки.
    */
-  import { initScheme } from '../scripts/scheme';
-
-  initScheme();
-
   const header = document.querySelector<HTMLElement>('[data-header]');
   const drawer = document.querySelector<HTMLElement>('[data-drawer]');
   const openBtn = document.querySelector<HTMLButtonElement>('[data-menu-open]');
@@ -175,21 +171,45 @@ const isServicePage = ['general', 'regular', 'smart', 'reno', 'services'].includ
 
   let hideTimer = 0;
 
+  /**
+   * Задержка перед снятием шторки из дерева доступности —
+   * тот же токен, что и в CSS (--drawer-hide-ms): анимация
+   * успевает отработать, прежде чем панель станет невидимой
+   * для скринридера.
+   */
+  const hideDelayMs =
+    parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--drawer-hide-ms')) ||
+    450;
+
+  /** Всё, кроме самой шторки: уходит из дерева доступности при открытом меню. */
+  const inertTargets = Array.from(document.body.children).filter(
+    (element) => element !== drawer && element.tagName !== 'SCRIPT',
+  );
+
   function setDrawer(open: boolean) {
     if (!drawer || !openBtn) return;
 
     window.clearTimeout(hideTimer);
-    drawer.hidden = false;
-    drawer.classList.toggle('is-open', open);
     openBtn.setAttribute('aria-expanded', String(open));
     document.documentElement.style.overflow = open ? 'hidden' : '';
+    // inert прячет фон от Tab и виртуального курсора скринридера:
+    // aria-modal одного этого не делает.
+    for (const element of inertTargets) element.toggleAttribute('inert', open);
 
     if (open) {
+      drawer.hidden = false;
+      // Принудительный reflow между снятием hidden и классом is-open:
+      // без него браузер применит оба состояния одним кадром, и выезд
+      // меню мгновенно подменится появлением без анимации.
+      void drawer.offsetWidth;
+      drawer.classList.add('is-open');
       // preventScroll: иначе браузер прокручивает документ, вписывая кнопку
       // в зону видимости (scroll-padding-top 6rem выше шапки) — страница прыгала вверх.
       closeBtn?.focus({ preventScroll: true });
       return;
     }
+
+    drawer.classList.remove('is-open');
 
     // Возвращаем фокус на кнопку меню: иначе после закрытия он остаётся
     // «в никуда», и клавиатура со скринридером теряют место на странице.
@@ -198,7 +218,7 @@ const isServicePage = ['general', 'regular', 'smart', 'reno', 'services'].includ
     // После анимации убираем панель из дерева доступности
     hideTimer = window.setTimeout(() => {
       if (!drawer.classList.contains('is-open')) drawer.hidden = true;
-    }, 450);
+    }, hideDelayMs);
   }
 
   /**
@@ -250,41 +270,37 @@ const isServicePage = ['general', 'regular', 'smart', 'reno', 'services'].includ
    * кнопку ищем только в шапке. Без JS дропдаун не раскрывается,
    * но список языков доступен в шторке и в подвале.
    */
-  document
-    .querySelectorAll<HTMLElement>('.site-header [data-lang-toggle]')
-    .forEach((toggle) => {
-      const menu = toggle.parentElement?.querySelector<HTMLElement>(
-        '[data-lang-menu]',
-      );
-      if (!menu) return;
+  document.querySelectorAll<HTMLElement>('.site-header [data-lang-toggle]').forEach((toggle) => {
+    const menu = toggle.parentElement?.querySelector<HTMLElement>('[data-lang-menu]');
+    if (!menu) return;
 
-      const setOpen = (open: boolean) => {
-        menu.classList.toggle('is-open', open);
-        toggle.setAttribute('aria-expanded', String(open));
-      };
+    const setOpen = (open: boolean) => {
+      menu.classList.toggle('is-open', open);
+      toggle.setAttribute('aria-expanded', String(open));
+    };
 
-      toggle.addEventListener('click', (event) => {
-        // Иначе документный обработчик ниже сразу закрывает только что открытый список
-        event.stopPropagation();
-        setOpen(!menu.classList.contains('is-open'));
-      });
-
-      document.addEventListener('click', (event) => {
-        const inside = (event.target as HTMLElement | null)?.closest?.(
-          '[data-lang-toggle], [data-lang-menu]',
-        );
-        if (!inside) setOpen(false);
-      });
-
-      document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape' && menu.classList.contains('is-open')) {
-          setOpen(false);
-          // Без preventScroll фокус в шапке заставлял браузер прокрутить
-          // страницу вверх (см. комментарий в setDrawer).
-          toggle.focus({ preventScroll: true });
-        }
-      });
+    toggle.addEventListener('click', (event) => {
+      // Иначе документный обработчик ниже сразу закрывает только что открытый список
+      event.stopPropagation();
+      setOpen(!menu.classList.contains('is-open'));
     });
+
+    document.addEventListener('click', (event) => {
+      const inside = (event.target as HTMLElement | null)?.closest?.(
+        '[data-lang-toggle], [data-lang-menu]',
+      );
+      if (!inside) setOpen(false);
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && menu.classList.contains('is-open')) {
+        setOpen(false);
+        // Без preventScroll фокус в шапке заставлял браузер прокрутить
+        // страницу вверх (см. комментарий в setDrawer).
+        toggle.focus({ preventScroll: true });
+      }
+    });
+  });
 
   // Граница у шапки появляется только после прокрутки
   if (header) {

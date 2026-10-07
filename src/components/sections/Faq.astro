@@ -4,6 +4,7 @@ import { faq as allFaq } from '../../data/faq';
 import { useUI } from '../../i18n/ui';
 
 import SectionHead from './SectionHead.astro';
+import { sectionClass } from '../ui/sectionClass';
 
 /**
  * FAQ на нативных <details>.
@@ -25,13 +26,13 @@ const ui = useUI(locale);
 const items = allFaq.slice(0, limit ?? allFaq.length);
 ---
 
-  <section class={`section ${surface ? 'section--surface' : ''}`.trim()} id="faq">
+<section class={sectionClass(surface)} id="faq">
   <div class="container">
     {withHead && <SectionHead title={ui.home.faqTitle} lead={ui.home.faqLead} />}
 
     <div class="faq">
       {items.map((item) => (
-        <details class="faq__item">
+        <details class="faq__item" data-reveal>
           <summary class="faq__question">{item.question[locale]}</summary>
           <div class="faq__answer">{item.answer[locale]}</div>
         </details>

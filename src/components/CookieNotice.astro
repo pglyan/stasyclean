@@ -22,20 +22,14 @@ const { locale } = Astro.props;
 const ui = useUI(locale);
 
 const shouldRender = import.meta.env.PUBLIC_ANALYTICS === 'on';
-
-const text: Record<Locale, string> = {
-  sr: 'Koristimo tehničke kolačiće za rad sajta. Analitičke kolačiće uvodimo samo uz vašu saglasnost.',
-  en: 'We use technical cookies to run the site. Analytics cookies are only set with your consent.',
-  ru: 'Мы используем технические cookie для работы сайта. Аналитические cookie подключаем только с вашего согласия.',
-};
 ---
 
 {shouldRender && (
-  <div class="cookie" data-cookie data-visible="false" role="region" aria-label="Cookie">
-    <p>{text[locale]}</p>
+  <div class="cookie" data-cookie data-visible="false" role="region" aria-label={ui.cookie.label}>
+    <p>{ui.cookie.text}</p>
     <div class="cookie__actions">
       <button class="btn btn--sm" type="button" data-cookie-accept>
-        {locale === 'ru' ? 'Принять' : locale === 'sr' ? 'Prihvati' : 'Accept'}
+        {ui.cookie.accept}
       </button>
       <a class="btn btn--ghost btn--sm" href={href(locale, 'privacy')}>
         {ui.footer.privacy}
@@ -44,17 +38,17 @@ const text: Record<Locale, string> = {
   </div>
 )}
 
-<script>
+{shouldRender && <script>
   /**
    * Показываем баннер только если согласие ещё не сохранено.
+   * Модель инстанцирования — querySelectorAll: баннер один,
+   * но скрипт не зависит от того, что элемент ровно один.
    */
-  const banner = document.querySelector<HTMLElement>('[data-cookie]');
+  import { COOKIE_CONSENT_KEY } from '../scripts/keys';
 
-  if (banner) {
-    const KEY = 'stasyclean:cookie-consent';
-
+  document.querySelectorAll<HTMLElement>('[data-cookie]').forEach((banner) => {
     try {
-      if (!window.localStorage.getItem(KEY)) {
+      if (!window.localStorage.getItem(COOKIE_CONSENT_KEY)) {
         banner.dataset.visible = 'true';
       }
     } catch {
@@ -65,10 +59,10 @@ const text: Record<Locale, string> = {
     banner.querySelector('[data-cookie-accept]')?.addEventListener('click', () => {
       banner.dataset.visible = 'false';
       try {
-        window.localStorage.setItem(KEY, 'accepted');
+        window.localStorage.setItem(COOKIE_CONSENT_KEY, 'accepted');
       } catch {
         /* хранилище недоступно — просто скрываем баннер */
       }
     });
-  }
-</script>
+  });
+</script>}

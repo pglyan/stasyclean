@@ -1,0 +1,25 @@
+---
+import type { Locale } from '../../i18n/config';
+import { href } from '../../i18n/routes';
+import { useUI } from '../../i18n/ui';
+
+import Icon from './Icon.astro';
+
+/**
+ * Кнопка «Рассчитать стоимость» — ведёт в калькулятор на
+ * странице цен. Внешний вид — через class (btn--lg и т. п.).
+ */
+
+interface Props {
+  locale: Locale;
+  class?: string;
+}
+
+const { locale, class: className } = Astro.props;
+const ui = useUI(locale);
+---
+
+<a class={`btn btn--ghost ${className ?? ''}`.trim()} href={`${href(locale, 'prices')}#calculator`}>
+  <Icon name="calculator" class="btn__icon" />
+  {ui.cta.calculate}
+</a>

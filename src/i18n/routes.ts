@@ -1,63 +1,45 @@
 /**
  * Реестр маршрутов — единственный источник правды для URL сайта.
  *
- * Зачем: Astro умеет локализовать только *префикс* локали (i18n.locales[].path),
- * но не переводить слаги отдельных страниц. Поэтому переведённые слаги
- * (/cene | /en/prices | /ru/ceny) живут здесь, а страницы генерируются
- * динамическими маршрутами из этого реестра.
+ * Слаги английские на всех локалях: локаль живёт только в префиксе
+ * (/prices | /ru/prices | /en/prices), поэтому «машинерии переведённых
+ * путей» нет — одна колонка на все языки.
  *
- * Добавление локали = добавить колонку в ROUTES + запись в LOCALE_META.
- * Пропустить перевод слага физически невозможно: объект типизирован
- * как Record<Locale, string>, TypeScript не соберётся без всех трёх.
+ * Как добавлять страницы и локали — docs/i18n.md.
  */
 
 import { DEFAULT_LOCALE, LOCALES, type Locale } from './config';
 
 export const ROUTES = {
-  home: { sr: '', en: '', ru: '' },
-  prices: { sr: 'cene', en: 'prices', ru: 'ceny' },
-  services: { sr: 'usluge', en: 'services', ru: 'uslugi' },
-  general: {
-    sr: 'usluge/generalno-ciscenje',
-    en: 'services/general-cleaning',
-    ru: 'uslugi/generalnaya-uborka',
-  },
-  regular: {
-    sr: 'usluge/redovno-odrzavanje',
-    en: 'services/regular-cleaning',
-    ru: 'uslugi/podderzhivayushchaya-uborka',
-  },
-  smart: {
-    sr: 'usluge/smart-ciscenje',
-    en: 'services/smart-cleaning',
-    ru: 'uslugi/smart-clining',
-  },
-  reno: {
-    sr: 'usluge/ciscenje-posle-renoviranja',
-    en: 'services/post-renovation-cleaning',
-    ru: 'uslugi/posle-remonta',
-  },
-  about: { sr: 'o-nama', en: 'about', ru: 'o-nas' },
-  reviews: { sr: 'utisci', en: 'reviews', ru: 'otzyvy' },
-  faq: { sr: 'cesta-pitanja', en: 'faq', ru: 'faq' },
-  contact: { sr: 'kontakt', en: 'contact', ru: 'kontakty' },
-  privacy: {
-    sr: 'politika-privatnosti',
-    en: 'privacy-policy',
-    ru: 'politika-konfidencialnosti',
-  },
-  terms: {
-    sr: 'uslovi-koriscenja',
-    en: 'terms-of-service',
-    ru: 'usloviya-okazaniya-uslug',
-  },
-} as const satisfies Record<string, Record<Locale, string>>;
+  home: '',
+  prices: 'prices',
+  services: 'services',
+  general: 'services/general-cleaning',
+  regular: 'services/regular-cleaning',
+  smart: 'services/smart-cleaning',
+  reno: 'services/post-renovation-cleaning',
+  about: 'about',
+  reviews: 'reviews',
+  faq: 'faq',
+  contact: 'contact',
+  privacy: 'privacy-policy',
+  terms: 'terms-of-service',
+} as const satisfies Record<string, string>;
 
 export type PageKey = keyof typeof ROUTES;
 
 /** Ключи страниц услуг — используются в навигации, футере и JSON-LD. */
 export const SERVICE_KEYS = ['general', 'regular', 'smart', 'reno'] as const;
 export type ServiceKey = (typeof SERVICE_KEYS)[number];
+
+/** Type guard: страница услуги. */
+export function isServiceKey(key: PageKey): key is ServiceKey {
+  return (SERVICE_KEYS as readonly string[]).includes(key);
+}
+
+/** Пункты навигации (шапка и подвал) — один список для всех локалей. */
+export const NAV_KEYS = ['prices', 'about', 'reviews', 'faq', 'contact'] as const;
+export type NavKey = (typeof NAV_KEYS)[number];
 
 /** Все ключи страниц в порядке следования — используется sitemap и проверками. */
 export const PAGE_KEYS = Object.keys(ROUTES) as PageKey[];
@@ -89,16 +71,16 @@ export function asset(path: string): string {
   return `${BASE}${path.replace(/^\//, '')}`;
 }
 
-/** Относительный путь внутри сайта, без ведущего слэша: 'ru/ceny'. */
+/** Относительный путь внутри сайта, без ведущего слэша: 'ru/prices'. */
 export function routePath(locale: Locale, key: PageKey): string {
-  const slug = ROUTES[key][locale];
+  const slug = ROUTES[key];
   if (locale === DEFAULT_LOCALE) return slug;
   return slug ? `${locale}/${slug}` : locale;
 }
 
 /**
  * Готовый href с учётом base и завершающего слэша.
- * href('ru', 'prices') → '/ru/ceny/'
+ * href('ru', 'prices') → '/ru/prices/'
  */
 export function href(locale: Locale, key: PageKey): string {
   const path = routePath(locale, key);

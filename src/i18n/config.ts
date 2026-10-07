@@ -1,12 +1,14 @@
 /**
  * Конфигурация локалей StasyClean.
  *
- * Порядок важен только для дефолтов; `sr` — язык по умолчанию и живёт в корне
- * домена (лучший локальный SEO-сигнал для Google.rs, так же сделано у всех
- * основных конкурентов: uborka.rs, cleanhouse.rs, shinecleaning.rs).
+ * Порядок — по важности: sr, ru, en. `sr` — язык по умолчанию и живёт
+ * в корне домена (лучший локальный SEO-сигнал для Google.rs, так же
+ * сделано у всех основных конкурентов: uborka.rs, cleanhouse.rs,
+ * shinecleaning.rs). Порядок списка задаёт порядок языков в переключателе,
+ * hreflang, sitemap и приоритет предзагрузки шрифтов.
  */
 
-export const LOCALES = ['sr', 'en', 'ru'] as const;
+export const LOCALES = ['sr', 'ru', 'en'] as const;
 
 export type Locale = (typeof LOCALES)[number];
 
@@ -25,8 +27,6 @@ export interface LocaleMeta {
   ogLocale: string;
   /** Локаль для Intl.NumberFormat / Intl.DateTimeFormat */
   intl: string;
-  /** Префикс «от» для цен «от 5 500 RSD» */
-  fromPrefix: string;
   /** Название валюты для вывода цены */
   currencyLabel: string;
 }
@@ -39,17 +39,6 @@ export const LOCALE_META: Record<Locale, LocaleMeta> = {
     htmlLang: 'sr-Latn-RS',
     ogLocale: 'sr_RS',
     intl: 'sr-Latn-RS',
-    fromPrefix: 'od',
-    currencyLabel: 'RSD',
-  },
-  en: {
-    code: 'en',
-    label: 'English',
-    short: 'EN',
-    htmlLang: 'en',
-    ogLocale: 'en_US',
-    intl: 'en-GB',
-    fromPrefix: 'from',
     currencyLabel: 'RSD',
   },
   ru: {
@@ -59,7 +48,15 @@ export const LOCALE_META: Record<Locale, LocaleMeta> = {
     htmlLang: 'ru',
     ogLocale: 'ru_RU',
     intl: 'ru-RU',
-    fromPrefix: 'от',
+    currencyLabel: 'RSD',
+  },
+  en: {
+    code: 'en',
+    label: 'English',
+    short: 'EN',
+    htmlLang: 'en',
+    ogLocale: 'en_US',
+    intl: 'en-GB',
     currencyLabel: 'RSD',
   },
 };
@@ -81,11 +78,6 @@ export function formatNumber(value: number, locale: Locale): string {
 export function formatPrice(value: number, locale: Locale): string {
   const { currencyLabel } = LOCALE_META[locale];
   return `${formatNumber(value, locale)} ${currencyLabel}`;
-}
-
-/** «od 4.000 RSD» / «from 4,000 RSD» / «от 4 000 RSD» */
-export function formatPriceFrom(value: number, locale: Locale): string {
-  return `${LOCALE_META[locale].fromPrefix} ${formatPrice(value, locale)}`;
 }
 
 /** Диапазон цен «1.500 – 3.000 RSD» */

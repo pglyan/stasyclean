@@ -1,16 +1,23 @@
 import type { Locale } from './config';
-import type { PageKey } from './routes';
+import { isServiceKey, type PageKey, type ServiceKey } from './routes';
 import type { Localized } from '../data/types';
 import { getService } from '../data/services';
 import { site, siteText } from '../data/site';
 import { useUI } from './ui';
 
 /**
- * Метаданные страницы для <title>, description и Open Graph.
+ * Метаданные и заголовки страниц — единый реестр на все 40 страниц.
  *
- * Правило одно: у каждой из 39 страниц свой заголовок и своё описание.
+ * Правило одно: у каждой страницы свой заголовок и своё описание.
  * Раньше все внутренние страницы отдавали общий заголовок бренда — это
- * и плохой SEO-сигнал, и непонятная выдача в поиске.
+ * и плохой SEO-сигнал, и непонятная выдача в поиске, а заголовок ещё и
+ * дублировался между PageBody и этим модулем.
+ *
+ * Два слоя:
+ *   • getPageHead — заголовок и лид самой страницы (h1, лид, имя в
+ *     хлебных крошках JSON-LD): их видит посетитель;
+ *   • getPageMeta — <title> и description для поиска: с брендом,
+ *     ключевыми формулировками и описаниями.
  *
  * Заголовки строятся из данных, а не дублируются: название услуги берётся
  * из её карточки, город — из общей константы. Поэтому при переименовании
@@ -24,12 +31,49 @@ const citySuffix: Localized = {
   ru: 'в Белграде',
 };
 
+export interface PageHead {
+  title: string;
+  lead: string;
+}
+
+/** Заголовок и лид страницы: шапка внутренней страницы и имена крошек. */
+export function getPageHead(locale: Locale, routeKey: PageKey): PageHead {
+  const ui = useUI(locale);
+
+  if (routeKey === 'home') {
+    return { title: siteText.heroTitle[locale], lead: siteText.heroLead[locale] };
+  }
+
+  if (isServiceKey(routeKey)) {
+    const service = getService(routeKey);
+    return { title: service.name[locale], lead: service.lead[locale] };
+  }
+
+  const byKey = {
+    prices: { title: ui.nav.prices, lead: ui.home.pricesLead },
+    services: { title: ui.nav.services, lead: ui.home.servicesLead },
+    about: { title: ui.home.aboutTitle, lead: ui.home.aboutLead },
+    reviews: { title: ui.home.reviewsTitle, lead: ui.home.reviewsLead },
+    faq: { title: ui.home.faqTitle, lead: ui.home.faqLead },
+    contact: { title: ui.home.contactTitle, lead: ui.home.contactLead },
+    privacy: { title: ui.footer.privacy, lead: '' },
+    terms: { title: ui.footer.terms, lead: '' },
+  } satisfies Record<Exclude<PageKey, 'home' | ServiceKey>, PageHead>;
+
+  return byKey[routeKey];
+}
+
+export interface PageMeta {
+  title: string;
+  description: string;
+}
+
 /**
- * Отдельные заголовки для двух «денежных» страниц: там важно попасть
- * в формулировки запросов («цена уборки квартиры», «клининг в Белграде»),
- * а не просто назвать раздел.
+ * SEO-заголовки двух «денежных» страниц: там важно попасть в формулировки
+ * запросов («цена уборки квартиры», «клининг в Белграде»), а не просто
+ * назвать раздел.
  */
-const overrides: Record<string, { title: Localized; description: Localized }> = {
+const seoOverrides: Record<'prices' | 'services', { title: Localized; description: Localized }> = {
   prices: {
     title: {
       sr: 'Cene čišćenja stanova u Beogradu — fiksna cena po kvadraturi',
@@ -56,11 +100,7 @@ const overrides: Record<string, { title: Localized; description: Localized }> = 
   },
 };
 
-export interface PageMeta {
-  title: string;
-  description: string;
-}
-
+/** <title> и description страницы для поисковой выдачи и Open Graph. */
 export function getPageMeta(locale: Locale, routeKey: PageKey): PageMeta {
   const ui = useUI(locale);
 
@@ -71,32 +111,35 @@ export function getPageMeta(locale: Locale, routeKey: PageKey): PageMeta {
     };
   }
 
-  const override = overrides[routeKey];
-  if (override) {
-    return { title: override.title[locale], description: override.description[locale] };
-  }
-
-  if (['general', 'regular', 'smart', 'reno'].includes(routeKey)) {
-    const service = getService(routeKey as 'general' | 'regular' | 'smart' | 'reno');
+  if (isServiceKey(routeKey)) {
+    const service = getService(routeKey);
     return {
       title: `${service.name[locale]} ${citySuffix[locale]} — ${site.brand}`,
       description: `${service.lead[locale]} ${service.duration[locale]}.`,
     };
   }
 
-  const byKey: Record<string, { title: string; description: string }> = {
+  if (routeKey === 'prices' || routeKey === 'services') {
+    const override = seoOverrides[routeKey];
+    return { title: override.title[locale], description: override.description[locale] };
+  }
+
+  const byKey = {
     about: { title: ui.home.aboutTitle, description: ui.home.aboutLead },
     reviews: { title: ui.home.reviewsTitle, description: ui.home.reviewsLead },
     faq: { title: ui.home.faqTitle, description: ui.home.faqLead },
     contact: { title: ui.home.contactTitle, description: ui.home.contactLead },
     privacy: { title: ui.footer.privacy, description: ui.footer.disclaimer },
     terms: { title: ui.footer.terms, description: ui.footer.disclaimer },
-  };
+  } satisfies Record<
+    Exclude<PageKey, 'home' | 'prices' | 'services' | ServiceKey>,
+    {
+      title: string;
+      description: string;
+    }
+  >;
 
-  const entry = byKey[routeKey] ?? {
-    title: siteText.tagline[locale],
-    description: siteText.metaDescription[locale],
-  };
+  const entry = byKey[routeKey];
 
   return {
     title: `${entry.title} — ${site.brand}`,

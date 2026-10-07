@@ -1,13 +1,13 @@
 ---
 import type { Locale } from '../../i18n/config';
-import { href, type PageKey } from '../../i18n/routes';
-import { useUI } from '../../i18n/ui';
+import { formatPriceFrom, useUI } from '../../i18n/ui';
 import { site, siteText } from '../../data/site';
-import { planPriceFrom, plansForService } from '../../data/prices';
-import { formatPriceFrom } from '../../i18n/config';
+import { MIN_ORDER, planPriceFrom, plansForService } from '../../data/prices';
 
 import Icon from '../ui/Icon.astro';
 import Photo from '../ui/Photo.astro';
+import TgButton from '../ui/TgButton.astro';
+import CalcButton from '../ui/CalcButton.astro';
 
 /**
  * Первый экран.
@@ -22,16 +22,13 @@ import Photo from '../ui/Photo.astro';
 
 interface Props {
   locale: Locale;
-  routeKey: PageKey;
 }
 
 const { locale } = Astro.props;
 const ui = useUI(locale);
 
 /** Самая низкая цена среди тарифов поддерживающей уборки — честное «от». */
-const cheapest = Math.min(
-  ...plansForService('regular').map((plan) => planPriceFrom(plan)),
-);
+const cheapest = Math.min(...plansForService('regular').map((plan) => planPriceFrom(plan)));
 ---
 
 <section class="hero">
@@ -42,14 +39,8 @@ const cheapest = Math.min(
       <p class="hero__lead">{siteText.heroLead[locale]}</p>
 
       <div class="hero__actions">
-        <a class="btn btn--lg" href={site.telegramUrl} target="_blank" rel="noopener noreferrer">
-          <Icon name="telegram" class="btn__icon" />
-          {ui.cta.book}
-        </a>
-        <a class="btn btn--ghost btn--lg" href={`${href(locale, 'prices')}#calculator`}>
-          <Icon name="calculator" class="btn__icon" />
-          {ui.cta.calculate}
-        </a>
+        <TgButton locale={locale} class="btn--lg" />
+        <CalcButton locale={locale} class="btn--lg" />
       </div>
 
       <p class="hero__promise">
@@ -64,7 +55,7 @@ const cheapest = Math.min(
         </span>
         <span class="badge">
           <Icon name="tag" class="icon--sm" />
-          {ui.price.minimum}: {formatPriceFrom(6000, locale)}
+          {ui.price.minimum}: {formatPriceFrom(MIN_ORDER, locale)}
         </span>
       </div>
     </div>
@@ -72,7 +63,7 @@ const cheapest = Math.min(
     <div class="hero__media">
       <Photo
         alt={`${site.brand} — ${siteText.tagline[locale]}`}
-        hint="Фото: клинер с оборудованием"
+        hint={siteText.photoHintHero[locale]}
         ratio="4 / 3"
         priority
       />

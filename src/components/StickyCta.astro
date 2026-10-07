@@ -53,15 +53,13 @@ const ui = useUI(locale);
     rel="noopener noreferrer"
     aria-label={ui.cta.book}
     data-order-book
-    data-label-default={ui.cta.bookShort}
     data-label-ready={ui.cta.orderShort}
-    data-aria-default={ui.cta.book}
     data-aria-ready={ui.cta.order}
   >
     <Icon name="telegram" class="btn__icon btn__icon--default" />
     <Icon name="check-circle" class="btn__icon btn__icon--ready" />
-    <span class="btn__label" data-order-label>{ui.cta.bookShort}</span>
-    <span class="sticky-cta__badge" aria-hidden="true"></span>
+    <span class="btn__label" data-order-label>
+      {ui.cta.bookShort}
+    </span>
   </a>
 </div>
-

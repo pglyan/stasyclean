@@ -1,0 +1,110 @@
+---
+/**
+ * Таблица прайса — общая разметка для двух ориентаций:
+ * «строки — диапазоны площади, колонки — тарифы» (страница цен)
+ * и «строки — тарифы, колонки — площади» (страница услуги).
+ *
+ * Одна реализация вместо двух: обёртка, подписи, отметки
+ * «чаще всего выбирают» (data-popular) и подписи для мобильных
+ * карточек (data-label) — в одном месте, не могут разойтись.
+ */
+
+/** Колонка: подпись и, для широкой таблицы, группа колонок. */
+interface Column {
+  label: string;
+  /** Заголовок группы колонок (первый уровень) — только у широкой таблицы. */
+  group?: string;
+  popular?: boolean;
+}
+
+/** Строка: подпись в первом столбце и ячейки по колонкам. */
+interface Row {
+  label: string;
+  cells: { price: string; label: string; popular?: boolean }[];
+  popular?: boolean;
+}
+
+/** Заключительная строка «больше максимума» — одна ячейка на всю ширину. */
+interface OverRow {
+  label: string;
+  linkText: string;
+  linkHref: string;
+}
+
+interface Props {
+  /** Подпись для скринридеров (визуально скрыта). */
+  caption: string;
+  /** Верхняя левая ячейка — подписывает и строки, и колонки. */
+  corner: string;
+  columns: Column[];
+  rows: Row[];
+  overRow?: OverRow;
+}
+
+const { caption, corner, columns, rows, overRow } = Astro.props;
+
+/** Группы колонок есть только у широкой таблицы (прайс по площади). */
+const hasGroups = columns.some((column) => column.group);
+
+/** Колонки, свёрнутые в группы: у каждой группы — свой colspan. */
+const groups = columns.reduce<{ label: string; span: number }[]>((acc, column) => {
+  const last = acc[acc.length - 1];
+  if (last && last.label === (column.group ?? '')) {
+    last.span += 1;
+  } else {
+    acc.push({ label: column.group ?? '', span: 1 });
+  }
+  return acc;
+}, []);
+---
+
+<table class="price-table">
+  <caption class="visually-hidden">{caption}</caption>
+  <thead>
+    <tr>
+      {hasGroups ? (
+        <th rowspan="2" scope="col">
+          {corner}
+        </th>
+      ) : (
+        <th scope="col">{corner}</th>
+      )}
+      {hasGroups
+        ? groups.map((group) => (
+            <th colspan={group.span} scope="colgroup">
+              {group.label}
+            </th>
+          ))
+        : columns.map((column) => <th scope="col">{column.label}</th>)}
+    </tr>
+    {hasGroups && (
+      <tr>
+        {columns.map((column) => (
+          <th scope="col" data-popular={column.popular ? '' : undefined}>
+            {column.label}
+          </th>
+        ))}
+      </tr>
+    )}
+  </thead>
+  <tbody>
+    {rows.map((row) => (
+      <tr data-popular={row.popular ? '' : undefined}>
+        <th scope="row">{row.label}</th>
+        {row.cells.map((cell) => (
+          <td data-label={cell.label} data-popular={cell.popular ? '' : undefined}>
+            {cell.price}
+          </td>
+        ))}
+      </tr>
+    ))}
+    {overRow && (
+      <tr>
+        <th scope="row">{overRow.label}</th>
+        <td colspan={columns.length}>
+          <a href={overRow.linkHref}>{overRow.linkText}</a>
+        </td>
+      </tr>
+    )}
+  </tbody>
+</table>

@@ -15,8 +15,11 @@ node scripts/sync-fonts.mjs   # woff2 из Fontsource в src/assets (в git не
 npm run dev                   # разработка
 npm run build                 # сборка → dist/
 npm run preview               # локальный просмотр сборки
-npm run check:colors          # контраст цветов обеих схем
+npm run lint                  # eslint + stylelint
+npm run format                # prettier по всему проекту
 npm run check                 # типы (astro check)
+npm run check:colors          # контраст цветов обеих схем
+npm run check:size            # бюджет веса CSS/JS (после build)
 ```
 
 Токены тем (`src/themes/generated/`) и OG-картинки (`public/og/`)
@@ -32,21 +35,26 @@ Push в `main` запускает `.github/workflows/deploy-pages.yml`: та ж�
 
 ## Где что менять
 
-| Что нужно | Файл |
-|---|---|
-| Телефон, email, Telegram, реквизиты, адрес | `src/data/site.ts` |
-| Цены и тарифы | `src/data/prices.ts` |
-| Услуги, чек-листы, FAQ, отзывы | `src/data/services/`, `src/data/checklists/`, `src/data/faq.ts`, `src/data/reviews.ts` |
-| Цвета (светлая/тёмная схема) | `src/themes/tokens.ts` |
-| Запечённые параметры стиля (шрифты, плотность, карточки, кнопки, ритм секций…) | `src/styles/params.css` |
-| Характер темы (радиус, собственные правила) | `src/themes/nordic/theme.css` |
-| Данные темы (имя, натуральная схема, шрифты) | `src/data/themes.ts` |
-| Шрифты сайта | `src/fonts/`, вход темы — `src/themes/entries/nordic.ts` |
-| Слова интерфейса, адреса страниц | `src/i18n/ui/`, `src/i18n/routes.ts` |
+| Что нужно                                                                      | Файл                                                                                   |
+| ------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
+| Телефон, email, Telegram, реквизиты, адрес                                     | `src/data/site.ts`                                                                     |
+| Цены и тарифы                                                                  | `src/data/prices.ts`                                                                   |
+| Услуги, чек-листы, FAQ, отзывы                                                 | `src/data/services/`, `src/data/checklists/`, `src/data/faq.ts`, `src/data/reviews.ts` |
+| Дополнительные услуги, шаги работы, УТП                                        | `src/data/extras.ts`, `src/data/steps.ts`                                              |
+| Юридические тексты (три локали)                                                | `src/data/legal/`                                                                      |
+| Состав страниц (какие блоки и где)                                             | `src/data/pages.ts`                                                                    |
+| Цвета (светлая/тёмная схема)                                                   | `src/themes/tokens.ts`                                                                 |
+| Запечённые параметры стиля (шрифты, плотность, карточки, кнопки, ритм секций…) | `src/styles/params.css`                                                                |
+| Характер темы (радиус, собственные правила)                                    | `src/themes/nordic/theme.css`                                                          |
+| Данные темы (имя, натуральная схема, шрифты)                                   | `src/data/themes.ts`                                                                   |
+| Шрифты сайта                                                                   | `src/fonts/`, вход темы — `src/themes/entries/nordic.ts`                               |
+| Слова интерфейса, адреса страниц                                               | `src/i18n/ui/`, `src/i18n/routes.ts`                                                   |
 
 ## Доки
 
 - `docs/themes.md` — как устроены оформление, цвета и схемы
+- `docs/i18n.md` — языки, адреса, добавление страницы или локали
+- `docs/data.md` — модели контента (`site.ts`, `prices.ts`, `legal/`)
 - `docs/ops.md` — выкладка прода на nginx, разовые настройки
 - `deploy/` — конфиг nginx
 

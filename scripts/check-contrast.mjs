@@ -3,23 +3,56 @@
  * Проверка контраста цветов тем.
  *
  * Читает src/themes/tokens.ts (единственный источник цветов) и считает
- * пары WCAG. Пороги: ink/bg ≥ 8, ink-soft ≥ 4.5, ссылка ≥ 4.6, текст на
- * акценте ≥ 4.6. Сгенерированный CSS сверять не с чем: он производится
+ * пары WCAG. Сгенерированный CSS сверять не с чем: он производится
  * из этих же токенов скриптом gen-theme-tokens.mjs.
  *
  * Запуск: node scripts/check-contrast.mjs
  */
 
+import { readFileSync } from 'node:fs';
 import { themePresets } from '../src/data/themes.ts';
-import { brandHex, themeColors } from '../src/themes/tokens.ts';
+import { brandHex, hslToRgb } from '../src/themes/brand.ts';
+import { themeColors } from '../src/themes/tokens.ts';
 
+/** Пороги пар. Ключи — производные CSS-токены, они же идут в отчёте. */
 const LIMITS = {
-  'инк/фон': 8,
-  'мягкий/фон': 4.5,
-  'мягкий/подложка': 4.5,
-  'ссылка/фон': 4.6,
-  'текст на акценте': 4.6,
+  'ink/bg': 8,
+  'ink/surface': 8,
+  'ink-soft/bg': 4.5,
+  'ink-soft/surface2': 4.5,
+  // Ссылки и кнопки — короткий выразительный текст, держим планку 4.6.
+  'link/bg': 4.6,
+  'btn-ink/btn-bg': 4.6,
+  'btn-ink/btn-bg-hover': 4.6,
+  'strong/soft': 4.6,
+  'on-accent': 4.6,
+  // Ошибки и подтверждения живут на карточке формы (фон --surface).
+  'danger/surface': 4.5,
+  'success/surface': 4.5,
+  // Не только текст: границы контейнеров должны быть видимы (WCAG 1.4.11).
+  'line/bg': 3,
+  'line/surface': 3,
+  'card-line/surface': 3,
 };
+
+/**
+ * Доля чернил в контуре карточки — читаем прямо из params.css
+ * (--card-line: color-mix(in oklab, var(--ink) NN%, var(--surface))),
+ * чтобы проверка не разъезжалась с реальным значением.
+ */
+const paramsCss = readFileSync(new URL('../src/styles/params.css', import.meta.url), 'utf8');
+const cardLineMatch =
+  /--card-line:\s*color-mix\(in oklab,\s*var\(--ink\)\s+(\d+)%,\s*var\(--surface\)\)/.exec(
+    paramsCss,
+  );
+if (!cardLineMatch) {
+  console.error(
+    '✗ Не удалось прочитать --card-line из src/styles/params.css — ' +
+      'обновите check-contrast.mjs под новый формат значения.',
+  );
+  process.exit(1);
+}
+const cardInkShare = Number(cardLineMatch[1]) / 100;
 
 const HEX_RE = /^#([0-9a-f]{6})$/i;
 
@@ -56,7 +89,11 @@ function contrast(a, b) {
 
 function toHex(rgb) {
   return `#${rgb
-    .map((channel) => Math.round(clamp(channel) * 255).toString(16).padStart(2, '0'))
+    .map((channel) =>
+      Math.round(clamp(channel) * 255)
+        .toString(16)
+        .padStart(2, '0'),
+    )
     .join('')}`;
 }
 
@@ -89,42 +126,58 @@ function mixOklab(a, b, weightA) {
   return oklabToSrgb(labA.map((value, index) => value * weightA + labB[index] * (1 - weightA)));
 }
 
-function hslToRgb(hue, saturation, lightness) {
-  const h = ((hue % 360) + 360) % 360;
-  const s = saturation / 100;
-  const l = lightness / 100;
-  const k = (n) => (n + h / 30) % 12;
-  const a = s * Math.min(l, 1 - l);
-  const f = (n) => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
-  return [f(0), f(8), f(4)];
-}
-
-function number(token) {
-  return parseFloat(String(token).replace('%', '').trim());
-}
-
 function evaluate(label, t, report) {
-  const brand = hslToRgb(number(t.brandH), number(t.brandS), number(t.brandL));
+  const brand = hslToRgb(t.brandH, t.brandS, t.brandL);
   const bg = parseHex(t.bg);
+  const surface = parseHex(t.surface);
   const surface2 = parseHex(t.surface2);
   const ink = parseHex(t.ink);
   const inkSoft = parseHex(t.inkSoft);
+  const line = parseHex(t.line);
   const brandInk = parseHex(t.brandInk);
+  const danger = parseHex(t.danger);
+  const success = parseHex(t.success);
 
-  if (!bg || !surface2 || !ink || !inkSoft || !brandInk) {
+  if (
+    !bg ||
+    !surface ||
+    !surface2 ||
+    !ink ||
+    !inkSoft ||
+    !line ||
+    !brandInk ||
+    !danger ||
+    !success
+  ) {
     report.problems.push(`${label}: токены заданы не hex — проверка невозможна.`);
     return null;
   }
 
   const literal = t.brandStrong ? parseHex(t.brandStrong) : null;
   const strong = literal ?? mixOklab(brand, ink, 0.78);
+  const cardLine = mixOklab(ink, surface, cardInkShare);
+  // Кнопки в params.css мягкие: подложка и её ховер — производные от
+  // акцента (12% и 22%), текст кнопки — тот же strong, что и ссылки.
+  const brandSoft = mixOklab(brand, surface, 0.12);
+  const btnBgHover = mixOklab(brand, surface, 0.22);
 
   const ratios = {
-    'инк/фон': contrast(ink, bg),
-    'мягкий/фон': contrast(inkSoft, bg),
-    'мягкий/подложка': contrast(inkSoft, surface2),
-    'ссылка/фон': contrast(strong, bg),
-    'текст на акценте': contrast(brandInk, brand),
+    'ink/bg': contrast(ink, bg),
+    'ink/surface': contrast(ink, surface),
+    'ink-soft/bg': contrast(inkSoft, bg),
+    'ink-soft/surface2': contrast(inkSoft, surface2),
+    'link/bg': contrast(strong, bg),
+    'btn-ink/btn-bg': contrast(strong, brandSoft),
+    'btn-ink/btn-bg-hover': contrast(strong, btnBgHover),
+    'strong/soft': contrast(strong, brandSoft),
+    'on-accent': contrast(brandInk, brand),
+    // Ошибки и подтверждения живут на карточке формы (фон --surface).
+    'danger/surface': contrast(danger, surface),
+    'success/surface': contrast(success, surface),
+    // Границы контейнеров (WCAG 1.4.11): контурные линии и рамка карточки.
+    'line/bg': contrast(line, bg),
+    'line/surface': contrast(line, surface),
+    'card-line/surface': contrast(cardLine, surface),
   };
 
   for (const [pair, value] of Object.entries(ratios)) {
@@ -159,7 +212,7 @@ for (const theme of themePresets) {
 }
 
 const header = ['набор', ...Object.keys(LIMITS)];
-const width = [18, ...Object.keys(LIMITS).map(() => 15)];
+const width = [18, ...Object.keys(LIMITS).map(() => 18)];
 
 console.log(`\nПроверка контраста: ${themePresets.length} тем, ${report.schemes} схем\n`);
 console.log('  ' + header.map((cell, index) => cell.padEnd(width[index])).join(''));
@@ -167,8 +220,8 @@ console.log('  ' + '-'.repeat(width.reduce((sum, value) => sum + value, 0)));
 
 for (const row of report.rows) {
   const cells = Object.entries(row.ratios).map(([pair, value]) => {
-    const mark = value < LIMITS[pair] ? ' ✗' : row.derivedStrong && pair === 'ссылка/фон' ? ' ~' : '';
-    return `${value.toFixed(2)}${mark}`.padEnd(15);
+    const mark = value < LIMITS[pair] ? ' ✗' : row.derivedStrong && pair === 'link/bg' ? ' ~' : '';
+    return `${value.toFixed(2)}${mark}`.padEnd(18);
   });
   console.log('  ' + row.label.padEnd(18) + cells.join(''));
 }

@@ -5,25 +5,26 @@ import { steps } from '../../data/steps';
 
 /** «Как мы работаем» — четыре шага с нумерацией. */
 import SectionHead from './SectionHead.astro';
+import { sectionClass } from '../ui/sectionClass';
 
 interface Props {
   locale: Locale;
   /** Заголовок секции выводить или нет (на странице услуги он уже есть). */
   withHead?: boolean;
+  /** Серый фон секции (чередование полос на странице). */
+  surface?: boolean;
 }
 
-const { locale, withHead = true } = Astro.props;
+const { locale, withHead = true, surface = false } = Astro.props;
 const ui = useUI(locale);
 ---
 
-<section class="section" id="steps">
+<section class={sectionClass(surface)} id="steps">
   <div class="container">
-    {withHead && (
-      <SectionHead title={ui.home.stepsTitle} lead={ui.home.stepsLead} />
-    )}
+    {withHead && <SectionHead title={ui.home.stepsTitle} lead={ui.home.stepsLead} />}
     <div class="steps">
       {steps.map((step, index) => (
-        <div class="step">
+        <div class="step" data-reveal>
           <span class="step__num">{String(index + 1).padStart(2, '0')}</span>
           <h3 class="step__title">{step.title[locale]}</h3>
           <p class="step__text">{step.text[locale]}</p>

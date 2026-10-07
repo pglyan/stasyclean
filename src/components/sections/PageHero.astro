@@ -19,8 +19,8 @@ interface Props {
   routeKey: PageKey;
   title: string;
   lead?: string;
-  /** Родительская страница для крошек. */
-  parentKey?: PageKey;
+  /** Родительская страница для крошек — только разделы навигации. */
+  parentKey?: 'home' | 'prices' | 'services' | 'about' | 'reviews' | 'faq' | 'contact';
   /** Подпись для фото-слота; без неё блок фото не выводится. */
   photoHint?: string;
 }
@@ -29,18 +29,20 @@ const { locale, title, lead, parentKey, photoHint } = Astro.props;
 const ui = useUI(locale);
 ---
 
-<section class="hero" style="padding-block:var(--s12) var(--s10)">
+<section class="hero hero--page">
   <div class="container hero__inner">
     <div>
-      <nav aria-label="breadcrumb" style="margin-block-end:var(--s4)">
-        <ol
-          style="display:flex;flex-wrap:wrap;gap:var(--s2);list-style:none;padding:0;margin:0;font-size:var(--fs-xs);color:var(--ink-soft)"
-        >
-          <li><a href={href(locale, 'home')}>{ui.nav.home}</a></li>
+      <nav class="crumbs" aria-label={ui.common.breadcrumb}>
+        <ol class="crumbs__list">
+          <li>
+            <a href={href(locale, 'home')}>{ui.nav.home}</a>
+          </li>
           {parentKey && (
             <>
               <li aria-hidden="true">/</li>
-              <li><a href={href(locale, parentKey)}>{ui.nav.services}</a></li>
+              <li>
+                <a href={href(locale, parentKey)}>{ui.nav[parentKey]}</a>
+              </li>
             </>
           )}
           <li aria-hidden="true">/</li>
@@ -48,7 +50,7 @@ const ui = useUI(locale);
         </ol>
       </nav>
 
-      <h1 class="hero__title" style="font-size:var(--fs-h1)">{title}</h1>
+      <h1 class="hero__title">{title}</h1>
       {lead && <p class="hero__lead">{lead}</p>}
     </div>
 

@@ -13,6 +13,7 @@ export const unitLabels: Record<Unit, Localized> = {
   m2: { sr: 'za 1 m²', en: 'per m²', ru: 'за 1 м²' },
   '30min': { sr: 'za 30 min', en: 'per 30 min', ru: 'за 30 мин' },
   sash: { sr: 'za krilo', en: 'per sash', ru: 'за створку' },
+  /** У фиксированной цены нет «за единицу» — подписи намеренно пустые. */
   flat: { sr: '', en: '', ru: '' },
 };
 

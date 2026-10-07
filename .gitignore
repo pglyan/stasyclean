@@ -40,3 +40,4 @@ npm-debug.log*
 
 .commandcode/
 .agents/
+skills-lock.json

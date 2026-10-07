@@ -14,17 +14,31 @@
     "preview": "astro preview",
     "check": "astro check",
     "check:colors": "node scripts/check-contrast.mjs",
+    "check:size": "node scripts/check-size.mjs",
+    "lint": "eslint . && stylelint \"src/**/*.css\"",
+    "lint:fix": "eslint . --fix && stylelint \"src/**/*.css\" --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "make:og": "node scripts/make-og.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",
-    "astro": "^7.3.5",
-    "sharp": "^0.35.4"
+    "astro": "^7.3.5"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
+    "@eslint/js": "^10.0.1",
     "@fontsource-variable/lora": "^5.3.0",
     "@fontsource-variable/manrope": "^5.3.0",
-    "typescript": "^6.0.3"
+    "eslint": "^10.12.0",
+    "eslint-plugin-astro": "^3.2.1",
+    "globals": "^17.13.0",
+    "prettier": "^3.9.9",
+    "prettier-plugin-astro": "^1.1.0",
+    "sharp": "^0.35.4",
+    "stylelint": "^17.16.0",
+    "stylelint-config-standard": "^40.0.0",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.71.1"
   }
 }

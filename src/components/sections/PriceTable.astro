@@ -1,11 +1,13 @@
 ---
-import { AREA_TIERS, areaOver, areaUnit, areaUpTo, plans } from '../../data/prices';
+import { AREA_MAX, AREA_TIERS, areaOver, areaUnit, areaUpTo, plans } from '../../data/prices';
 import { getService } from '../../data/services';
-import { SERVICE_KEYS } from '../../i18n/routes';
+import { href, SERVICE_KEYS } from '../../i18n/routes';
 import { formatNumber, formatPrice, type Locale } from '../../i18n/config';
 import { useUI } from '../../i18n/ui';
 
 import SectionHead from './SectionHead.astro';
+import PriceTableGrid from '../ui/PriceTableGrid.astro';
+import { sectionClass } from '../ui/sectionClass';
 
 /**
  * Прайс по площади.
@@ -21,9 +23,11 @@ import SectionHead from './SectionHead.astro';
 interface Props {
   locale: Locale;
   withHead?: boolean;
+  /** Серый фон секции (чередование полос на странице). */
+  surface?: boolean;
 }
 
-const { locale, withHead = true } = Astro.props;
+const { locale, withHead = true, surface = false } = Astro.props;
 const ui = useUI(locale);
 
 /** Только тарифы, которые считаются по метражу. */
@@ -43,6 +47,9 @@ const groups = SERVICE_KEYS.map((key) => ({
 const columns = groups.flatMap((group) =>
   group.plans.map((plan) => ({ plan, service: group.service })),
 );
+
+/** Тариф с отметкой «чаще всего выбирают» — для подписи под таблицей. */
+const popularPlan = columns.find(({ plan }) => plan.popular)?.plan;
 
 /** Подписи столбцов для мобильных карточек (см. components-blocks-b.css). */
 const columnLabel = (column: (typeof columns)[number]) => planLabel(column.plan, column.service);
@@ -71,66 +78,50 @@ function planLabel(plan: (typeof plans)[number], service: (typeof columns)[numbe
 
   return collidesWithAnotherPlan && !repeatsServiceName ? `${serviceName} · ${name}` : name;
 }
+
+/** Колонки общей таблицы: тариф с группой-услугой и отметкой popular. */
+const tableColumns = columns.map((column) => ({
+  label: planLabel(column.plan, column.service),
+  group: column.service.name[locale],
+  popular: column.plan.popular,
+}));
+
+/** Строки общей таблицы: диапазон площади × цены всех тарифов. */
+const tableRows = AREA_TIERS.map((tier, index) => ({
+  label: `${areaUpTo[locale]} ${formatNumber(tier, locale)} ${areaUnit[locale]}`,
+  cells: columns.map((column) => ({
+    price: formatPrice(column.plan.tiers[index], locale),
+    label: columnLabel(column),
+    popular: column.plan.popular,
+  })),
+}));
+
+/** Финальная строка: площадь сверх AREA_MAX — считаем индивидуально. */
+const overRow = {
+  label: `${areaOver[locale]} ${formatNumber(AREA_MAX, locale)} ${areaUnit[locale]}`,
+  linkText: ui.cta.details,
+  linkHref: href(locale, 'contact'),
+};
 ---
 
-<section class="section section--surface" id="prices">
+<section class={sectionClass(surface)} id="prices">
   <div class="container">
-    {withHead && (
-      <SectionHead title={ui.home.pricesTitle} lead={ui.home.pricesLead} />
-    )}
+    {withHead && <SectionHead title={ui.home.pricesTitle} lead={ui.home.pricesLead} />}
 
     <div class="price-table-wrap">
-      <table class="price-table">
-        <caption class="visually-hidden">{ui.home.pricesTitle}</caption>
-        <thead>
-          <tr>
-            <th rowspan="2" scope="col">{ui.price.area}, {areaUnit[locale]}</th>
-            {groups.map((group) => (
-              <th colspan={group.plans.length} scope="colgroup">
-                {group.service.name[locale]}
-              </th>
-            ))}
-          </tr>
-          <tr>
-            {columns.map(({ plan }) => (
-              <th scope="col" data-popular={plan.popular ? '' : undefined}>
-                {plan.name[locale]}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {AREA_TIERS.map((tier, index) => (
-            <tr>
-              <th scope="row">{areaUpTo[locale]} {formatNumber(tier, locale)} {areaUnit[locale]}</th>
-              {columns.map((column) => (
-                <td
-                  data-label={columnLabel(column)}
-                  data-popular={column.plan.popular ? '' : undefined}
-                >
-                  {formatPrice(column.plan.tiers[index], locale)}
-                </td>
-              ))}
-            </tr>
-          ))}
-          <tr>
-            <th scope="row">{areaOver[locale]} 150 {areaUnit[locale]}</th>
-            {/*
-              В этой строке все ячейки одинаковые («Подробнее»), поэтому подписи
-              для мобильных карточек не нужны: они пять раз повторяли бы одно
-              и то же и весили больше остальных строк вместе.
-            */}
-            {columns.map(() => (
-              <td>{ui.cta.details}</td>
-            ))}
-          </tr>
-        </tbody>
-      </table>
-      <p class="price-table__caption">
-        {columns.find(({ plan }) => plan.popular)?.plan.name[locale]} — {ui.price.popular.toLowerCase()}.
-        {' '}
-        {ui.calc.resultHint}
-      </p>
+      <PriceTableGrid
+        caption={ui.home.pricesTitle}
+        corner={`${ui.price.area}, ${areaUnit[locale]}`}
+        columns={tableColumns}
+        rows={tableRows}
+        overRow={overRow}
+      />
+      {popularPlan && (
+        <p class="price-table__caption">
+          {popularPlan.name[locale]} — {ui.price.popular.toLocaleLowerCase(locale)}.{' '}
+          {ui.calc.resultHint}
+        </p>
+      )}
     </div>
   </div>
 </section>

@@ -22,7 +22,7 @@ html {
   -webkit-tap-highlight-color: transparent;
   scroll-behavior: smooth;
   /* Фиксированная шапка не должна перекрывать якоря */
-  scroll-padding-top: 6rem;
+  scroll-padding-top: var(--header-h);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -45,7 +45,7 @@ body {
   /* Вырез камеры и скруглённые углы: в ландшафте на «челке» контент иначе
      уходит под вырез. Переменные непусты только вместе с viewport-fit=cover
      (см. layouts/Base.astro), поэтому на обычных экранах это 0. */
-  padding-inline: env(safe-area-inset-left, 0px) env(safe-area-inset-right, 0px);
+  padding-inline: env(safe-area-inset-left, 0) env(safe-area-inset-right, 0);
 }
 
 img,
@@ -116,19 +116,20 @@ h4 {
   letter-spacing: var(--font-heading-tracking, var(--tracking-tight));
   text-wrap: balance;
   color: var(--ink);
+  /* Заголовок не должен выталкивать страницу за край экрана.
+     На 320px длинное слово («Конфиденциальности», «renoviranje») шире
+     колонки текста, и без переноса оно давало горизонтальный скролл всей
+     странице (замер: 361px контента при 320px экрана на юридической
+     странице). От 48rem колонка шире и перенос не нужен. */
+  overflow-wrap: break-word;
 }
 
-/* Заголовок не должен выталкивать страницу за край экрана.
-   На 320px длинное слово («Конфиденциальности», «renoviranje») шире
-   колонки текста, и без переноса оно давало горизонтальный скролл всей
-   странице (замер: 361px контента при 320px экрана на юридической странице).
-   Правило включается только тогда, когда слово действительно не влезает. */
-@media (max-width: 47.999rem) {
+@media (min-width: 48rem) {
   h1,
   h2,
   h3,
   h4 {
-    overflow-wrap: break-word;
+    overflow-wrap: normal;
   }
 }
 
@@ -168,7 +169,7 @@ ol {
   position: absolute;
   inset-block-start: -100%;
   inset-inline-start: var(--gutter);
-  z-index: 100;
+  z-index: var(--z-skip);
   padding: var(--s2) var(--s4);
   background: var(--brand);
   color: var(--brand-ink);
@@ -199,5 +200,41 @@ ol {
 @media (prefers-reduced-transparency: reduce) {
   * {
     backdrop-filter: none !important;
+  }
+}
+
+/* ---------- Появление блоков при прокрутке ---------- */
+/* Класс .reveal ставит скрипт (src/scripts/reveal.ts) — только на элементы
+   ниже первого кадра, поэтому без JS страница остаётся полностью видимой.
+   Анимация идёт через animation, а не transition: у карточек уже занят
+   переходом hover-эффект, и shorthand transition затёр бы его. */
+
+.reveal {
+  opacity: 0;
+  translate: 0 14px;
+}
+
+.reveal.is-revealed {
+  animation: reveal-in var(--dur-slow) var(--ease) both;
+}
+
+@keyframes reveal-in {
+  from {
+    opacity: 0;
+    translate: 0 14px;
+  }
+
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+/* Печать не должна терять ещё не показанные блоки. */
+@media print {
+  .reveal {
+    opacity: 1;
+    translate: none;
+    animation: none;
   }
 }

@@ -25,6 +25,8 @@ function block(tokens) {
     `  --ink: ${tokens.ink};`,
     `  --ink-soft: ${tokens.inkSoft};`,
     `  --line: ${tokens.line};`,
+    `  --danger: ${tokens.danger};`,
+    `  --success: ${tokens.success};`,
   );
   if (tokens.shadowColor) lines.push(`  --shadow-color: ${tokens.shadowColor};`);
   return lines.join('\n');

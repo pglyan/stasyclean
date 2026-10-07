@@ -1,8 +1,10 @@
 ---
 import { unitLabels, type PriceLine } from '../../data/extras';
-import { formatPrice, formatPriceFrom, formatPriceRange, type Locale } from '../../i18n/config';
+import { formatPrice, formatPriceRange, type Locale } from '../../i18n/config';
+import { formatPriceFrom } from '../../i18n/ui';
 
 import SectionHead from './SectionHead.astro';
+import { sectionClass } from '../ui/sectionClass';
 
 /**
  * Список позиций прайса: дополнительные услуги и мойка окон.
@@ -26,7 +28,7 @@ interface Props {
 const { locale, title, lead, lines, id, surface = false, withHead = true } = Astro.props;
 ---
 
-<section class={`section ${surface ? 'section--surface' : ''}`.trim()} id={id}>
+<section class={sectionClass(surface)} id={id}>
   <div class="container">
     {withHead && <SectionHead title={title} lead={lead} />}
 
@@ -41,9 +43,13 @@ const { locale, title, lead, lines, id, surface = false, withHead = true } = Ast
           </span>
           <span class="price-row__value price-row__value--num">
             {line.price !== undefined && formatPrice(line.price, locale)}
-            {line.price === undefined && line.priceFrom !== undefined && line.priceTo !== undefined &&
+            {line.price === undefined &&
+              line.priceFrom !== undefined &&
+              line.priceTo !== undefined &&
               formatPriceRange(line.priceFrom, line.priceTo, locale)}
-            {line.price === undefined && line.priceFrom !== undefined && line.priceTo === undefined &&
+            {line.price === undefined &&
+              line.priceFrom !== undefined &&
+              line.priceTo === undefined &&
               formatPriceFrom(line.priceFrom, locale)}
           </span>
         </div>

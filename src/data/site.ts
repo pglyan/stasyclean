@@ -1,4 +1,4 @@
-import type { Localized } from './types';
+import type { Localized, Pending } from './types';
 
 /**
  * Данные о компании.
@@ -12,16 +12,16 @@ export const site = {
   brand: 'StasyClean',
 
   /** Название компании для JSON-LD и футера. Требуется уточнить правовую форму. */
-  legalName: null as string | null,
+  legalName: null as Pending<string>,
 
   domain: 'stasyclean.com',
   /** Год основания — требуется подтвердить. В объявлении на poisk.rs от 30.05.2024 работа уже велась. */
-  foundedYear: null as number | null,
+  foundedYear: null as Pending<number>,
 
   /** Телефон отсутствует на текущем сайте. */
-  phone: null as string | null,
+  phone: null as Pending<string>,
   /** Email отсутствует на текущем сайте. */
-  email: null as string | null,
+  email: null as Pending<string>,
 
   telegram: 'stasy_clean',
   telegramUrl: 'https://t.me/stasy_clean',
@@ -30,13 +30,13 @@ export const site = {
 
   /** Юридические реквизиты Республики Сербия — обязательны, требуются от клиента. */
   legal: {
-    pib: null as string | null,
-    mb: null as string | null,
-    address: null as string | null,
+    pib: null as Pending<string>,
+    mb: null as Pending<string>,
+    address: null as Pending<string>,
   },
 
   /** География работы. Подтверждено: Белград. Нови-Сад — заявлен у большинства конкурентов. */
-  cities: ['Beograd'] as string[],
+  cities: ['Beograd'],
   /** Районы Белграда для блока «где мы работаем» — требуется подтвердить список выезда. */
   districts: [
     'Vračar',
@@ -51,8 +51,13 @@ export const site = {
     'Čukarica',
     'Rakovica',
     'Bežanija',
-  ] as string[],
+  ],
 } as const;
+
+/** Есть ли юридические реквизиты: пока их нет — показываем пометку-заглушку. */
+export function hasLegal(): boolean {
+  return Boolean(site.legal.pib || site.legal.mb || site.legal.address);
+}
 
 /** Тексты шапки/футера и метаданные — по локалям. */
 export const siteText = {
@@ -98,5 +103,21 @@ export const siteText = {
     sr: 'Fiksna cena po kvadraturi. Cena ne zavisi od trajanja rada.',
     en: 'Fixed price by area. The price does not depend on how long the work takes.',
     ru: 'Фиксированная цена по площади. Цена не зависит от длительности уборки.',
+  } satisfies Localized,
+
+  /**
+   * Подписи на фото-слотах (Photo.astro): говорят, какой снимок нужен,
+   * и видны посетителю, пока фотографий нет, — поэтому локализованы.
+   */
+  photoHintHero: {
+    sr: 'Foto: čistač sa profesionalnom opremom',
+    en: 'Photo: a cleaner with professional equipment',
+    ru: 'Фото: клинер с профессиональным оборудованием',
+  } satisfies Localized,
+
+  photoHintPage: {
+    sr: 'Foto: prostorija posle čišćenja',
+    en: 'Photo: a room after cleaning',
+    ru: 'Фото: комната после уборки',
   } satisfies Localized,
 } as const;

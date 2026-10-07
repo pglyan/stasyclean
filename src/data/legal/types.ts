@@ -10,8 +10,6 @@ export interface LegalSection {
 export interface LegalContent {
   /** ISO-дата последнего обновления. */
   updated: string;
-  /** Локализованная подпись «Обновлено» / «Ažurirano» / «Last updated». */
-  updatedLabel: string;
   sections: LegalSection[];
 }
 

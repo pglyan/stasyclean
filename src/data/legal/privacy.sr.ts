@@ -8,7 +8,6 @@ import type { LegalContent } from './types';
 
 export const privacySr: LegalContent = {
   updated: '2026-09-27',
-  updatedLabel: 'Ažurirano',
   sections: [
     {
       title: 'Ko obrađuje vaše podatke',

@@ -1,7 +1,9 @@
 ---
 import type { Locale } from '../../i18n/config';
+import { useUI } from '../../i18n/ui';
 
 import SectionHead from './SectionHead.astro';
+import { sectionClass } from '../ui/sectionClass';
 
 /**
  * Сравнение «до / после».
@@ -16,18 +18,16 @@ import SectionHead from './SectionHead.astro';
 
 interface Props {
   locale: Locale;
+  /** Серый фон секции (чередование полос на странице). */
+  surface?: boolean;
 }
 
-const { locale } = Astro.props;
-
-const labels = {
-  sr: { title: 'Pre i posle', lead: 'Isti ugao snimljen pre i posle čišćenja.', before: 'Pre', after: 'Posle', hint: 'Foto: isto mesto pre i posle uklanjanja' },
-  en: { title: 'Before and after', lead: 'The same spot photographed before and after cleaning.', before: 'Before', after: 'After', hint: 'Photos: the same spot before and after cleaning' },
-  ru: { title: 'До и после', lead: 'Один и тот же угол до и после уборки.', before: 'До', after: 'После', hint: 'Фото: одно и то же место до и после уборки' },
-}[locale];
+const { locale, surface = false } = Astro.props;
+const ui = useUI(locale);
+const labels = ui.beforeAfter;
 ---
 
-<section class="section" id="before-after">
+<section class={sectionClass(surface)} id="before-after">
   <div class="container">
     <SectionHead title={labels.title} lead={labels.lead} />
 

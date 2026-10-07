@@ -28,6 +28,9 @@ import sharp from 'sharp';
  */
 import { site, siteText } from '../src/data/site.ts';
 import { LOCALE_META } from '../src/i18n/config.ts';
+import { themePresets } from '../src/data/themes.ts';
+import { brandHex } from '../src/themes/brand.ts';
+import { themeColors } from '../src/themes/tokens.ts';
 
 const WIDTH = 1200;
 const HEIGHT = 630;
@@ -35,21 +38,25 @@ const HEIGHT = 630;
 const OUT_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'public', 'og');
 
 const FONT = 'DejaVu Sans, Verdana, sans-serif';
-const INK = '#0b1220';
-const BRAND = '#12a87b';
-const TEXT = '#ffffff';
-const MUTED = '#9fb3c8';
+
+/**
+ * Палитра OG-картинки — из токенов темы (src/themes/tokens.ts), а не
+ * захардкоженные hex: раньше зелёный на карточке (#12a87b) разошёлся
+ * с фирменным цветом сайта (#22765d). Карточка тёмная, поэтому берём
+ * набор тёмной схемы (alt) — её акцент рассчитан на тёмный фон.
+ */
+const palette = themeColors[themePresets[0].id].alt;
+const INK = palette.bg;
+const BRAND = brandHex(palette);
+const TEXT = palette.ink;
+const MUTED = palette.inkSoft;
 
 /** Экранирование для XML: в текстах есть «&», кавычки и длинные тире.
  * @param {string} value
  * @returns {string}
  */
 const xml = (value) =>
-  value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+  value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 /**
  * Разбивка по словам по приблизительной ширине строки.
@@ -206,8 +213,9 @@ for (const locale of Object.keys(LOCALE_META)) {
   }
 
   await writeFile(join(OUT_DIR, `${locale}.png`), buffer);
-  console.log(`OG ${locale}.png — ${(buffer.length / 1024).toFixed(0)} КБ, ${meta.width}×${meta.height}`);
+  console.log(
+    `OG ${locale}.png — ${(buffer.length / 1024).toFixed(0)} КБ, ${meta.width}×${meta.height}`,
+  );
 }
 
 console.log(`\nOG-картинки обновлены: public/og/\n`);
-

@@ -6,6 +6,7 @@ import { getService } from '../../data/services';
 
 import Icon from '../ui/Icon.astro';
 import SectionHead from './SectionHead.astro';
+import { sectionClass } from '../ui/sectionClass';
 
 /**
  * Отзывы.
@@ -23,22 +24,26 @@ interface Props {
   locale: Locale;
   withHead?: boolean;
   limit?: number;
+  /** Серый фон секции (чередование полос на странице). */
+  surface?: boolean;
 }
 
-const { locale, withHead = true, limit } = Astro.props;
+const { locale, withHead = true, limit, surface = false } = Astro.props;
 const ui = useUI(locale);
 const items = reviews.slice(0, limit ?? reviews.length);
 ---
 
-<section class="section" id="reviews">
+<section class={sectionClass(surface)} id="reviews">
   <div class="container">
     {withHead && <SectionHead title={ui.home.reviewsTitle} lead={ui.home.reviewsLead} />}
 
     <div class="grid grid--2">
       {items.map((review) => (
-        <article class="card review">
+        <article class="card review" data-reveal>
           <div class="review__head">
-            <span class="review__avatar" aria-hidden="true">{review.initials}</span>
+            <span class="review__avatar" aria-hidden="true">
+              {review.initials}
+            </span>
             <div>
               <div class="review__name">{review.name}</div>
               <div class="review__meta">
@@ -49,7 +54,7 @@ const items = reviews.slice(0, limit ?? reviews.length);
 
           <div class="review__stars" role="img" aria-label={`${review.rating} / 5`}>
             {Array.from({ length: 5 }).map((_, index) => (
-              <Icon name="star" class={index < review.rating ? '' : 'review__star--off'} />
+              <Icon name="star" class={index < review.rating ? undefined : 'review__star--off'} />
             ))}
           </div>
 

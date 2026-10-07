@@ -22,4 +22,16 @@ export const legalDocs: LegalDocs = {
   terms: { sr: termsSr, en: termsEn, ru: termsRu },
 };
 
+/**
+ * Число и порядок разделов одинаковы во всех локалях — иначе секции
+ * одного документа рассинхронятся между языками молча (тип такой
+ * разницы не ловит). Проверка на этапе сборки.
+ */
+for (const [doc, content] of Object.entries(legalDocs)) {
+  const counts = Object.values(content).map((localized) => localized.sections.length);
+  if (new Set(counts).size > 1) {
+    throw new Error(`Документ «${doc}»: разное число разделов в локалях (${counts.join('/')}).`);
+  }
+}
+
 export type { LegalContent, LegalDocKey, LegalSection, LegalDocs } from './types';

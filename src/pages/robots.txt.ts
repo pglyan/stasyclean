@@ -29,12 +29,7 @@ export const GET: APIRoute = () => {
   // (src/i18n/routes.ts), поэтому карта сайта не может разъехаться с ссылками.
   const baseUrl = new URL(BASE, origin).href.replace(/\/$/, '');
 
-  const lines = [
-    'User-agent: *',
-    'Allow: /',
-    '',
-    `Sitemap: ${baseUrl}/sitemap-index.xml`,
-  ];
+  const lines = ['User-agent: *', 'Allow: /', '', `Sitemap: ${baseUrl}/sitemap-index.xml`];
 
   return new Response(`${lines.join('\n')}\n`, {
     headers: { 'Content-Type': 'text/plain; charset=utf-8' },

@@ -1,4 +1,5 @@
 import type { Service } from '../types';
+import { MIN_ORDER } from '../prices';
 
 export const smart: Service = {
   key: 'smart',
@@ -33,7 +34,8 @@ export const smart: Service = {
     ru: 'От 3 часов (минимальный заказ)',
   },
   priceUnit: 'hour',
-  minOrder: 6000,
+  /** Часы × ставка — та же константа, что в подписи «Минимальный заказ». */
+  minOrder: MIN_ORDER,
   highlights: {
     sr: [
       'Jedna cena po satu, bez doplata po zadatku',

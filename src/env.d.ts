@@ -1,21 +1,12 @@
-/**
- * Типы окружения сборки.
- */
-interface ImportMetaEnv {
-  readonly BASE_URL: string
-  readonly SITE: string
-  readonly MODE: string
-  readonly DEV: boolean
-  readonly PROD: boolean
-  readonly PUBLIC_ANALYTICS?: string
-}
+/// <reference types="astro/client" />
 
-interface ImportMeta {
-  readonly env: ImportMetaEnv
+interface ImportMetaEnv {
+  /** Показывать ли баннер cookie: включается вместе с аналитикой. */
+  readonly PUBLIC_ANALYTICS?: string;
 }
 
 /**
  * Алиас CSS-входа темы: на сборке указывает на файл темы сайта
  * (см. astro.config.mjs).
  */
-declare module '@skin'
+declare module '@skin';

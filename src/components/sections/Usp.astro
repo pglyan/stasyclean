@@ -13,13 +13,22 @@ const { locale } = Astro.props;
 ---
 
 <div class="container">
-  <div class="usp">
+  {/*
+    section, а не div: внутри — заголовки, и без секции они болтались
+    вне структуры документа. Заголовки — h2 (не h3): после h1 первого
+    экрана это следующий уровень, и пропуск уровня больше не возникает.
+    Корневой элемент остаётся div-контейнером намеренно: секция-ребёнок
+    не участвует в подсчёте полос (main > .section в params.css).
+  */}
+  <section class="usp">
     {usps.map((item) => (
-      <div class="usp__item">
-        <span class="icon-box"><Icon name={item.icon} /></span>
-        <h3 class="usp__title">{item.title[locale]}</h3>
+      <div class="usp__item" data-reveal>
+        <span class="icon-box">
+          <Icon name={item.icon} />
+        </span>
+        <h2 class="usp__title">{item.title[locale]}</h2>
         <p class="usp__text">{item.text[locale]}</p>
       </div>
     ))}
-  </div>
+  </section>
 </div>

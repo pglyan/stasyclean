@@ -6,6 +6,7 @@ import { site } from '../../data/site';
 
 import Icon from '../ui/Icon.astro';
 import SectionHead from './SectionHead.astro';
+import { sectionClass } from '../ui/sectionClass';
 
 /**
  * Форма заявки.
@@ -23,44 +24,28 @@ import SectionHead from './SectionHead.astro';
 interface Props {
   locale: Locale;
   withHead?: boolean;
+  /** Серый фон секции (чередование полос на странице). */
+  surface?: boolean;
 }
 
-const { locale, withHead = true } = Astro.props;
+const { locale, withHead = true, surface = false } = Astro.props;
 const ui = useUI(locale);
 
 const times = [ui.form.timeMorning, ui.form.timeAfternoon, ui.form.timeEvening];
 
-const whatsappUrl = site.phone
-  ? `https://wa.me/${site.phone.replace(/[^0-9]/g, '')}`
-  : null;
+const whatsappUrl = site.phone ? `https://wa.me/${site.phone.replace(/[^0-9]/g, '')}` : null;
 ---
 
-<section class="section" id="booking">
+<section class={sectionClass(surface)} id="booking">
   <div class="container">
     {withHead && <SectionHead title={ui.home.formTitle} lead={ui.home.formLead} />}
 
-    <form
-      class="form"
-      data-booking
-      novalidate
-      data-tg={site.telegramUrl}
-      data-labels={JSON.stringify({
-        name: ui.form.name,
-        contact: ui.form.contact,
-        district: ui.form.address,
-        date: ui.form.date,
-        time: ui.form.time,
-        comment: ui.form.comment,
-      })}
-      data-errors={JSON.stringify({
-        name: ui.form.errorName,
-        contact: ui.form.errorContact,
-        consent: ui.form.errorConsent,
-      })}
-    >
+    <form class="form" data-booking novalidate data-tg={site.telegramUrl}>
       <div class="form__row">
         <div class="form__field">
-          <label class="form__label" for="booking-name">{ui.form.name}</label>
+          <label class="form__label" for="booking-name">
+            {ui.form.name}
+          </label>
           <input
             class="form__input"
             id="booking-name"
@@ -71,12 +56,16 @@ const whatsappUrl = site.phone
             enterkeyhint="next"
             required
             data-field="name"
+            data-msg-label={ui.form.name}
+            data-msg-error={ui.form.errorName}
           />
-          <p class="form__error" data-error="name" hidden></p>
+          <p class="form__error" id="booking-error-name" data-error="name" role="alert" hidden></p>
         </div>
 
         <div class="form__field">
-          <label class="form__label" for="booking-contact">{ui.form.contact}</label>
+          <label class="form__label" for="booking-contact">
+            {ui.form.contact}
+          </label>
           {/*
             type остаётся text, хотя поле и принимает телефон: в него можно
             написать и ник в Telegram, а tel-клавиатура на телефоне показывает
@@ -92,15 +81,25 @@ const whatsappUrl = site.phone
             enterkeyhint="next"
             required
             data-field="contact"
+            data-msg-label={ui.form.contact}
+            data-msg-error={ui.form.errorContact}
           />
           <p class="field__hint">{ui.form.contactHint}</p>
-          <p class="form__error" data-error="contact" hidden></p>
+          <p
+            class="form__error"
+            id="booking-error-contact"
+            data-error="contact"
+            role="alert"
+            hidden
+          ></p>
         </div>
       </div>
 
       <div class="form__row">
         <div class="form__field">
-          <label class="form__label" for="booking-district">{ui.form.address}</label>
+          <label class="form__label" for="booking-district">
+            {ui.form.address}
+          </label>
           <input
             class="form__input"
             id="booking-district"
@@ -110,24 +109,47 @@ const whatsappUrl = site.phone
             autocapitalize="sentences"
             enterkeyhint="next"
             data-field="district"
+            data-msg-label={ui.form.address}
           />
         </div>
 
         <div class="form__field">
-          <label class="form__label" for="booking-date">{ui.form.date}</label>
-          <input class="form__input" id="booking-date" name="date" type="date" enterkeyhint="next" data-field="date" />
+          <label class="form__label" for="booking-date">
+            {ui.form.date}
+          </label>
+          <input
+            class="form__input"
+            id="booking-date"
+            name="date"
+            type="date"
+            enterkeyhint="next"
+            data-field="date"
+            data-msg-label={ui.form.date}
+          />
         </div>
 
         <div class="form__field">
-          <label class="form__label" for="booking-time">{ui.form.time}</label>
-          <select class="form__select" id="booking-time" name="time" data-field="time">
-            {times.map((slot) => <option value={slot}>{slot}</option>)}
+          <label class="form__label" for="booking-time">
+            {ui.form.time}
+          </label>
+          <select
+            class="form__select"
+            id="booking-time"
+            name="time"
+            data-field="time"
+            data-msg-label={ui.form.time}
+          >
+            {times.map((slot) => (
+              <option value={slot}>{slot}</option>
+            ))}
           </select>
         </div>
       </div>
 
       <div class="form__field">
-        <label class="form__label" for="booking-comment">{ui.form.comment}</label>
+        <label class="form__label" for="booking-comment">
+          {ui.form.comment}
+        </label>
         <textarea
           class="form__textarea"
           id="booking-comment"
@@ -135,16 +157,29 @@ const whatsappUrl = site.phone
           placeholder={ui.form.commentPlaceholder}
           enterkeyhint="done"
           data-field="comment"
+          data-msg-label={ui.form.comment}
         ></textarea>
       </div>
 
-      <label class="form__consent">
-        <input type="checkbox" name="consent" required data-field="consent" />
+      <label class="form__consent check-row">
+        <input
+          type="checkbox"
+          name="consent"
+          required
+          data-field="consent"
+          data-msg-error={ui.form.errorConsent}
+        />
         <span>
           {ui.form.consent} — <a href={href(locale, 'privacy')}>{ui.footer.privacy}</a>
         </span>
       </label>
-      <p class="form__error" data-error="consent" hidden></p>
+      <p
+        class="form__error"
+        id="booking-error-consent"
+        data-error="consent"
+        role="alert"
+        hidden
+      ></p>
 
       <div class="form__actions">
         <button class="btn btn--lg btn--block" type="submit">
@@ -161,14 +196,22 @@ const whatsappUrl = site.phone
               {ui.cta.whatsapp}
             </a>
           )}
-          <a class="btn btn--ghost" href={site.telegramUrl} target="_blank" rel="noopener noreferrer">
-            <Icon name="phone" class="btn__icon" />
-            @{site.telegram}
+          <a
+            class="btn btn--ghost"
+            href={site.telegramUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Icon name="phone" class="btn__icon" />@{site.telegram}
           </a>
         </div>
       </div>
 
-      <p class="form__success" data-success hidden>
+      <p class="form__error" data-error-open role="alert" hidden>
+        {ui.form.errorOpen}
+      </p>
+
+      <p class="form__success" data-success role="status" hidden>
         <strong>{ui.form.successTitle}.</strong> {ui.form.successText}
       </p>
     </form>
@@ -182,35 +225,39 @@ const whatsappUrl = site.phone
    * Заявка не уходит на сервер: сайт статический. Мы собираем готовое
    * сообщение и открываем чат с менеджером — так заявка доходит даже
    * с GitHub Pages, где серверной логики нет вообще.
+   *
+   * Подписи и тексты ошибок живут в data-msg-* атрибутах самих
+   * полей — скрипт не парсит JSON-строки, а читает значение
+   * прямо у поля, которое показывает ошибку.
+   *
+   * Модель инстанцирования — querySelectorAll: форма на странице
+   * одна, но скрипт не зависит от того, что элемент ровно один.
    */
-  const formElement = document.querySelector<HTMLFormElement>('[data-booking]');
-
-  /*
-   * Тело вынесено в функцию с параметром-элементом: внутри вложенных функций
-   * TypeScript теряет сужение типа и считает `form` «возможно null».
-   * У параметра тип уже не nullable, поведение не меняется.
-   */
-  if (formElement) initBookingForm(formElement);
+  document.querySelectorAll<HTMLFormElement>('[data-booking]').forEach(initBookingForm);
 
   function initBookingForm(form: HTMLFormElement) {
-    const labels = JSON.parse(form.dataset.labels ?? '{}') as Record<string, string>;
-    const errors = JSON.parse(form.dataset.errors ?? '{}') as Record<string, string>;
-
     const field = <T extends HTMLElement>(name: string) =>
       form.querySelector<T>(`[data-field="${name}"]`);
 
+    /** Подпись поля — из его же data-msg-label. */
+    const label = (name: string) => field(name)?.dataset.msgLabel ?? '';
+
     function showError(name: string, message?: string) {
       const box = form.querySelector<HTMLElement>(`[data-error="${name}"]`);
-      const input = field<HTMLInputElement>(name);
+      const input = field(name);
       if (!box) return;
 
       if (message) {
         box.textContent = message;
         box.hidden = false;
         input?.setAttribute('aria-invalid', 'true');
+        // Связываем ошибку с полем: скринридер прочитает её вместе с ним,
+        // а не как отдельное сообщение где-то ниже формы.
+        input?.setAttribute('aria-describedby', box.id);
       } else {
         box.hidden = true;
         input?.removeAttribute('aria-invalid');
+        input?.removeAttribute('aria-describedby');
       }
     }
 
@@ -235,16 +282,18 @@ const whatsappUrl = site.phone
 
       let firstInvalid: HTMLElement | null = null;
 
-      const check = (condition: boolean, name: string, message: string) => {
+      // Текст ошибки берём у самого поля: поле знает и подпись,
+      // и формулировку ошибки — в скрипте ни одной строки контента.
+      const check = (condition: boolean, name: string) => {
         if (condition) return;
-        showError(name, message);
         const input = field<HTMLElement>(name);
+        showError(name, input?.dataset.msgError);
         if (!firstInvalid && input) firstInvalid = input;
       };
 
-      check(Boolean(values.name), 'name', errors.name ?? '');
-      check(Boolean(values.contact), 'contact', errors.contact ?? '');
-      check(values.consent, 'consent', errors.consent ?? '');
+      check(Boolean(values.name), 'name');
+      check(Boolean(values.contact), 'contact');
+      check(values.consent, 'consent');
 
       if (firstInvalid) {
         (firstInvalid as HTMLElement).focus();
@@ -253,19 +302,28 @@ const whatsappUrl = site.phone
 
       // Собираем сообщение: только заполненные строки, без пустых подписей
       const lines = [
-        `${labels.name}: ${values.name}`,
-        `${labels.contact}: ${values.contact}`,
-        values.district && `${labels.district}: ${values.district}`,
-        values.date && `${labels.date}: ${values.date}`,
-        `${labels.time}: ${values.time}`,
-        values.comment && `${labels.comment}: ${values.comment}`,
+        `${label('name')}: ${values.name}`,
+        `${label('contact')}: ${values.contact}`,
+        values.district && `${label('district')}: ${values.district}`,
+        values.date && `${label('date')}: ${values.date}`,
+        `${label('time')}: ${values.time}`,
+        values.comment && `${label('comment')}: ${values.comment}`,
       ].filter(Boolean) as string[];
 
       const url = `${form.dataset.tg}?text=${encodeURIComponent(lines.join('\n'))}`;
-      window.open(url, '_blank', 'noopener');
 
+      // Блокировщик popup может не дать открыть Telegram — тогда нельзя
+      // показывать ложное «отправлено»: остаётся прямая ссылка ниже.
+      const popup = window.open(url, '_blank', 'noopener');
+      const openError = form.querySelector<HTMLElement>('[data-error-open]');
       const success = form.querySelector<HTMLElement>('[data-success]');
-      if (success) success.hidden = false;
+
+      if (popup) {
+        if (openError) openError.hidden = true;
+        if (success) success.hidden = false;
+      } else if (openError) {
+        openError.hidden = false;
+      }
     });
   }
 </script>

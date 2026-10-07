@@ -46,7 +46,7 @@
 
 .chip {
   padding: var(--s2) var(--s4);
-  border: 1.5px solid var(--line);
+  border: var(--bw-strong) solid var(--line);
   border-radius: var(--r-pill);
   background: var(--surface);
   color: var(--ink-soft);
@@ -66,7 +66,10 @@
   }
 }
 
-.chip[aria-pressed='true'] {
+/* Состояние выбора общее для чипов калькулятора (aria-pressed)
+   и вкладок чек-листа (aria-selected). */
+.chip[aria-pressed='true'],
+.chip[aria-selected='true'] {
   border-color: var(--brand);
   background: var(--brand);
   color: var(--brand-ink);
@@ -80,10 +83,6 @@
 }
 
 .check {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: var(--s3);
-  align-items: start;
   padding: var(--s3);
   border: var(--bw) solid var(--line);
   border-radius: var(--r-sm);
@@ -105,10 +104,7 @@
 }
 
 .check input {
-  inline-size: 1.125rem;
-  block-size: 1.125rem;
   margin-block-start: 0.15em;
-  accent-color: var(--brand);
 }
 
 .check__name {
@@ -143,7 +139,7 @@
 @media (min-width: 62rem) {
   .calc__result {
     position: sticky;
-    inset-block-start: 6rem;
+    inset-block-start: var(--header-h);
   }
 }
 
@@ -164,7 +160,7 @@
   align-items: center;
   justify-content: center;
   /* Не меньше 44px: цель нажатия для тач-ввода. */
-  min-block-size: 2.75rem;
+  min-block-size: var(--tap-min);
   padding: 0;
   border: 0;
   background: none;
@@ -310,7 +306,7 @@
   position: absolute;
   inset-block-end: var(--s4);
   inset-inline: var(--s4);
-  z-index: 2;
+  z-index: var(--z-overlay);
   inline-size: auto;
   accent-color: var(--brand);
 }
@@ -355,7 +351,7 @@
     position: sticky;
     /* Вплотную к бару: его высота — тот же токен плюс safe-area снизу. */
     inset-block-end: calc(var(--sticky-h) + env(safe-area-inset-bottom, 0px));
-    z-index: 1;
+    z-index: var(--z-overlay);
     /* Панель не выходит за пределы экрана: сверху оставляем воздух --s8.
        Сначала vh, затем dvh — на телефоне адресная строка меняет высоту, и
        dvh точнее; vh остаётся запасом для старых браузеров. */
@@ -372,8 +368,8 @@
        сливался бы с содержимым страницы позади неё. */
     border-block-start: 2px solid color-mix(in oklab, var(--ink) 14%, transparent);
     border-block-end: 0;
-    background: color-mix(in oklab, var(--bg) 92%, transparent);
-    backdrop-filter: blur(14px);
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
     box-shadow: var(--shadow-lg);
   }
 
@@ -425,7 +421,7 @@
   .calc__toggle {
     display: inline-flex;
     flex: none;
-    min-inline-size: 2.75rem;
+    min-inline-size: var(--tap-min);
     padding-inline: var(--s2);
     border-radius: var(--r-pill);
     background: var(--brand-soft);

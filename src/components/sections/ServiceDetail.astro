@@ -1,6 +1,5 @@
 ---
 import { formatPrice, type Locale } from '../../i18n/config';
-import { href } from '../../i18n/routes';
 import { useUI } from '../../i18n/ui';
 import { getService } from '../../data/services';
 import { AREA_TIERS, areaUnit, hourlyRate, plansForService } from '../../data/prices';
@@ -8,7 +7,10 @@ import { getChecklist } from '../../data/checklists';
 import type { ServiceKey } from '../../i18n/routes';
 
 import Icon from '../ui/Icon.astro';
+import TgButton from '../ui/TgButton.astro';
+import PriceTableGrid from '../ui/PriceTableGrid.astro';
 import SectionHead from './SectionHead.astro';
+import { sectionClass } from '../ui/sectionClass';
 import Checklist from './Checklist.astro';
 
 /**
@@ -22,9 +24,11 @@ import Checklist from './Checklist.astro';
 interface Props {
   locale: Locale;
   serviceKey: ServiceKey;
+  /** Серый фон секции (чередование полос на странице). */
+  surface?: boolean;
 }
 
-const { locale, serviceKey } = Astro.props;
+const { locale, serviceKey, surface = false } = Astro.props;
 const ui = useUI(locale);
 
 const service = getService(serviceKey);
@@ -41,13 +45,29 @@ const isHourly = service.priceUnit === 'hour';
  * AREA_TIERS они расходились с данными, а локаль не учитывалась вовсе.
  */
 const areaLabels = AREA_TIERS.map((tier) => `${tier} ${areaUnit[locale]}`);
+
+/**
+ * Таблица в обратной ориентации: строки — тарифы, колонки —
+ * площади. Данные те же, что и в прайсе по площади.
+ */
+const tableColumns = areaLabels.map((label) => ({ label }));
+const tableRows = servicePlans.map((plan) => ({
+  label: plan.name[locale],
+  popular: plan.popular,
+  cells: plan.tiers.map((price, index) => ({
+    price: formatPrice(price, locale),
+    label: areaLabels[index],
+  })),
+}));
 ---
 
-<section class="section">
+<section class={sectionClass(surface)} id={serviceKey}>
   <div class="container">
     <div class="split">
       <div class="prose">
-        {service.description[locale].map((paragraph) => <p>{paragraph}</p>)}
+        {service.description[locale].map((paragraph) => (
+          <p>{paragraph}</p>
+        ))}
 
         <h3>{ui.home.servicesTitle}</h3>
         <ul class="check-list">
@@ -61,8 +81,10 @@ const areaLabels = AREA_TIERS.map((tier) => `${tier} ${areaUnit[locale]}`);
       </div>
 
       <aside>
-        <div class="card">
-          <span class="icon-box"><Icon name={service.icon} /></span>
+        <div class="card" data-reveal>
+          <span class="icon-box">
+            <Icon name={service.icon} />
+          </span>
           <h2 class="card__title">{service.name[locale]}</h2>
           <p class="card__text">{service.lead[locale]}</p>
 
@@ -86,16 +108,15 @@ const areaLabels = AREA_TIERS.map((tier) => `${tier} ${areaUnit[locale]}`);
             )}
           </div>
 
-          <a class="btn btn--block" href={href(locale, 'contact')}>
-            <Icon name="telegram" class="btn__icon" />
-            {ui.cta.book}
-          </a>
+          <TgButton locale={locale} class="btn--block" />
         </div>
 
-        <div class="card" style="margin-block-start:var(--s6)">
+        <div class="card" style="margin-block-start:var(--s6)" data-reveal>
           <h3 class="card__title">{ui.price.included}</h3>
           <ul class="notes">
-            {service.notes[locale].map((note) => <li>{note}</li>)}
+            {service.notes[locale].map((note) => (
+              <li>{note}</li>
+            ))}
           </ul>
         </div>
       </aside>
@@ -104,7 +125,7 @@ const areaLabels = AREA_TIERS.map((tier) => `${tier} ${areaUnit[locale]}`);
 </section>
 
 {isHourly && (
-  <section class="section section--surface">
+  <section class={sectionClass(surface)} id="smart-calculator">
     <div class="container">
       <SectionHead title={ui.home.calculatorTitle} lead={ui.calc.smartHint} />
       <div class="callout">
@@ -116,43 +137,21 @@ const areaLabels = AREA_TIERS.map((tier) => `${tier} ${areaUnit[locale]}`);
 )}
 
 {servicePlans.length > 0 && (
-  <section class="section section--surface">
+  <section class={sectionClass(surface)} id="prices">
     <div class="container">
-      <SectionHead
-        title={ui.home.pricesTitle}
-        lead={ui.home.pricesLead}
-      />
+      <SectionHead title={ui.home.pricesTitle} lead={ui.home.pricesLead} />
       <div class="price-table-wrap">
-        <table class="price-table">
-          <caption class="visually-hidden">{service.name[locale]}</caption>
-          <thead>
-            <tr>
-              <th scope="col">{ui.price.included}</th>
-              {areaLabels.map((label) => (
-                <th scope="col">{label}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {servicePlans.map((plan) => (
-              <tr data-popular={plan.popular ? '' : undefined}>
-                <th scope="row">{plan.name[locale]}</th>
-                {plan.tiers.map((price, index) => (
-                  <td data-label={areaLabels[index]}>{formatPrice(price, locale)}</td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <PriceTableGrid
+          caption={service.name[locale]}
+          corner={ui.price.included}
+          columns={tableColumns}
+          rows={tableRows}
+        />
       </div>
     </div>
   </section>
 )}
 
 {checklist && (
-  <Checklist
-    locale={locale}
-    checklist={checklist}
-    surface={servicePlans.length === 0}
-  />
+  <Checklist locale={locale} checklist={checklist} surface={servicePlans.length === 0} />
 )}

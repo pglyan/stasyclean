@@ -1,5 +1,13 @@
 ---
-import { AREA_TIERS, areaOver, areaUnit, areaUpTo, hourlyRate, plans } from '../../data/prices';
+import {
+  AREA_MAX,
+  AREA_TIERS,
+  areaOver,
+  areaUnit,
+  areaUpTo,
+  hourlyRate,
+  plans,
+} from '../../data/prices';
 import { extraServices } from '../../data/extras';
 import { services } from '../../data/services';
 import { LOCALE_META, formatNumber, type Locale } from '../../i18n/config';
@@ -8,6 +16,7 @@ import { site } from '../../data/site';
 
 import Icon from '../ui/Icon.astro';
 import SectionHead from './SectionHead.astro';
+import { sectionClass } from '../ui/sectionClass';
 
 /**
  * Калькулятор стоимости.
@@ -26,9 +35,11 @@ import SectionHead from './SectionHead.astro';
 interface Props {
   locale: Locale;
   withHead?: boolean;
+  /** Серый фон секции (чередование полос на странице). */
+  surface?: boolean;
 }
 
-const { locale, withHead = true } = Astro.props;
+const { locale, withHead = true, surface = false } = Astro.props;
 const ui = useUI(locale);
 
 /** id для aria-controls кнопки-тоггла состава (см. разметку ниже). */
@@ -43,9 +54,13 @@ const serviceOptions = services.map((service) => ({
 
 /** Доп. услуги с фиксированной или «от»-ценой — считаются без уточнений. */
 const calcExtras = extraServices.filter((line) => line.unit === 'flat');
+
+/** Площадь с единицей для подстановки в тексты ({max}). */
+const areaMaxText = `${formatNumber(AREA_MAX, locale)} ${areaUnit[locale]}`;
+const overLimitText = ui.calc.overLimit.replace('{max}', areaMaxText);
 ---
 
-<section class="section section--surface" id="calculator">
+<section class={sectionClass(surface)} id="calculator">
   <div class="container">
     {withHead && <SectionHead title={ui.home.calculatorTitle} lead={ui.home.calculatorLead} />}
 
@@ -60,7 +75,7 @@ const calcExtras = extraServices.filter((line) => line.unit === 'flat');
       data-msg-extras={ui.calc.extrasLabel}
       data-msg-total={ui.price.total}
       data-msg-none={ui.calc.noExtras}
-      data-msg-over={ui.calc.overLimit}
+      data-msg-over={overLimitText}
     >
       <div class="calc__controls">
         <div class="field">
@@ -117,7 +132,7 @@ const calcExtras = extraServices.filter((line) => line.unit === 'flat');
               </button>
             ))}
             <button class="chip" type="button" data-area="over" aria-pressed="false">
-              {areaOver[locale]} 150 {areaUnit[locale]}
+              {areaOver[locale]} {areaMaxText}
             </button>
           </div>
         </div>
@@ -126,7 +141,7 @@ const calcExtras = extraServices.filter((line) => line.unit === 'flat');
           <span class="field__label">{ui.calc.extrasLabel}</span>
           <div class="calc__extras">
             {calcExtras.map((line) => (
-              <label class="check">
+              <label class="check check-row">
                 <input
                   type="checkbox"
                   data-extra
@@ -137,15 +152,14 @@ const calcExtras = extraServices.filter((line) => line.unit === 'flat');
                   <span class="check__name">{line.name[locale]}</span>
                   <span class="check__price">
                     + {line.price !== undefined ? '' : `${ui.price.from} `}
-                    {formatNumber(line.price ?? line.priceFrom ?? 0, locale)}
-                    {' '}
+                    {formatNumber(line.price ?? line.priceFrom ?? 0, locale)}{' '}
                     {LOCALE_META[locale].currencyLabel}
                   </span>
                 </span>
               </label>
             ))}
           </div>
-          <p class="field__hint">{ui.calc.overLimit}</p>
+          <p class="field__hint">{overLimitText}</p>
         </div>
       </div>
 
@@ -159,7 +173,9 @@ const calcExtras = extraServices.filter((line) => line.unit === 'flat');
           на месте и за ней не нужно тянуться.
         */}
         <div class="calc__total-row">
-          <strong class="calc__total" data-total>—</strong>
+          <strong class="calc__total" data-total>
+            —
+          </strong>
           <button
             class="calc__toggle"
             type="button"
@@ -170,7 +186,7 @@ const calcExtras = extraServices.filter((line) => line.unit === 'flat');
             data-label-show={ui.calc.detailsShow}
             data-label-hide={ui.calc.detailsHide}
           >
-            <Icon name="chevronDown" class="calc__toggle-icon" />
+            <Icon name="chevron-down" class="calc__toggle-icon" />
           </button>
         </div>
 
@@ -209,16 +225,11 @@ const calcExtras = extraServices.filter((line) => line.unit === 'flat');
    * скрипту не нужны ни справочники, ни словари — только арифметика
    * и Intl.NumberFormat. Ссылка на Telegram обновляется вместе с выбором,
    * так что менеджер получает заявку с готовым составом работ.
+   *
+   * Модель инстанцирования — querySelectorAll: калькулятор на странице
+   * один, но скрипт не зависит от того, что элемент ровно один.
    */
-  const rootElement = document.querySelector<HTMLElement>('[data-calculator]');
-
-  /*
-   * Тело вынесено в функцию с параметром-элементом, а не в `if (root) { ... }`:
-   * внутри вложенных функций TypeScript теряет сужение типа и объявляет
-   * `root` «возможно null». У параметра тип уже не nullable — `npm run check`
-   * проходит без ошибок, а поведение не меняется.
-   */
-  if (rootElement) initCalculator(rootElement);
+  document.querySelectorAll<HTMLElement>('[data-calculator]').forEach(initCalculator);
 
   function initCalculator(root: HTMLElement) {
     const currency = root.dataset.currency ?? 'RSD';
@@ -361,14 +372,16 @@ const calcExtras = extraServices.filter((line) => line.unit === 'flat');
       // посетитель что-то выбрал: до этого она остаётся обычной ссылкой.
       const areaLabel =
         areaIndex === 'over'
-          ? root.dataset.msgOver ?? ''
-          : areaChips[areaIndex as number]?.textContent?.trim() ?? '';
+          ? (root.dataset.msgOver ?? '')
+          : (areaChips[areaIndex as number]?.textContent?.trim() ?? '');
 
       const parts = [
         `${root.dataset.msgService}: ${activeService?.textContent?.trim() ?? ''}${hourly ? '' : ` / ${plan.name}`}`,
         `${root.dataset.msgArea}: ${areaLabel}`,
         `${root.dataset.msgExtras}: ${
-          extras.length ? extras.map((extra) => extra.name).join(', ') : root.dataset.msgNone ?? ''
+          extras.length
+            ? extras.map((extra) => extra.name).join(', ')
+            : (root.dataset.msgNone ?? '')
         }`,
         `${root.dataset.msgTotal}: ${money.format(total)} ${currency}`,
       ];

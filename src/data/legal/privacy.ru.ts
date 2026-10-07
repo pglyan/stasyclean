@@ -12,7 +12,6 @@ import type { LegalContent } from './types';
 
 export const privacyRu: LegalContent = {
   updated: '2026-09-27',
-  updatedLabel: 'Обновлено',
   sections: [
     {
       title: 'Кто обрабатывает ваши данные',

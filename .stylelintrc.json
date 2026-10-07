@@ -1,0 +1,29 @@
+{
+  "extends": "stylelint-config-standard",
+  "ignoreFiles": ["dist/**", "node_modules/**", "src/themes/generated/**", ".astro/**"],
+  "rules": {
+    "no-descending-specificity": null,
+    "selector-class-pattern": "^[a-z]([a-z0-9-]+)?(__([a-z0-9]+-?)+)?(--([a-z0-9]+-?)+)?$",
+    "custom-property-pattern": "^[a-z]([a-z0-9-]+)?$",
+    "declaration-block-no-redundant-longhand-properties": null,
+    "alpha-value-notation": null,
+    "color-function-notation": null,
+    "media-feature-range-notation": null,
+    "comment-empty-line-before": null,
+    "rule-empty-line-before": null,
+    "property-no-vendor-prefix": [
+      true,
+      { "ignoreProperties": ["text-size-adjust", "-webkit-text-size-adjust"] }
+    ],
+    "declaration-block-no-duplicate-properties": [
+      true,
+      {
+        "ignore": ["consecutive-duplicates-with-different-values"],
+        "ignoreProperties": ["text-size-adjust"]
+      }
+    ],
+    "custom-property-empty-line-before": null,
+    "value-keyword-case": null,
+    "import-notation": null
+  }
+}

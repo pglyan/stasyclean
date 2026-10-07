@@ -11,6 +11,8 @@ export const sr = {
     faq: 'Pitanja',
     contact: 'Kontakt',
     language: 'Jezik',
+    /** Pristupačno ime glavne navigacije — različito od dugmeta za meni. */
+    main: 'Glavna navigacija',
   },
 
   cta: {
@@ -21,7 +23,7 @@ export const sr = {
     calculate: 'Izračunaj cenu',
     details: 'Detaljnije',
     allServices: 'Sve usluge',
-    toPrices: 'Pogledaj cene',
+    /** Dugme „na početnu“ — koristi se na stranici 404. */
     back: 'Na početnu',
     menu: 'Meni',
     close: 'Zatvori',
@@ -34,14 +36,10 @@ export const sr = {
 
   price: {
     from: 'od',
-    perHour: 'po satu',
-    perArea: 'po m²',
     hour: 'sat',
     minimum: 'Minimalna narudžbina',
     popular: 'Najčešći izbor',
     area: 'Kvadratura',
-    upTo: 'do',
-    over: 'preko',
     total: 'Procena cene',
     totalNote: 'Konačnu cenu potvrđuje menadžer na Telegramu',
     included: 'Šta je u ceni',
@@ -49,16 +47,21 @@ export const sr = {
 
   common: {
     provisional: 'Privremeni podaci',
-    fallbackCulture: 'Prevod je delimično automatski i u fazi dorade',
+    /** Skip link za tastaturu (base.css, .skip-link). */
+    skipToContent: 'Preskoči na sadržaj',
+    /** Pristupačno ime navigacije „mrvice“ (PageHero.astro). */
+    breadcrumb: 'Navigacija',
+    /** Pristupačno ime mobilnog menija — različito od dugmeta za meni. */
+    menuDialog: 'Meni sajta',
+    /** Oznaka datuma u zaglavlju pravnih dokumenata (Legal.astro). */
+    updated: 'Ažurirano',
   },
 
   home: {
     servicesTitle: 'Šta čistimo',
-    servicesLead:
-      'Četiri formata — od redovnog održavanja do čišćenja posle renoviranja.',
+    servicesLead: 'Četiri formata — od redovnog održavanja do čišćenja posle renoviranja.',
     pricesTitle: 'Cene po kvadraturi',
-    pricesLead:
-      'Cena ne zavisi od toga koliko sati rad traje. Iznos fiksiramo pre izlaska.',
+    pricesLead: 'Cena ne zavisi od toga koliko sati rad traje. Iznos fiksiramo pre izlaska.',
     calculatorTitle: 'Izračunajte svoje čišćenje',
     calculatorLead:
       'Izaberite kvadraturu, format i dodatne zadatke — procenu cene vidite za nekoliko sekundi.',
@@ -72,12 +75,13 @@ export const sr = {
     stepsTitle: 'Kako radimo',
     stepsLead: 'Četiri koraka od poruke na Telegramu do plaćanja posle prijema radova.',
     aboutTitle: 'O nama',
-    aboutLead:
-      'Radimo u Beogradu, donosimo svu opremu i hemiju i odgovorni smo za rezultat.',
+    aboutLead: 'Radimo u Beogradu, donosimo svu opremu i hemiju i odgovorni smo za rezultat.',
     reviewsTitle: 'Šta kažu klijenti',
     reviewsLead: 'Utisci nam stižu preko Telegrama i Instagrama.',
     areasTitle: 'Gde radimo',
     areasLead: 'Beograd, svi centralni i stambeni delovi grada.',
+    /** Napomena ispod spiska delova grada: pokrivenost se još potvrđuje. */
+    areasNote: 'Spisak delova grada je privremen — potvrđujemo pri zakazivanju.',
     faqTitle: 'Česta pitanja',
     faqLead: 'Odgovaramo na ono što se najčešće pita pre zakazivanja.',
     formTitle: 'Pošaljite zahtev',
@@ -91,13 +95,12 @@ export const sr = {
     planLabel: 'Format čišćenja',
     extrasLabel: 'Dodatni zadaci',
     hoursLabel: 'Koliko sati vam treba',
-    resultHint:
-      'Ovo je samo orijentir. Tačan iznos kažemo posle nekoliko kratkih pitanja.',
+    resultHint: 'Ovo je samo orijentir. Tačan iznos kažemo posle nekoliko kratkih pitanja.',
     noExtras: 'Dodatni zadaci nisu izabrani',
     detailsShow: 'Prikaži detalje',
     detailsHide: 'Sakrij detalje',
     smartHint: 'Kod Smart čišćenja plaćate po satu, pa se cena računa po vremenu.',
-    overLimit: 'Kvadratura je veća od 150 m² — obračun radimo individualno.',
+    overLimit: 'Kvadratura je veća od {max} — obračun radimo individualno.',
   },
 
   form: {
@@ -120,8 +123,8 @@ export const sr = {
     successText: 'Otvorili smo Telegram sa popunjenom porukom — ostaje samo da pritisnete Pošalji.',
     errorName: 'Napišite ime da znamo kako da vam se obratimo',
     errorContact: 'Potreban je telefon ili korisničko ime na Telegramu',
-    errorArea: 'Izaberite kvadraturu',
     errorConsent: 'Bez saglasnosti ne možemo da primimo zahtev',
+    errorOpen: 'Nismo mogli da otvorimo Telegram — koristite dugme ispod',
   },
 
   footer: {
@@ -134,6 +137,27 @@ export const sr = {
     rights: 'Sva prava zadržana',
     disclaimer: 'Cene na sajtu su informativne i ne predstavljaju obavezujuću ponudu.',
     pendingLegal: 'Podaci o firmi biće dodati pre puštanja sajta u rad',
+  },
+
+  /** Blok poređenja „pre / posle“ (BeforeAfter.astro). */
+  beforeAfter: {
+    title: 'Pre i posle',
+    lead: 'Isti ugao snimljen pre i posle čišćenja.',
+    before: 'Pre',
+    after: 'Posle',
+  },
+
+  /** Baner za kolačiće (CookieNotice.astro) — prikazuje se samo uz analitiku. */
+  cookie: {
+    label: 'Kolačići',
+    text: 'Koristimo tehničke kolačiće za rad sajta. Analitičke kolačiće uvodimo samo uz vašu saglasnost.',
+    accept: 'Prihvati',
+  },
+
+  /** Stranica 404. Dugmad koriste cta.back i cta.telegram. */
+  notFound: {
+    title: 'Stranica nije pronađena',
+    lead: 'Moguće je da je link zastareo ili da u adresi postoji greška.',
   },
 
   /** Prekidač sheme u zaglavlju sajta. */

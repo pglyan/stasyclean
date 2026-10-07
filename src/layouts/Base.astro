@@ -1,9 +1,10 @@
 ---
-import { LOCALE_META, DEFAULT_LOCALE, type Locale } from '../i18n/config';
+import { LOCALE_META, DEFAULT_LOCALE, LOCALES, type Locale } from '../i18n/config';
 import { asset, href, localeSwitchLinks, type PageKey } from '../i18n/routes';
 import { getPageMeta } from '../i18n/pagemeta';
 import { useUI } from '../i18n/ui';
 import { site } from '../data/site';
+import { SCHEME_KEY } from '../scripts/keys';
 
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
@@ -40,7 +41,8 @@ import '@skin';
  */
 import themeEntry from '@theme';
 import { designForBuild } from '../data/activeDesign';
-import { schemeBrand, themeColors } from '../themes/tokens';
+import { themeColors } from '../themes/tokens';
+import { schemeBrand } from '../themes/brand';
 
 interface Props {
   locale: Locale;
@@ -54,14 +56,7 @@ interface Props {
   jsonLd?: Record<string, unknown>[];
 }
 
-const {
-  locale,
-  routeKey,
-  title,
-  description,
-  noindex = false,
-  jsonLd = [],
-} = Astro.props;
+const { locale, routeKey, title, description, noindex = false, jsonLd = [] } = Astro.props;
 
 const meta = LOCALE_META[locale];
 const ui = useUI(locale);
@@ -76,7 +71,8 @@ const ui = useUI(locale);
  */
 const pageMeta = getPageMeta(locale, routeKey);
 const pageTitle = title ?? pageMeta.title;
-const pageDescription = description ?? pageMeta.description;
+// Служебная страница (404) не наследует description главной — она noindex.
+const pageDescription = description ?? (noindex ? '' : pageMeta.description);
 
 /**
  * Абсолютные адреса для canonical и hreflang.
@@ -96,9 +92,10 @@ const alternates = localeSwitchLinks(locale, routeKey).map((link) => ({
 
 /**
  * Список файлов шрифта для предзагрузки: оба семейства (заголовки + текст)
- * × все их сабсеты. Порядок — по важности: алфавит локали (участует в LCP),
- * затем latin (цифры, пунктуация), затем остальный; семейство заголовков
- * идёт первым. Дубли схлопываются, но позиция первого вхождения сохраняется.
+ * × все их сабсеты. Порядок — по важности: текущая локаль страницы
+ * (участвует в LCP), затем остальные по порядку LOCALES (sr, ru, en);
+ * семейство заголовков идёт первым. Дубли схлопываются, но позиция
+ * первого вхождения сохраняется.
  *
  * Полный список, а не только «нужный алфавит»: замер показал, что страницы
  * ЛЮБОЙ локали отрисовывают текст на всех трёх сабсетах — названия языков
@@ -117,7 +114,7 @@ const preloadFonts = [
   ...new Set(
     [designForBuild.headingFont, designForBuild.bodyFont].flatMap((family) => {
       const familyUrls = themeEntry.fonts[family];
-      return familyUrls ? [familyUrls[locale], familyUrls.en, ...Object.values(familyUrls)] : [];
+      return familyUrls ? [familyUrls[locale], ...LOCALES.map((code) => familyUrls[code])] : [];
     }),
   ),
 ];
@@ -198,37 +195,60 @@ if (missingFonts.length) {
       страницы поздно: у вернувшегося посетителя страница успела бы мигнуть
       несохранённой схемой. Поэтому крошечный inline-скрипт — без
       импортов и без модуля, он обязан выполниться до первой отрисовки.
-      Ключ тот же, что у общего механизма схемы (src/scripts/scheme.ts).
+      Ключ из src/scripts/keys.ts — единственного источника ключей
+      хранилища; inline-скрипт не умеет импортировать, поэтому константу
+      передаём сюда через define:vars.
+
+      Если сохранённого выбора нет, следуем системной настройке
+      (prefers-color-scheme): тёмную тему включают большинство телефонов
+      вечером, и молча показывать им светлую страницу — лишний стресс для
+      глаз. Явный выбор посетителя всегда важнее системной настройки.
     */}
-    <script is:inline>
+    <script is:inline define:vars={{ schemeKey: SCHEME_KEY }}>
+      let savedScheme = null;
       try {
-        const savedScheme = localStorage.getItem('stasyclean:scheme');
-        if (savedScheme === 'light' || savedScheme === 'dark') {
-          document.documentElement.dataset.scheme = savedScheme;
-        }
+        savedScheme = localStorage.getItem(schemeKey);
       } catch {
-        /* приватный режим: остаётся схема сборки */
+        /* приватный режим: сохранённого выбора нет */
+      }
+      if (savedScheme === 'light' || savedScheme === 'dark') {
+        document.documentElement.dataset.scheme = savedScheme;
+      } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.documentElement.dataset.scheme = 'dark';
       }
     </script>
-
     <title>{pageTitle}</title>
     <meta name="description" content={pageDescription} />
-    <link rel="canonical" href={canonical} />
 
     {noindex && <meta name="robots" content="noindex, nofollow" />}
 
-    {/* Языковые альтернативы. x-default ведёт на язык по умолчанию. */}
-    {alternates.map((alternate) => (
-      <link rel="alternate" hreflang={alternate.hreflang} href={alternate.href} />
-    ))}
-    <link rel="alternate" hreflang="x-default" href={absolute(href(DEFAULT_LOCALE, routeKey))} />
+    {/*
+      Адресная разметка (canonical, hreflang, og:url, JSON-LD) — только для
+      индексируемых страниц: у noindex-страницы (404) нет канонического
+      адреса, а хлебные крошки и LocalBusiness к ней не относятся.
+    */}
+    {!noindex && (
+      <>
+        <link rel="canonical" href={canonical} />
+
+        {/* Языковые альтернативы. x-default ведёт на язык по умолчанию. */}
+        {alternates.map((alternate) => (
+          <link rel="alternate" hreflang={alternate.hreflang} href={alternate.href} />
+        ))}
+        <link
+          rel="alternate"
+          hreflang="x-default"
+          href={absolute(href(DEFAULT_LOCALE, routeKey))}
+        />
+      </>
+    )}
 
     {/* Open Graph */}
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content={site.brand} />
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={pageDescription} />
-    <meta property="og:url" content={canonical} />
+    {!noindex && <meta property="og:url" content={canonical} />}
     <meta property="og:locale" content={meta.ogLocale} />
     <meta property="og:image" content={ogImage} />
     <meta property="og:image:width" content="1200" />
@@ -252,11 +272,13 @@ if (missingFonts.length) {
       <link rel="preload" href={href} as="font" type="font/woff2" crossorigin />
     ))}
 
-    <JsonLd locale={locale} routeKey={routeKey} extra={jsonLd} />
+    {!noindex && <JsonLd locale={locale} routeKey={routeKey} extra={jsonLd} />}
   </head>
 
   <body>
-    <a class="skip-link" href="#main">{ui.cta.menu === 'Menu' ? 'Skip to content' : 'К содержанию'}</a>
+    <a class="skip-link" href="#main">
+      {ui.common.skipToContent}
+    </a>
 
     <Header locale={locale} routeKey={routeKey} />
 
@@ -267,5 +289,22 @@ if (missingFonts.length) {
     <Footer locale={locale} />
     <StickyCta locale={locale} />
     <CookieNotice locale={locale} />
+
+    {/* Появление блоков при прокрутке: только полироль, без JS всё видимо
+        (сам скрипт ставит класс .reveal и не трогает верх первого кадра). */}
+    <script>
+      import { initReveal } from '../scripts/reveal';
+
+      initReveal();
+    </script>
+    {/*
+      Переключатель схемы — в Base, а не в Header: схема общий
+      ресурс страницы, и кнопка есть даже там, где шапки нет.
+    */}
+    <script>
+      import { initScheme } from '../scripts/scheme';
+
+      initScheme();
+    </script>
   </body>
 </html>

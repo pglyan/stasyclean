@@ -11,6 +11,9 @@ import type { ServiceKey } from '../i18n/routes';
 /** Границы диапазонов площади, м². Каждый тариф обязан дать ровно 6 цен. */
 export const AREA_TIERS = [40, 60, 80, 100, 120, 150] as const;
 
+/** Площадь, сверх которой цену считаем индивидуально. */
+export const AREA_MAX = AREA_TIERS[AREA_TIERS.length - 1];
+
 export const areaUnit: Localized = { sr: 'm²', en: 'm²', ru: 'м²' };
 export const areaUpTo: Localized = { sr: 'do', en: 'up to', ru: 'до' };
 export const areaOver: Localized = { sr: 'preko', en: 'over', ru: 'более' };
@@ -49,7 +52,11 @@ export const plans: PricePlan[] = [
   {
     id: 'general-premium',
     serviceKey: 'general',
-    name: { sr: 'Premium. Sve uključeno', en: 'Premium. All inclusive', ru: 'Премиум. Всё включено' },
+    name: {
+      sr: 'Premium. Sve uključeno',
+      en: 'Premium. All inclusive',
+      ru: 'Премиум. Всё включено',
+    },
     tiers: [20000, 25000, 30000, 35000, 45000, 50000],
   },
   {
@@ -66,6 +73,9 @@ export const hourlyRate = {
   price: 2000,
   minimumHours: 3,
 };
+
+/** Минимальный заказ, RSD — часы × ставка. Единая константа для подписей «Минимальный заказ». */
+export const MIN_ORDER = hourlyRate.price * hourlyRate.minimumHours;
 
 export function plansForService(key: ServiceKey) {
   return plans.filter((plan) => plan.serviceKey === key);

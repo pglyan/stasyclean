@@ -8,7 +8,6 @@ import type { LegalContent } from './types';
 
 export const privacyEn: LegalContent = {
   updated: '2026-09-27',
-  updatedLabel: 'Last updated',
   sections: [
     {
       title: 'Who processes your data',

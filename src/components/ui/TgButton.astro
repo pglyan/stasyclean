@@ -1,0 +1,34 @@
+---
+import type { Locale } from '../../i18n/config';
+import { useUI } from '../../i18n/ui';
+import { site } from '../../data/site';
+
+import Icon from './Icon.astro';
+
+/**
+ * Кнопка «заказать в Telegram».
+ *
+ * Одна разметка вместо копипасты в семи местах: внешний вид —
+ * через class (btn--lg, header-cta, btn--block…), текст —
+ * через variant: «Заказать уборку» (по умолчанию) или «Telegram».
+ */
+
+interface Props {
+  locale: Locale;
+  class?: string;
+  variant?: 'book' | 'telegram';
+}
+
+const { locale, class: className, variant = 'book' } = Astro.props;
+const ui = useUI(locale);
+---
+
+<a
+  class={`btn ${className ?? ''}`.trim()}
+  href={site.telegramUrl}
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  <Icon name="telegram" class="btn__icon" />
+  {variant === 'book' ? ui.cta.book : ui.cta.telegram}
+</a>
