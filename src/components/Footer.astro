@@ -20,7 +20,7 @@ const legalKeys = ['privacy', 'terms'] as const;
 
 <footer class="site-footer">
   <div class="container">
-    <div class="footer__grid">
+    <div class="footer__grid grid--auto">
       <div class="footer__col">
         <span class="brand">
           <span class="brand__mark" aria-hidden="true">
@@ -33,7 +33,7 @@ const legalKeys = ['privacy', 'terms'] as const;
 
       <div class="footer__col">
         <h3>{ui.footer.services}</h3>
-        <ul>
+        <ul class="list-reset">
           {services.map((service) => (
             <li>
               <a href={href(locale, service.key)}>{service.name[locale]}</a>
@@ -44,7 +44,7 @@ const legalKeys = ['privacy', 'terms'] as const;
 
       <div class="footer__col">
         <h3>{ui.footer.navigation}</h3>
-        <ul>
+        <ul class="list-reset">
           {NAV_KEYS.map((key) => (
             <li>
               <a href={href(locale, key)}>{ui.nav[key]}</a>
@@ -55,7 +55,7 @@ const legalKeys = ['privacy', 'terms'] as const;
 
       <div class="footer__col">
         <h3>{ui.footer.contacts}</h3>
-        <ul>
+        <ul class="list-reset">
           <li>
             <a href={site.telegramUrl} target="_blank" rel="noopener noreferrer">
               Telegram @{site.telegram}
@@ -81,7 +81,7 @@ const legalKeys = ['privacy', 'terms'] as const;
 
       <div class="footer__col">
         <h3>{ui.footer.legal}</h3>
-        <ul>
+        <ul class="list-reset">
           {legalKeys.map((key) => (
             <li>
               <a href={href(locale, key)}>{ui.footer[key]}</a>

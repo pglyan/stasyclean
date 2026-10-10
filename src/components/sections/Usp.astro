@@ -18,9 +18,9 @@ const { locale } = Astro.props;
     вне структуры документа. Заголовки — h2 (не h3): после h1 первого
     экрана это следующий уровень, и пропуск уровня больше не возникает.
     Корневой элемент остаётся div-контейнером намеренно: секция-ребёнок
-    не участвует в подсчёте полос (main > .section в params.css).
+    не участвует в подсчёте полос (main > .section в layout.css).
   */}
-  <section class="usp">
+  <section class="usp grid--auto">
     {usps.map((item) => (
       <div class="usp__item" data-reveal>
         <span class="icon-box">

@@ -6,15 +6,12 @@
   display: grid;
   gap: var(--s5);
   padding: clamp(var(--s6), 3vw, var(--s10));
-  background: var(--surface);
-  border: var(--bw) solid var(--line);
-  border-radius: var(--r-lg);
 }
 
 .form__row {
   display: grid;
   gap: var(--s5);
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  --col-min: 14rem;
 }
 
 .form__field {
@@ -61,11 +58,6 @@
 .form__textarea {
   min-block-size: 5.5rem;
   resize: vertical;
-}
-
-.form__consent {
-  font-size: var(--fs-xs);
-  color: var(--ink-soft);
 }
 
 .form__consent input {

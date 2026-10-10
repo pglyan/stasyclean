@@ -4,6 +4,7 @@ import { useUI } from '../../i18n/ui';
 
 import TgButton from '../ui/TgButton.astro';
 import CalcButton from '../ui/CalcButton.astro';
+import Section from '../ui/Section.astro';
 
 /** Финальный призыв к действию: полоса в цвете бренда. */
 
@@ -17,17 +18,15 @@ const { locale, title, text } = Astro.props;
 const ui = useUI(locale);
 ---
 
-<section class="section">
-  <div class="container">
-    <div class="cta-band">
-      <div>
-        <h2 class="cta-band__title">{title ?? ui.home.formTitle}</h2>
-        <p class="cta-band__text">{text ?? ui.home.formLead}</p>
-      </div>
-      <div class="cta-band__actions">
-        <TgButton locale={locale} class="btn--lg" variant="telegram" />
-        <CalcButton locale={locale} class="btn--lg" />
-      </div>
+<Section>
+  <div class="cta-band">
+    <div>
+      <h2 class="cta-band__title">{title ?? ui.home.formTitle}</h2>
+      <p class="cta-band__text">{text ?? ui.home.formLead}</p>
+    </div>
+    <div class="cta-band__actions">
+      <TgButton locale={locale} class="btn--lg" variant="telegram" />
+      <CalcButton locale={locale} class="btn--lg" />
     </div>
   </div>
-</section>
+</Section>

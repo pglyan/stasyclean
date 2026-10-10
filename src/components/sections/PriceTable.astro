@@ -7,7 +7,7 @@ import { useUI } from '../../i18n/ui';
 
 import SectionHead from './SectionHead.astro';
 import PriceTableGrid from '../ui/PriceTableGrid.astro';
-import { sectionClass } from '../ui/sectionClass';
+import Section from '../ui/Section.astro';
 
 /**
  * Прайс по площади.
@@ -104,24 +104,22 @@ const overRow = {
 };
 ---
 
-<section class={sectionClass(surface)} id="prices">
-  <div class="container">
-    {withHead && <SectionHead title={ui.home.pricesTitle} lead={ui.home.pricesLead} />}
+<Section surface={surface} id="prices">
+  {withHead && <SectionHead title={ui.home.pricesTitle} lead={ui.home.pricesLead} />}
 
-    <div class="price-table-wrap">
-      <PriceTableGrid
-        caption={ui.home.pricesTitle}
-        corner={`${ui.price.area}, ${areaUnit[locale]}`}
-        columns={tableColumns}
-        rows={tableRows}
-        overRow={overRow}
-      />
-      {popularPlan && (
-        <p class="price-table__caption">
-          {popularPlan.name[locale]} — {ui.price.popular.toLocaleLowerCase(locale)}.{' '}
-          {ui.calc.resultHint}
-        </p>
-      )}
-    </div>
+  <div class="price-table-wrap panel">
+    <PriceTableGrid
+      caption={ui.home.pricesTitle}
+      corner={`${ui.price.area}, ${areaUnit[locale]}`}
+      columns={tableColumns}
+      rows={tableRows}
+      overRow={overRow}
+    />
+    {popularPlan && (
+      <p class="price-table__caption">
+        {popularPlan.name[locale]} — {ui.price.popular.toLocaleLowerCase(locale)}.{' '}
+        {ui.calc.resultHint}
+      </p>
+    )}
   </div>
-</section>
+</Section>

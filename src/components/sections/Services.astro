@@ -7,7 +7,7 @@ import { hourlyRate, planPriceFrom, plansForService } from '../../data/prices';
 
 import Icon from '../ui/Icon.astro';
 import SectionHead from './SectionHead.astro';
-import { sectionClass } from '../ui/sectionClass';
+import Section from '../ui/Section.astro';
 
 /**
  * Карточки услуг.
@@ -37,46 +37,44 @@ const items = services.map((service) => {
 });
 ---
 
-<section class={sectionClass(surface)} id="services">
-  <div class="container">
-    {withHead && <SectionHead title={ui.home.servicesTitle} lead={ui.home.servicesLead} />}
+<Section surface={surface} id="services">
+  {withHead && <SectionHead title={ui.home.servicesTitle} lead={ui.home.servicesLead} />}
 
-    <div class="grid grid--2">
-      {items.map(({ service, priceFrom }) => (
-        <article class="card card--interactive service-card" data-reveal>
-          <span class="icon-box">
-            <Icon name={service.icon} />
+  <div class="grid grid--2">
+    {items.map(({ service, priceFrom }) => (
+      <article class="card card--interactive service-card" data-reveal>
+        <span class="icon-box">
+          <Icon name={service.icon} />
+        </span>
+        <h3 class="service-card__name">
+          <a class="link-plain" href={href(locale, service.key)}>
+            {service.name[locale]}
+          </a>
+        </h3>
+        <p class="service-card__lead">{service.lead[locale]}</p>
+
+        <ul class="service-card__highlights list-reset">
+          {service.highlights[locale].slice(0, 3).map((item) => (
+            <li>
+              <Icon name="check" />
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+
+        <div class="service-card__foot">
+          <span class="service-card__price num">
+            {formatPriceFrom(priceFrom, locale)}
+            {service.priceUnit === 'hour' && (
+              <span class="price-row__unit"> / {ui.price.hour}</span>
+            )}
           </span>
-          <h3 class="service-card__name">
-            <a href={href(locale, service.key)} style="text-decoration:none;color:inherit">
-              {service.name[locale]}
-            </a>
-          </h3>
-          <p class="service-card__lead">{service.lead[locale]}</p>
-
-          <ul class="service-card__highlights">
-            {service.highlights[locale].slice(0, 3).map((item) => (
-              <li>
-                <Icon name="check" />
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
-
-          <div class="service-card__foot">
-            <span class="service-card__price">
-              {formatPriceFrom(priceFrom, locale)}
-              {service.priceUnit === 'hour' && (
-                <span class="price-row__unit"> / {ui.price.hour}</span>
-              )}
-            </span>
-            <a class="btn btn--ghost btn--sm" href={href(locale, service.key)}>
-              {ui.cta.details}
-              <Icon name="arrow-right" class="btn__icon" />
-            </a>
-          </div>
-        </article>
-      ))}
-    </div>
+          <a class="btn btn--ghost btn--sm" href={href(locale, service.key)}>
+            {ui.cta.details}
+            <Icon name="arrow-right" class="btn__icon" />
+          </a>
+        </div>
+      </article>
+    ))}
   </div>
-</section>
+</Section>

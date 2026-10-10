@@ -39,7 +39,7 @@ const isServicePage = routeKey === 'services' || isServiceKey(routeKey);
     </a>
 
     <nav class="nav" aria-label={ui.nav.main}>
-      <ul class="nav__list">
+      <ul class="nav__list list-reset">
         <li class="nav__item">
           <a
             class="nav__link"
@@ -49,7 +49,7 @@ const isServicePage = routeKey === 'services' || isServiceKey(routeKey);
             {ui.nav.services}
             <Icon name="chevron-down" strokeWidth={2} />
           </a>
-          <ul class="dropdown nav__menu">
+          <ul class="dropdown nav__menu panel panel--md panel--raised">
             <li>
               <a href={href(locale, 'services')}>{ui.cta.allServices}</a>
             </li>

@@ -28,9 +28,8 @@ import sharp from 'sharp';
  */
 import { site, siteText } from '../src/data/site.ts';
 import { LOCALE_META } from '../src/i18n/config.ts';
-import { themePresets } from '../src/data/themes.ts';
 import { brandHex } from '../src/themes/brand.ts';
-import { themeColors } from '../src/themes/tokens.ts';
+import { darkTokens } from '../src/themes/tokens.ts';
 
 const WIDTH = 1200;
 const HEIGHT = 630;
@@ -45,7 +44,7 @@ const FONT = 'DejaVu Sans, Verdana, sans-serif';
  * с фирменным цветом сайта (#22765d). Карточка тёмная, поэтому берём
  * набор тёмной схемы (alt) — её акцент рассчитан на тёмный фон.
  */
-const palette = themeColors[themePresets[0].id].alt;
+const palette = darkTokens;
 const INK = palette.bg;
 const BRAND = brandHex(palette);
 const TEXT = palette.ink;

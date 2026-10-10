@@ -1,13 +1,19 @@
 #!/usr/bin/env node
+/**
+ * Печатает CSS переменных темы из её цветовых токенов
+ * (src/themes/tokens.ts → src/themes/generated/nordic.css).
+ *
+ * Единственный источник цвета — TS-токены, поэтому CSS и <meta theme-color>
+ * не могут разойтись. Запускается в dev и в сборке (см. package.json).
+ */
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { themePresets } from '../src/data/themes.ts';
-import { themeColors } from '../src/themes/tokens.ts';
+import { darkTokens, lightTokens } from '../src/themes/tokens.ts';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const outDir = join(root, 'src', 'themes', 'generated');
+const outFile = join(root, 'src', 'themes', 'generated', 'nordic.css');
 
 /** @param {import('../src/themes/tokens.ts').ColorTokens} tokens */
 function block(tokens) {
@@ -32,15 +38,10 @@ function block(tokens) {
   return lines.join('\n');
 }
 
-await mkdir(outDir, { recursive: true });
+const css =
+  `:root {\n  color-scheme: light;\n${block(lightTokens)}\n}\n` +
+  `\n[data-scheme='dark'] {\n  color-scheme: dark;\n${block(darkTokens)}\n}\n`;
 
-for (const preset of themePresets) {
-  const colors = themeColors[preset.id];
-  if (!colors) throw new Error(`Нет токенов для темы «${preset.id}» (src/themes/tokens.ts).`);
-  const altScheme = preset.kind === 'dark' ? 'light' : 'dark';
-  let css = `[data-skin='${preset.id}'] {\n  color-scheme: ${preset.kind};\n${block(colors.base)}\n}\n`;
-  css += `\n[data-skin='${preset.id}'][data-scheme='${altScheme}'] {\n  color-scheme: ${altScheme};\n${block(colors.alt)}\n}\n`;
-  await writeFile(join(outDir, `${preset.id}.css`), css);
-}
-
-console.log(`Токены тем сгенерированы: ${themePresets.length} файлов в src/themes/generated/`);
+await mkdir(dirname(outFile), { recursive: true });
+await writeFile(outFile, css);
+console.log('Токены темы сгенерированы: src/themes/generated/nordic.css');

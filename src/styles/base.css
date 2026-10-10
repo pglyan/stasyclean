@@ -61,6 +61,22 @@ svg {
   flex-shrink: 0;
 }
 
+/* ---------- Текстура фона ---------- */
+/* Тонкое зерно поверх всей страницы — графическая деталь. Blend берётся из
+   токена (--texture-blend): на тёмной схеме он screen, иначе multiply. */
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-texture);
+  pointer-events: none;
+  opacity: var(--texture-opacity, 0.4);
+  mix-blend-mode: var(--texture-blend, multiply);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+}
+
 input,
 button,
 textarea,

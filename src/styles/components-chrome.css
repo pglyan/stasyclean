@@ -91,11 +91,6 @@
   color: var(--brand-ink);
 }
 
-.brand__mark svg {
-  inline-size: 1.25rem;
-  block-size: 1.25rem;
-}
-
 /* Имя бренда — единственный «резиновый» элемент шапки: если места не хватит
    (узкий экран, крупный системный шрифт, увеличенный кегль в настройках
    телефона), оно ужимается с многоточием, а не выталкивает кнопку меню
@@ -123,9 +118,6 @@
   display: flex;
   align-items: center;
   gap: var(--s1);
-  margin: 0;
-  padding: 0;
-  list-style: none;
 }
 
 .nav__link {
@@ -179,10 +171,6 @@
   padding: var(--s2);
   margin: 0;
   list-style: none;
-  background: var(--surface);
-  border: var(--bw) solid var(--line);
-  border-radius: var(--r-md);
-  box-shadow: var(--shadow-md);
   opacity: 0;
   visibility: hidden;
   translate: 0 -0.25rem;
@@ -281,11 +269,6 @@
   border: var(--bw) solid var(--line);
   border-radius: var(--r-pill);
   color: var(--ink);
-}
-
-.lang-toggle svg {
-  inline-size: 1.25rem;
-  block-size: 1.25rem;
 }
 
 @media (hover: hover) {

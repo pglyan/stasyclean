@@ -5,7 +5,7 @@ import { site } from '../../data/site';
 
 import Icon from '../ui/Icon.astro';
 import SectionHead from './SectionHead.astro';
-import { sectionClass } from '../ui/sectionClass';
+import Section from '../ui/Section.astro';
 
 /**
  * География работы.
@@ -26,19 +26,17 @@ const { locale, withHead = true, surface = false } = Astro.props;
 const ui = useUI(locale);
 ---
 
-<section class={sectionClass(surface)} id="areas">
-  <div class="container">
-    {withHead && <SectionHead title={ui.home.areasTitle} lead={ui.home.areasLead} />}
+<Section surface={surface} id="areas">
+  {withHead && <SectionHead title={ui.home.areasTitle} lead={ui.home.areasLead} />}
 
-    <ul class="areas">
-      {site.districts.map((district) => (
-        <li>{district}</li>
-      ))}
-    </ul>
+  <ul class="areas list-reset">
+    {site.districts.map((district) => (
+      <li class="panel panel--pill small muted">{district}</li>
+    ))}
+  </ul>
 
-    <p class="small muted areas__note">
-      <Icon name="info" class="icon--sm" />
-      {ui.home.areasNote}
-    </p>
-  </div>
-</section>
+  <p class="small muted areas__note">
+    <Icon name="info" class="icon--sm" />
+    {ui.home.areasNote}
+  </p>
+</Section>

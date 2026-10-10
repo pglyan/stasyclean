@@ -12,7 +12,7 @@
   justify-content: center;
   gap: var(--s2);
   padding: var(--s3) var(--s6);
-  border: var(--btn-bw) solid var(--btn-line);
+  border: 0;
   border-radius: var(--r-pill);
   background: var(--btn-bg);
   color: var(--btn-ink);
@@ -103,6 +103,15 @@
     transform var(--dur) var(--ease);
 }
 
+/* Лёгкий разворот «наклейки»: соседние карточки смотрят в разные стороны. */
+.card:nth-child(odd) {
+  rotate: -0.7deg;
+}
+
+.card:nth-child(even) {
+  rotate: 0.6deg;
+}
+
 /* Карточка «поднимается» только под указателем. На тач-экране этот подъём
    оставался после тапа — выглядело как застрявшее состояние. */
 @media (hover: hover) {
@@ -116,11 +125,6 @@
 .card__title {
   font-size: var(--fs-h4);
   margin: 0;
-}
-
-.card__text {
-  color: var(--ink-soft);
-  font-size: var(--fs-sm);
 }
 
 /* Иконка в мягком круге — повторяется почти в каждом блоке */
@@ -201,15 +205,7 @@
   color: var(--ink);
 }
 
-.price-row__unit {
-  color: var(--ink-soft);
-  font-size: var(--fs-sm);
-}
-
 .price-row__value {
-  font-family: var(--font-heading);
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
   text-align: end;
   /* Если значение всё-таки перенеслось на свою строку (узкий экран),
      прижимаем его вправо — как в табличном прайсе. */
@@ -231,9 +227,7 @@
 .check-list {
   display: grid;
   gap: var(--s2);
-  list-style: none;
-  padding: 0;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+  --col-min: 22rem;
 }
 
 .check-list li {
@@ -274,10 +268,6 @@
 .notes {
   display: grid;
   gap: var(--s2);
-  padding: 0;
-  list-style: none;
-  font-size: var(--fs-sm);
-  color: var(--ink-soft);
 }
 
 .notes li {

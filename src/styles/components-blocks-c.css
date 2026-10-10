@@ -32,11 +32,6 @@
   font-weight: 600;
 }
 
-.field__hint {
-  font-size: var(--fs-xs);
-  color: var(--ink-soft);
-}
-
 /* Чипы выбора */
 .chips {
   display: flex;
@@ -79,14 +74,11 @@
 .calc__extras {
   display: grid;
   gap: var(--s2);
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+  --col-min: 17rem;
 }
 
 .check {
   padding: var(--s3);
-  border: var(--bw) solid var(--line);
-  border-radius: var(--r-sm);
-  background: var(--surface);
   font-size: var(--fs-sm);
   cursor: pointer;
   transition: border-color var(--dur-fast) var(--ease);
@@ -130,9 +122,6 @@
   display: grid;
   gap: var(--s3);
   padding: var(--s6);
-  background: var(--surface);
-  border: var(--bw) solid var(--line);
-  border-radius: var(--r-lg);
   box-shadow: var(--shadow-sm);
 }
 
@@ -198,10 +187,7 @@
 }
 
 .calc__total {
-  font-family: var(--font-heading);
   font-size: var(--fs-h2);
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
   line-height: 1.1;
 }
 
@@ -222,17 +208,13 @@
   gap: var(--s3);
 }
 
-.calc__note {
-  font-size: var(--fs-xs);
-  color: var(--ink-soft);
-}
-
 /* ==================== Шаги ==================== */
 
 .steps {
   display: grid;
   gap: var(--s8);
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  --col-min: 14rem;
+
   counter-reset: step;
 }
 
@@ -244,21 +226,13 @@
 }
 
 .step__num {
-  font-family: var(--font-heading);
   font-size: var(--fs-h4);
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
   color: var(--brand);
 }
 
 .step__title {
   margin: 0;
   font-size: var(--fs-h4);
-}
-
-.step__text {
-  font-size: var(--fs-sm);
-  color: var(--ink-soft);
 }
 
 /* ==================== Слайдер «до / после» ==================== */
@@ -314,7 +288,7 @@
 .ba__grid {
   display: grid;
   gap: var(--s6);
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  --col-min: 20rem;
 }
 
 /* ==================== Калькулятор на телефоне ==================== */

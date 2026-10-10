@@ -10,7 +10,7 @@ import Icon from '../ui/Icon.astro';
 import TgButton from '../ui/TgButton.astro';
 import PriceTableGrid from '../ui/PriceTableGrid.astro';
 import SectionHead from './SectionHead.astro';
-import { sectionClass } from '../ui/sectionClass';
+import Section from '../ui/Section.astro';
 import Checklist from './Checklist.astro';
 
 /**
@@ -61,95 +61,89 @@ const tableRows = servicePlans.map((plan) => ({
 }));
 ---
 
-<section class={sectionClass(surface)} id={serviceKey}>
-  <div class="container">
-    <div class="split">
-      <div class="prose">
-        {service.description[locale].map((paragraph) => (
-          <p>{paragraph}</p>
-        ))}
+<Section surface={surface} id={serviceKey}>
+  <div class="split">
+    <div class="prose">
+      {service.description[locale].map((paragraph) => (
+        <p>{paragraph}</p>
+      ))}
 
-        <h3>{ui.home.servicesTitle}</h3>
-        <ul class="check-list">
-          {service.highlights[locale].map((item) => (
-            <li>
-              <Icon name="check" />
-              <span>{item}</span>
-            </li>
+      <h3>{ui.home.servicesTitle}</h3>
+      <ul class="check-list grid--auto list-reset">
+        {service.highlights[locale].map((item) => (
+          <li>
+            <Icon name="check" />
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    <aside class="stack">
+      <div class="card" data-reveal>
+        <span class="icon-box">
+          <Icon name={service.icon} />
+        </span>
+        <h2 class="card__title">{service.name[locale]}</h2>
+        <p class="card__text">{service.lead[locale]}</p>
+
+        <div class="price-list">
+          <div class="price-row">
+            <span class="price-row__name">{ui.calc.hoursLabel}</span>
+            {/* Длительность — текст, а не число: на 360px фраза вида
+                  «4–8 sati, zavisno od stanja i kvadrature» в одну строку
+                  шире карточки, поэтому значение переносится по словам. */}
+            <span class="price-row__value num">{service.duration[locale]}</span>
+          </div>
+          {service.minOrder !== null && (
+            <div class="price-row">
+              <span class="price-row__name">{ui.price.minimum}</span>
+              <span class="price-row__value price-row__value--num num">
+                {isHourly
+                  ? `${hourlyRate.minimumHours} × ${formatPrice(hourlyRate.price, locale)}`
+                  : formatPrice(service.minOrder, locale)}
+              </span>
+            </div>
+          )}
+        </div>
+
+        <TgButton locale={locale} class="btn--block" />
+      </div>
+
+      <div class="card" data-reveal>
+        <h3 class="card__title">{ui.price.included}</h3>
+        <ul class="notes list-reset">
+          {service.notes[locale].map((note) => (
+            <li>{note}</li>
           ))}
         </ul>
       </div>
-
-      <aside>
-        <div class="card" data-reveal>
-          <span class="icon-box">
-            <Icon name={service.icon} />
-          </span>
-          <h2 class="card__title">{service.name[locale]}</h2>
-          <p class="card__text">{service.lead[locale]}</p>
-
-          <div class="price-list">
-            <div class="price-row">
-              <span class="price-row__name">{ui.calc.hoursLabel}</span>
-              {/* Длительность — текст, а не число: на 360px фраза вида
-                  «4–8 sati, zavisno od stanja i kvadrature» в одну строку
-                  шире карточки, поэтому значение переносится по словам. */}
-              <span class="price-row__value">{service.duration[locale]}</span>
-            </div>
-            {service.minOrder !== null && (
-              <div class="price-row">
-                <span class="price-row__name">{ui.price.minimum}</span>
-                <span class="price-row__value price-row__value--num">
-                  {isHourly
-                    ? `${hourlyRate.minimumHours} × ${formatPrice(hourlyRate.price, locale)}`
-                    : formatPrice(service.minOrder, locale)}
-                </span>
-              </div>
-            )}
-          </div>
-
-          <TgButton locale={locale} class="btn--block" />
-        </div>
-
-        <div class="card" style="margin-block-start:var(--s6)" data-reveal>
-          <h3 class="card__title">{ui.price.included}</h3>
-          <ul class="notes">
-            {service.notes[locale].map((note) => (
-              <li>{note}</li>
-            ))}
-          </ul>
-        </div>
-      </aside>
-    </div>
+    </aside>
   </div>
-</section>
+</Section>
 
 {isHourly && (
-  <section class={sectionClass(surface)} id="smart-calculator">
-    <div class="container">
-      <SectionHead title={ui.home.calculatorTitle} lead={ui.calc.smartHint} />
-      <div class="callout">
-        {hourlyRate.minimumHours} × {formatPrice(hourlyRate.price, locale)} ={' '}
-        {formatPrice(hourlyRate.price * hourlyRate.minimumHours, locale)}
-      </div>
+  <Section surface={surface} id="smart-calculator">
+    <SectionHead title={ui.home.calculatorTitle} lead={ui.calc.smartHint} />
+    <div class="callout">
+      {hourlyRate.minimumHours} × {formatPrice(hourlyRate.price, locale)} ={' '}
+      {formatPrice(hourlyRate.price * hourlyRate.minimumHours, locale)}
     </div>
-  </section>
+  </Section>
 )}
 
 {servicePlans.length > 0 && (
-  <section class={sectionClass(surface)} id="prices">
-    <div class="container">
-      <SectionHead title={ui.home.pricesTitle} lead={ui.home.pricesLead} />
-      <div class="price-table-wrap">
-        <PriceTableGrid
-          caption={service.name[locale]}
-          corner={ui.price.included}
-          columns={tableColumns}
-          rows={tableRows}
-        />
-      </div>
+  <Section surface={surface} id="prices">
+    <SectionHead title={ui.home.pricesTitle} lead={ui.home.pricesLead} />
+    <div class="price-table-wrap panel">
+      <PriceTableGrid
+        caption={service.name[locale]}
+        corner={ui.price.included}
+        columns={tableColumns}
+        rows={tableRows}
+      />
     </div>
-  </section>
+  </Section>
 )}
 
 {checklist && (

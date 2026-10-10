@@ -33,9 +33,7 @@ export type Scheme = 'light' | 'dark';
 export { SCHEME_KEY } from './keys';
 import { SCHEME_KEY } from './keys';
 
-import { schemeBrand } from '../themes/brand';
-import { themeColors } from '../themes/tokens';
-import { designForBuild } from '../data/activeDesign';
+import { accentHex } from '../themes/brand';
 
 /** Отбор значения схемы: всё, что не light/dark, схемой не является. */
 export function asScheme(value: unknown): Scheme | null {
@@ -50,14 +48,12 @@ export function currentScheme(): Scheme {
 /**
  * Цвет адресной строки браузера подгоняется под действующую схему.
  *
- * Акцент считается из токенов темы — тот же расчёт, что
- * Base.astro делает на сборке для начальной меты.
+ * Акцент считается из токенов — тот же расчёт, что Base.astro
+ * делает на сборке для начальной меты.
  */
 function syncThemeMeta(scheme: Scheme): void {
-  const theme = designForBuild.theme;
-  const accent = schemeBrand(themeColors[theme.id], theme.kind, scheme);
   const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
-  if (meta) meta.content = accent;
+  if (meta) meta.content = accentHex(scheme);
 }
 
 /**

@@ -11,7 +11,7 @@
 .footer__grid {
   display: grid;
   gap: var(--s10);
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+  --col-min: 13rem;
 }
 
 /* На телефоне пять секций подвала в одну колонку давали 1104px высоты.
@@ -42,9 +42,6 @@
 .footer__col ul {
   display: grid;
   gap: var(--s2);
-  margin: 0;
-  padding: 0;
-  list-style: none;
 }
 
 .footer__col a {
@@ -63,8 +60,6 @@
 .footer__about {
   max-inline-size: 34ch;
   margin-block-start: var(--s4);
-  font-size: var(--fs-sm);
-  color: var(--ink-soft);
 }
 
 .footer__bottom {
@@ -90,6 +85,20 @@
 }
 
 /* ==================== Закреплённая кнопка на телефоне ==================== */
+
+/* Резерв под панель у body: закреплённая кнопка не должна закрывать подвал.
+   Резерв равен реальной высоте панели (--sticky-h), поэтому панель физически
+   не может стать выше отведённого ей места. С 62rem панель скрыта — резерв
+   снимается. */
+body {
+  padding-block-end: var(--sticky-h);
+}
+
+@media (min-width: 62rem) {
+  body {
+    padding-block-end: 0;
+  }
+}
 
 .sticky-cta {
   position: fixed;
@@ -188,10 +197,6 @@
   display: none;
   max-inline-size: 26rem;
   padding: var(--s4);
-  background: var(--surface);
-  border: var(--bw) solid var(--line);
-  border-radius: var(--r-md);
-  box-shadow: var(--shadow-lg);
   font-size: var(--fs-sm);
 }
 

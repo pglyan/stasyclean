@@ -6,7 +6,7 @@ import { getService } from '../../data/services';
 
 import Icon from '../ui/Icon.astro';
 import SectionHead from './SectionHead.astro';
-import { sectionClass } from '../ui/sectionClass';
+import Section from '../ui/Section.astro';
 
 /**
  * Отзывы.
@@ -33,41 +33,39 @@ const ui = useUI(locale);
 const items = reviews.slice(0, limit ?? reviews.length);
 ---
 
-<section class={sectionClass(surface)} id="reviews">
-  <div class="container">
-    {withHead && <SectionHead title={ui.home.reviewsTitle} lead={ui.home.reviewsLead} />}
+<Section surface={surface} id="reviews">
+  {withHead && <SectionHead title={ui.home.reviewsTitle} lead={ui.home.reviewsLead} />}
 
-    <div class="grid grid--2">
-      {items.map((review) => (
-        <article class="card review" data-reveal>
-          <div class="review__head">
-            <span class="review__avatar" aria-hidden="true">
-              {review.initials}
-            </span>
-            <div>
-              <div class="review__name">{review.name}</div>
-              <div class="review__meta">
-                {getService(review.serviceKey).name[locale]} · {formatDate(review.date, locale)}
-              </div>
+  <div class="grid grid--2">
+    {items.map((review) => (
+      <article class="card review" data-reveal>
+        <div class="review__head">
+          <span class="review__avatar" aria-hidden="true">
+            {review.initials}
+          </span>
+          <div>
+            <div class="review__name">{review.name}</div>
+            <div class="review__meta">
+              {getService(review.serviceKey).name[locale]} · {formatDate(review.date, locale)}
             </div>
           </div>
+        </div>
 
-          <div class="review__stars" role="img" aria-label={`${review.rating} / 5`}>
-            {Array.from({ length: 5 }).map((_, index) => (
-              <Icon name="star" class={index < review.rating ? undefined : 'review__star--off'} />
-            ))}
-          </div>
+        <div class="review__stars" role="img" aria-label={`${review.rating} / 5`}>
+          {Array.from({ length: 5 }).map((_, index) => (
+            <Icon name="star" class={index < review.rating ? undefined : 'review__star--off'} />
+          ))}
+        </div>
 
-          <p class="review__text">{review.text[locale]}</p>
-        </article>
-      ))}
-    </div>
-
-    {reviewsAreSample && (
-      <p class="provisional reviews__sample-note">
-        <Icon name="info" class="icon--sm" />
-        {ui.common.provisional}
-      </p>
-    )}
+        <p class="review__text">{review.text[locale]}</p>
+      </article>
+    ))}
   </div>
-</section>
+
+  {reviewsAreSample && (
+    <p class="provisional reviews__sample-note">
+      <Icon name="info" class="icon--sm" />
+      {ui.common.provisional}
+    </p>
+  )}
+</Section>

@@ -20,15 +20,13 @@ import { fileURLToPath } from 'node:url';
  */
 
 /**
- * Алиасы входа темы: в сборку попадает CSS и шрифты ровно одной темы —
- * той, что указана в src/data/themes.ts (её же проверяет Base.astro
- * по полю id entry-файла).
+ * Алиас входа темы: в сборку попадает CSS ровно одной темы —
+ * src/themes/nordic/theme.css.
  */
 const themeEntry = (path) => fileURLToPath(new URL(path, import.meta.url));
 
 const themeAlias = {
   '@skin': themeEntry('./src/themes/nordic/theme.css'),
-  '@theme': themeEntry('./src/themes/entries/nordic.ts'),
 };
 
 const PROD_ORIGIN = 'https://stasyclean.com';
@@ -120,8 +118,7 @@ export default defineConfig({
   devToolbar: { enabled: false },
 
   /**
-   * Алиасы входа темы (см. комментарий выше): @skin — CSS темы,
-   * @theme — её шрифты для предзагрузки.
+   * Алиас входа темы (см. комментарий выше): @skin — CSS темы.
    */
   vite: {
     resolve: { alias: themeAlias },

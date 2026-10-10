@@ -5,7 +5,7 @@ import { useUI } from '../../i18n/ui';
 
 import Icon from '../ui/Icon.astro';
 import SectionHead from './SectionHead.astro';
-import { sectionClass } from '../ui/sectionClass';
+import Section from '../ui/Section.astro';
 
 /**
  * Чек-лист работ с табами по зонам квартиры.
@@ -28,52 +28,50 @@ const ui = useUI(locale);
 const listId = `checklist-${checklist.serviceKey}`;
 ---
 
-<section class={sectionClass(surface)} id={listId}>
-  <div class="container">
-    {withHead && <SectionHead title={ui.home.includedTitle} lead={ui.home.includedLead} />}
+<Section surface={surface} id={listId}>
+  {withHead && <SectionHead title={ui.home.includedTitle} lead={ui.home.includedLead} />}
 
-    <div class="tabs" data-tabs>
-      <div class="tabs__list" role="tablist" aria-label={ui.home.includedTitle}>
-        {checklist.groups.map((group, index) => (
-          <button
-            class="chip"
-            type="button"
-            role="tab"
-            id={`${listId}-tab-${group.id}`}
-            aria-controls={`${listId}-panel-${group.id}`}
-            aria-selected={index === 0 ? 'true' : 'false'}
-            tabindex={index === 0 ? 0 : -1}
-          >
-            {group.title[locale]}
-          </button>
-        ))}
-      </div>
-
+  <div class="tabs" data-tabs>
+    <div class="tabs__list" role="tablist" aria-label={ui.home.includedTitle}>
       {checklist.groups.map((group, index) => (
-        <div
-          class="tabs__panel"
-          role="tabpanel"
-          id={`${listId}-panel-${group.id}`}
-          aria-labelledby={`${listId}-tab-${group.id}`}
-          tabindex={0}
-          hidden={index !== 0}
+        <button
+          class="chip"
+          type="button"
+          role="tab"
+          id={`${listId}-tab-${group.id}`}
+          aria-controls={`${listId}-panel-${group.id}`}
+          aria-selected={index === 0 ? 'true' : 'false'}
+          tabindex={index === 0 ? 0 : -1}
         >
-          <ul class="check-list">
-            {group.items[locale].map((item) => (
-              <li>
-                <Icon name="check" />
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
-          {group.note && <p class="tabs__panel-note">{group.note[locale]}</p>}
-        </div>
+          {group.title[locale]}
+        </button>
       ))}
     </div>
 
-    {checklist.note && <p class="tabs__panel-note">{checklist.note[locale]}</p>}
+    {checklist.groups.map((group, index) => (
+      <div
+        class="tabs__panel panel"
+        role="tabpanel"
+        id={`${listId}-panel-${group.id}`}
+        aria-labelledby={`${listId}-tab-${group.id}`}
+        tabindex={0}
+        hidden={index !== 0}
+      >
+        <ul class="check-list grid--auto list-reset">
+          {group.items[locale].map((item) => (
+            <li>
+              <Icon name="check" />
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+        {group.note && <p class="tabs__panel-note">{group.note[locale]}</p>}
+      </div>
+    ))}
   </div>
-</section>
+
+  {checklist.note && <p class="tabs__panel-note">{checklist.note[locale]}</p>}
+</Section>
 
 <script>
   /**

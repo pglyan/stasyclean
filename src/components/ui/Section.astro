@@ -1,0 +1,22 @@
+---
+/**
+ * Каркас секции страницы: <section class="section"> + <div class="container">.
+ *
+ * Все секции-блоки устроены одинаково, поэтому обёртка вынесена в один
+ * компонент: содержимое — слот, а поверхность (серый фон) и якорь — пропсы.
+ */
+interface Props {
+  /** Серый фон секции (чередование полос на странице). */
+  surface?: boolean;
+  /** id для якорных ссылок. */
+  id?: string;
+}
+
+const { surface = false, id } = Astro.props;
+---
+
+<section class={surface ? 'section section--surface' : 'section'} id={id}>
+  <div class="container">
+    <slot />
+  </div>
+</section>

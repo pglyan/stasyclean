@@ -1,15 +1,16 @@
 /**
- * Фирменный акцент темы.
+ * Фирменный акцент.
  *
- * Одна функция на весь сайт: Base.astro кладёт акцент
- * в <meta name="theme-color"> на сборке, SchemeSwitch
- * рисует кнопку, а scheme.ts (клиент) перекрашивает
- * адресную строку при смене схемы — все считают одно
- * и то же значение из токенов.
+ * Одна функция на весь сайт: Base.astro кладёт акцент в
+ * <meta name="theme-color"> на сборке, manifest и OG берут его же,
+ * а scheme.ts (клиент) перекрашивает адресную строку при смене схемы.
+ * Все считают одно и то же значение из токенов (src/themes/tokens.ts).
  */
 
-import type { ColorTokens, ThemeColorSet } from './tokens';
-import type { ThemeKind } from './types';
+import type { ColorTokens } from './tokens.ts';
+import { darkTokens, lightTokens } from './tokens.ts';
+
+export type Scheme = 'light' | 'dark';
 
 /**
  * HSL → компоненты sRGB [0..1]: базовая конвертация акцента,
@@ -39,14 +40,7 @@ export function brandHex(tokens: ColorTokens): string {
   return `#${hex(r)}${hex(g)}${hex(b)}`;
 }
 
-/**
- * Акцент темы для схемы: натуральная схема — base, вторая — alt.
- * Значение уезжает в <meta name="theme-color"> и обновляется при переключении.
- */
-export function schemeBrand(
-  colors: ThemeColorSet,
-  kind: ThemeKind,
-  scheme: 'light' | 'dark',
-): string {
-  return brandHex(scheme === kind ? colors.base : colors.alt);
+/** Акцент действующей схемы. */
+export function accentHex(scheme: Scheme): string {
+  return brandHex(scheme === 'dark' ? darkTokens : lightTokens);
 }

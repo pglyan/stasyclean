@@ -5,7 +5,7 @@ import { steps } from '../../data/steps';
 
 /** «Как мы работаем» — четыре шага с нумерацией. */
 import SectionHead from './SectionHead.astro';
-import { sectionClass } from '../ui/sectionClass';
+import Section from '../ui/Section.astro';
 
 interface Props {
   locale: Locale;
@@ -19,17 +19,15 @@ const { locale, withHead = true, surface = false } = Astro.props;
 const ui = useUI(locale);
 ---
 
-<section class={sectionClass(surface)} id="steps">
-  <div class="container">
-    {withHead && <SectionHead title={ui.home.stepsTitle} lead={ui.home.stepsLead} />}
-    <div class="steps">
-      {steps.map((step, index) => (
-        <div class="step" data-reveal>
-          <span class="step__num">{String(index + 1).padStart(2, '0')}</span>
-          <h3 class="step__title">{step.title[locale]}</h3>
-          <p class="step__text">{step.text[locale]}</p>
-        </div>
-      ))}
-    </div>
+<Section surface={surface} id="steps">
+  {withHead && <SectionHead title={ui.home.stepsTitle} lead={ui.home.stepsLead} />}
+  <div class="steps grid--auto">
+    {steps.map((step, index) => (
+      <div class="step" data-reveal>
+        <span class="step__num num num--strong">{String(index + 1).padStart(2, '0')}</span>
+        <h3 class="step__title">{step.title[locale]}</h3>
+        <p class="step__text">{step.text[locale]}</p>
+      </div>
+    ))}
   </div>
-</section>
+</Section>

@@ -11,19 +11,9 @@
   font-size: var(--fs-h4);
 }
 
-.service-card__lead {
-  font-size: var(--fs-sm);
-  color: var(--ink-soft);
-}
-
 .service-card__highlights {
   display: grid;
   gap: var(--s2);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  font-size: var(--fs-sm);
-  color: var(--ink-soft);
 }
 
 .service-card__highlights li {
@@ -50,10 +40,7 @@
 }
 
 .service-card__price {
-  font-family: var(--font-heading);
   font-size: var(--fs-h3);
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
 }
 
 /* ==================== Таблица цен ==================== */
@@ -61,9 +48,6 @@
 .price-table-wrap {
   overflow-x: auto;
   overscroll-behavior-x: contain;
-  border: var(--bw) solid var(--line);
-  border-radius: var(--r-lg);
-  background: var(--surface);
 }
 
 .price-table {
@@ -253,13 +237,8 @@
 
 .tabs__panel {
   padding: var(--s6);
-  border: var(--bw) solid var(--line);
-  border-radius: var(--r-lg);
-  background: var(--surface);
 }
 
 .tabs__panel-note {
   margin-block-start: var(--s4);
-  font-size: var(--fs-sm);
-  color: var(--ink-soft);
 }

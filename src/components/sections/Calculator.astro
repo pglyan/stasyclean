@@ -16,7 +16,7 @@ import { site } from '../../data/site';
 
 import Icon from '../ui/Icon.astro';
 import SectionHead from './SectionHead.astro';
-import { sectionClass } from '../ui/sectionClass';
+import Section from '../ui/Section.astro';
 
 /**
  * Калькулятор стоимости.
@@ -60,162 +60,160 @@ const areaMaxText = `${formatNumber(AREA_MAX, locale)} ${areaUnit[locale]}`;
 const overLimitText = ui.calc.overLimit.replace('{max}', areaMaxText);
 ---
 
-<section class={sectionClass(surface)} id="calculator">
-  <div class="container">
-    {withHead && <SectionHead title={ui.home.calculatorTitle} lead={ui.home.calculatorLead} />}
+<Section surface={surface} id="calculator">
+  {withHead && <SectionHead title={ui.home.calculatorTitle} lead={ui.home.calculatorLead} />}
 
-    <div
-      class="calc"
-      data-calculator
-      data-locale={LOCALE_META[locale].intl}
-      data-currency={LOCALE_META[locale].currencyLabel}
-      data-tg={site.telegramUrl}
-      data-msg-service={ui.calc.planLabel}
-      data-msg-area={ui.calc.areaLabel}
-      data-msg-extras={ui.calc.extrasLabel}
-      data-msg-total={ui.price.total}
-      data-msg-none={ui.calc.noExtras}
-      data-msg-over={overLimitText}
-    >
-      <div class="calc__controls">
-        <div class="field">
-          <span class="field__label">{ui.calc.planLabel}</span>
-          <div class="chips">
-            {serviceOptions.map((option, index) => (
-              <button
-                class="chip"
-                type="button"
-                data-service={option.service.key}
-                data-plans={JSON.stringify(
-                  option.plans.map((plan) => [plan.id, plan.name[locale], plan.tiers]),
-                )}
-                data-hourly={option.hourly ?? ''}
-                aria-pressed={index === 0 ? 'true' : 'false'}
-              >
-                {option.service.name[locale]}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div class="field" data-plans-field hidden>
-          <span class="field__label">{ui.price.included}</span>
-          <div class="chips" data-plans-list></div>
-        </div>
-
-        <div class="field" data-hours-field hidden>
-          <span class="field__label">{ui.calc.hoursLabel}</span>
-          <input
-            class="range"
-            type="range"
-            min={hourlyRate.minimumHours}
-            max={hourlyRate.minimumHours + 7}
-            step="1"
-            value={hourlyRate.minimumHours}
-            data-hours
-            aria-label={ui.calc.hoursLabel}
-          />
-          <span class="field__hint" data-hours-output></span>
-        </div>
-
-        <div class="field" data-area-field>
-          <span class="field__label">{ui.calc.areaLabel}</span>
-          <div class="chips">
-            {AREA_TIERS.map((tier, index) => (
-              <button
-                class="chip"
-                type="button"
-                data-area={index}
-                aria-pressed={index === 0 ? 'true' : 'false'}
-              >
-                {areaUpTo[locale]} {formatNumber(tier, locale)} {areaUnit[locale]}
-              </button>
-            ))}
-            <button class="chip" type="button" data-area="over" aria-pressed="false">
-              {areaOver[locale]} {areaMaxText}
+  <div
+    class="calc"
+    data-calculator
+    data-locale={LOCALE_META[locale].intl}
+    data-currency={LOCALE_META[locale].currencyLabel}
+    data-tg={site.telegramUrl}
+    data-msg-service={ui.calc.planLabel}
+    data-msg-area={ui.calc.areaLabel}
+    data-msg-extras={ui.calc.extrasLabel}
+    data-msg-total={ui.price.total}
+    data-msg-none={ui.calc.noExtras}
+    data-msg-over={overLimitText}
+  >
+    <div class="calc__controls">
+      <div class="field">
+        <span class="field__label">{ui.calc.planLabel}</span>
+        <div class="chips">
+          {serviceOptions.map((option, index) => (
+            <button
+              class="chip"
+              type="button"
+              data-service={option.service.key}
+              data-plans={JSON.stringify(
+                option.plans.map((plan) => [plan.id, plan.name[locale], plan.tiers]),
+              )}
+              data-hourly={option.hourly ?? ''}
+              aria-pressed={index === 0 ? 'true' : 'false'}
+            >
+              {option.service.name[locale]}
             </button>
-          </div>
-        </div>
-
-        <div class="field">
-          <span class="field__label">{ui.calc.extrasLabel}</span>
-          <div class="calc__extras">
-            {calcExtras.map((line) => (
-              <label class="check check-row">
-                <input
-                  type="checkbox"
-                  data-extra
-                  data-price={line.price ?? line.priceFrom ?? 0}
-                  data-name={line.name[locale]}
-                />
-                <span>
-                  <span class="check__name">{line.name[locale]}</span>
-                  <span class="check__price">
-                    + {line.price !== undefined ? '' : `${ui.price.from} `}
-                    {formatNumber(line.price ?? line.priceFrom ?? 0, locale)}{' '}
-                    {LOCALE_META[locale].currencyLabel}
-                  </span>
-                </span>
-              </label>
-            ))}
-          </div>
-          <p class="field__hint">{overLimitText}</p>
+          ))}
         </div>
       </div>
 
-      <div class="calc__result">
-        <span class="calc__result-label">{ui.price.total}</span>
+      <div class="field" data-plans-field hidden>
+        <span class="field__label">{ui.price.included}</span>
+        <div class="chips" data-plans-list></div>
+      </div>
 
-        {/*
+      <div class="field" data-hours-field hidden>
+        <span class="field__label">{ui.calc.hoursLabel}</span>
+        <input
+          class="range"
+          type="range"
+          min={hourlyRate.minimumHours}
+          max={hourlyRate.minimumHours + 7}
+          step="1"
+          value={hourlyRate.minimumHours}
+          data-hours
+          aria-label={ui.calc.hoursLabel}
+        />
+        <span class="field__hint" data-hours-output></span>
+      </div>
+
+      <div class="field" data-area-field>
+        <span class="field__label">{ui.calc.areaLabel}</span>
+        <div class="chips">
+          {AREA_TIERS.map((tier, index) => (
+            <button
+              class="chip"
+              type="button"
+              data-area={index}
+              aria-pressed={index === 0 ? 'true' : 'false'}
+            >
+              {areaUpTo[locale]} {formatNumber(tier, locale)} {areaUnit[locale]}
+            </button>
+          ))}
+          <button class="chip" type="button" data-area="over" aria-pressed="false">
+            {areaOver[locale]} {areaMaxText}
+          </button>
+        </div>
+      </div>
+
+      <div class="field">
+        <span class="field__label">{ui.calc.extrasLabel}</span>
+        <div class="calc__extras grid--auto">
+          {calcExtras.map((line) => (
+            <label class="check check-row panel panel--sm">
+              <input
+                type="checkbox"
+                data-extra
+                data-price={line.price ?? line.priceFrom ?? 0}
+                data-name={line.name[locale]}
+              />
+              <span>
+                <span class="check__name">{line.name[locale]}</span>
+                <span class="check__price">
+                  + {line.price !== undefined ? '' : `${ui.price.from} `}
+                  {formatNumber(line.price ?? line.priceFrom ?? 0, locale)}{' '}
+                  {LOCALE_META[locale].currencyLabel}
+                </span>
+              </span>
+            </label>
+          ))}
+        </div>
+        <p class="field__hint">{overLimitText}</p>
+      </div>
+    </div>
+
+    <div class="calc__result panel">
+      <span class="calc__result-label">{ui.price.total}</span>
+
+      {/*
           Цена и кнопка-«язычок» — в одной строке: кнопка не занимает целую
           строку в одиночку. На телефоне список раскрывается ВВЕРХ (см. CSS),
           а эта строка остаётся у нижней кромки панели, поэтому кнопка всегда
           на месте и за ней не нужно тянуться.
         */}
-        <div class="calc__total-row">
-          <strong class="calc__total" data-total>
-            —
-          </strong>
-          <button
-            class="calc__toggle"
-            type="button"
-            data-details-toggle
-            aria-expanded="false"
-            aria-controls={detailsId}
-            aria-label={ui.calc.detailsShow}
-            data-label-show={ui.calc.detailsShow}
-            data-label-hide={ui.calc.detailsHide}
-          >
-            <Icon name="chevron-down" class="calc__toggle-icon" />
-          </button>
-        </div>
+      <div class="calc__total-row">
+        <strong class="calc__total num num--strong" data-total>
+          —
+        </strong>
+        <button
+          class="calc__toggle"
+          type="button"
+          data-details-toggle
+          aria-expanded="false"
+          aria-controls={detailsId}
+          aria-label={ui.calc.detailsShow}
+          data-label-show={ui.calc.detailsShow}
+          data-label-hide={ui.calc.detailsHide}
+        >
+          <Icon name="chevron-down" class="calc__toggle-icon" />
+        </button>
+      </div>
 
-        <div class="calc__breakdown" id={detailsId} data-details data-expanded="false">
-          <ul class="calc__lines" data-lines></ul>
-          <p class="calc__note">{ui.price.totalNote}</p>
-        </div>
+      <div class="calc__breakdown" id={detailsId} data-details data-expanded="false">
+        <ul class="calc__lines" data-lines></ul>
+        <p class="calc__note">{ui.price.totalNote}</p>
+      </div>
 
-        {/*
+      {/*
           Кнопка «Написать в Telegram» с готовым составом. На телефоне она
           скрыта: заказ идёт через кнопку «Заказать» в закреплённом футере
           (см. components-blocks-c.css). Но ссылку скрипт обновляет всегда —
           эту же ссылку получает и кнопка футера, когда посетитель что-то
           выбрал в калькуляторе.
         */}
-        <a
-          class="btn btn--block calc__cta"
-          href={site.telegramUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          data-order-link
-        >
-          <Icon name="telegram" class="btn__icon" />
-          {ui.cta.telegram}
-        </a>
-      </div>
+      <a
+        class="btn btn--block calc__cta"
+        href={site.telegramUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        data-order-link
+      >
+        <Icon name="telegram" class="btn__icon" />
+        {ui.cta.telegram}
+      </a>
     </div>
   </div>
-</section>
+</Section>
 
 <script>
   /**

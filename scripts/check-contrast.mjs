@@ -10,9 +10,8 @@
  */
 
 import { readFileSync } from 'node:fs';
-import { themePresets } from '../src/data/themes.ts';
 import { brandHex, hslToRgb } from '../src/themes/brand.ts';
-import { themeColors } from '../src/themes/tokens.ts';
+import { darkTokens, lightTokens } from '../src/themes/tokens.ts';
 
 /** Пороги пар. Ключи — производные CSS-токены, они же идут в отчёте. */
 const LIMITS = {
@@ -36,18 +35,18 @@ const LIMITS = {
 };
 
 /**
- * Доля чернил в контуре карточки — читаем прямо из params.css
+ * Доля чернил в контуре карточки — читаем прямо из tokens.css
  * (--card-line: color-mix(in oklab, var(--ink) NN%, var(--surface))),
  * чтобы проверка не разъезжалась с реальным значением.
  */
-const paramsCss = readFileSync(new URL('../src/styles/params.css', import.meta.url), 'utf8');
+const tokensCss = readFileSync(new URL('../src/styles/tokens.css', import.meta.url), 'utf8');
 const cardLineMatch =
   /--card-line:\s*color-mix\(in oklab,\s*var\(--ink\)\s+(\d+)%,\s*var\(--surface\)\)/.exec(
-    paramsCss,
+    tokensCss,
   );
 if (!cardLineMatch) {
   console.error(
-    '✗ Не удалось прочитать --card-line из src/styles/params.css — ' +
+    '✗ Не удалось прочитать --card-line из src/styles/tokens.css — ' +
       'обновите check-contrast.mjs под новый формат значения.',
   );
   process.exit(1);
@@ -156,7 +155,7 @@ function evaluate(label, t, report) {
   const literal = t.brandStrong ? parseHex(t.brandStrong) : null;
   const strong = literal ?? mixOklab(brand, ink, 0.78);
   const cardLine = mixOklab(ink, surface, cardInkShare);
-  // Кнопки в params.css мягкие: подложка и её ховер — производные от
+  // Кнопки мягкие (tokens.css): подложка и её ховер — производные от
   // акцента (12% и 22%), текст кнопки — тот же strong, что и ссылки.
   const brandSoft = mixOklab(brand, surface, 0.12);
   const btnBgHover = mixOklab(brand, surface, 0.22);
@@ -194,27 +193,17 @@ function evaluate(label, t, report) {
 
 const report = { problems: [], rows: [], schemes: 0 };
 
-for (const theme of themePresets) {
-  const colors = themeColors[theme.id];
-  if (!colors) {
-    report.problems.push(`Тема «${theme.id}»: нет токенов в src/themes/tokens.ts.`);
-    continue;
-  }
+const base = evaluate('nordic', lightTokens, report);
+if (base) report.rows.push(base);
 
-  const altScheme = theme.kind === 'dark' ? 'light' : 'dark';
-
-  const base = evaluate(`тема ${theme.id}`, colors.base, report);
-  if (base) report.rows.push(base);
-
-  report.schemes += 1;
-  const alt = evaluate(`${theme.id} · ${altScheme}`, colors.alt, report);
-  if (alt) report.rows.push(alt);
-}
+report.schemes += 1;
+const alt = evaluate('nordic · dark', darkTokens, report);
+if (alt) report.rows.push(alt);
 
 const header = ['набор', ...Object.keys(LIMITS)];
 const width = [18, ...Object.keys(LIMITS).map(() => 18)];
 
-console.log(`\nПроверка контраста: ${themePresets.length} тем, ${report.schemes} схем\n`);
+console.log(`\nПроверка контраста: 1 тема, ${report.schemes} схемы\n`);
 console.log('  ' + header.map((cell, index) => cell.padEnd(width[index])).join(''));
 console.log('  ' + '-'.repeat(width.reduce((sum, value) => sum + value, 0)));
 

@@ -3,7 +3,7 @@ import type { Locale } from '../../i18n/config';
 import { useUI } from '../../i18n/ui';
 
 import SectionHead from './SectionHead.astro';
-import { sectionClass } from '../ui/sectionClass';
+import Section from '../ui/Section.astro';
 
 /**
  * Сравнение «до / после».
@@ -27,32 +27,30 @@ const ui = useUI(locale);
 const labels = ui.beforeAfter;
 ---
 
-<section class={sectionClass(surface)} id="before-after">
-  <div class="container">
-    <SectionHead title={labels.title} lead={labels.lead} />
+<Section surface={surface} id="before-after">
+  <SectionHead title={labels.title} lead={labels.lead} />
 
-    <div class="ba__grid">
-      <div class="ba" data-before-after>
-        <div class="ba__layer photo photo--before"></div>
-        <div class="ba__layer ba__after photo photo--after"></div>
+  <div class="ba__grid grid--auto">
+    <div class="ba" data-before-after>
+      <div class="ba__layer photo photo--before"></div>
+      <div class="ba__layer ba__after photo photo--after"></div>
 
-        <span class="ba__label ba__label--before">{labels.before}</span>
-        <span class="ba__label ba__label--after">{labels.after}</span>
+      <span class="ba__label ba__label--before">{labels.before}</span>
+      <span class="ba__label ba__label--after">{labels.after}</span>
 
-        <input
-          class="ba__range"
-          type="range"
-          min="0"
-          max="100"
-          value="50"
-          step="1"
-          aria-label={`${labels.before} / ${labels.after}`}
-          data-ba-range
-        />
-      </div>
+      <input
+        class="ba__range"
+        type="range"
+        min="0"
+        max="100"
+        value="50"
+        step="1"
+        aria-label={`${labels.before} / ${labels.after}`}
+        data-ba-range
+      />
     </div>
   </div>
-</section>
+</Section>
 
 <script>
   /**

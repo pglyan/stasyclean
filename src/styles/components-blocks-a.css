@@ -78,6 +78,13 @@
   min-inline-size: 0;
 }
 
+/* Текст слева, фото справа — раскладка первого экрана от десктопа. */
+@media (min-width: 62rem) {
+  .hero__inner {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  }
+}
+
 .hero__title {
   font-size: var(--fs-display);
   line-height: var(--lh-tight);
@@ -167,7 +174,8 @@
 .usp {
   display: grid;
   gap: var(--s8);
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  --col-min: 15rem;
+
   padding-block: var(--s8);
   border-block: var(--bw) solid var(--line);
 }
@@ -180,9 +188,4 @@
 .usp__title {
   margin: 0;
   font-size: var(--fs-h4);
-}
-
-.usp__text {
-  font-size: var(--fs-sm);
-  color: var(--ink-soft);
 }

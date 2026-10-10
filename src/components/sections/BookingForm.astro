@@ -6,7 +6,7 @@ import { site } from '../../data/site';
 
 import Icon from '../ui/Icon.astro';
 import SectionHead from './SectionHead.astro';
-import { sectionClass } from '../ui/sectionClass';
+import Section from '../ui/Section.astro';
 
 /**
  * Форма заявки.
@@ -36,187 +36,174 @@ const times = [ui.form.timeMorning, ui.form.timeAfternoon, ui.form.timeEvening];
 const whatsappUrl = site.phone ? `https://wa.me/${site.phone.replace(/[^0-9]/g, '')}` : null;
 ---
 
-<section class={sectionClass(surface)} id="booking">
-  <div class="container">
-    {withHead && <SectionHead title={ui.home.formTitle} lead={ui.home.formLead} />}
+<Section surface={surface} id="booking">
+  {withHead && <SectionHead title={ui.home.formTitle} lead={ui.home.formLead} />}
 
-    <form class="form" data-booking novalidate data-tg={site.telegramUrl}>
-      <div class="form__row">
-        <div class="form__field">
-          <label class="form__label" for="booking-name">
-            {ui.form.name}
-          </label>
-          <input
-            class="form__input"
-            id="booking-name"
-            name="name"
-            type="text"
-            autocomplete="name"
-            autocapitalize="words"
-            enterkeyhint="next"
-            required
-            data-field="name"
-            data-msg-label={ui.form.name}
-            data-msg-error={ui.form.errorName}
-          />
-          <p class="form__error" id="booking-error-name" data-error="name" role="alert" hidden></p>
-        </div>
+  <form class="form panel" data-booking novalidate data-tg={site.telegramUrl}>
+    <div class="form__row grid--auto">
+      <div class="form__field">
+        <label class="form__label" for="booking-name">
+          {ui.form.name}
+        </label>
+        <input
+          class="form__input"
+          id="booking-name"
+          name="name"
+          type="text"
+          autocomplete="name"
+          autocapitalize="words"
+          enterkeyhint="next"
+          required
+          data-field="name"
+          data-msg-label={ui.form.name}
+          data-msg-error={ui.form.errorName}
+        />
+        <p class="form__error" id="booking-error-name" data-error="name" role="alert" hidden></p>
+      </div>
 
-        <div class="form__field">
-          <label class="form__label" for="booking-contact">
-            {ui.form.contact}
-          </label>
-          {/*
+      <div class="form__field">
+        <label class="form__label" for="booking-contact">
+          {ui.form.contact}
+        </label>
+        {/*
             type остаётся text, хотя поле и принимает телефон: в него можно
             написать и ник в Telegram, а tel-клавиатура на телефоне показывает
             только цифры и «+». Подсказка ниже прямо говорит об этом.
             enterkeyhint — чтобы клавиатура предлагала «Далее», а не «Готово».
           */}
-          <input
-            class="form__input"
-            id="booking-contact"
-            name="contact"
-            type="text"
-            autocomplete="tel"
-            enterkeyhint="next"
-            required
-            data-field="contact"
-            data-msg-label={ui.form.contact}
-            data-msg-error={ui.form.errorContact}
-          />
-          <p class="field__hint">{ui.form.contactHint}</p>
-          <p
-            class="form__error"
-            id="booking-error-contact"
-            data-error="contact"
-            role="alert"
-            hidden
-          ></p>
-        </div>
+        <input
+          class="form__input"
+          id="booking-contact"
+          name="contact"
+          type="text"
+          autocomplete="tel"
+          enterkeyhint="next"
+          required
+          data-field="contact"
+          data-msg-label={ui.form.contact}
+          data-msg-error={ui.form.errorContact}
+        />
+        <p class="field__hint">{ui.form.contactHint}</p>
+        <p
+          class="form__error"
+          id="booking-error-contact"
+          data-error="contact"
+          role="alert"
+          hidden
+        ></p>
       </div>
+    </div>
 
-      <div class="form__row">
-        <div class="form__field">
-          <label class="form__label" for="booking-district">
-            {ui.form.address}
-          </label>
-          <input
-            class="form__input"
-            id="booking-district"
-            name="district"
-            type="text"
-            placeholder={ui.form.addressPlaceholder}
-            autocapitalize="sentences"
-            enterkeyhint="next"
-            data-field="district"
-            data-msg-label={ui.form.address}
-          />
-        </div>
-
-        <div class="form__field">
-          <label class="form__label" for="booking-date">
-            {ui.form.date}
-          </label>
-          <input
-            class="form__input"
-            id="booking-date"
-            name="date"
-            type="date"
-            enterkeyhint="next"
-            data-field="date"
-            data-msg-label={ui.form.date}
-          />
-        </div>
-
-        <div class="form__field">
-          <label class="form__label" for="booking-time">
-            {ui.form.time}
-          </label>
-          <select
-            class="form__select"
-            id="booking-time"
-            name="time"
-            data-field="time"
-            data-msg-label={ui.form.time}
-          >
-            {times.map((slot) => (
-              <option value={slot}>{slot}</option>
-            ))}
-          </select>
-        </div>
+    <div class="form__row grid--auto">
+      <div class="form__field">
+        <label class="form__label" for="booking-district">
+          {ui.form.address}
+        </label>
+        <input
+          class="form__input"
+          id="booking-district"
+          name="district"
+          type="text"
+          placeholder={ui.form.addressPlaceholder}
+          autocapitalize="sentences"
+          enterkeyhint="next"
+          data-field="district"
+          data-msg-label={ui.form.address}
+        />
       </div>
 
       <div class="form__field">
-        <label class="form__label" for="booking-comment">
-          {ui.form.comment}
+        <label class="form__label" for="booking-date">
+          {ui.form.date}
         </label>
-        <textarea
-          class="form__textarea"
-          id="booking-comment"
-          name="comment"
-          placeholder={ui.form.commentPlaceholder}
-          enterkeyhint="done"
-          data-field="comment"
-          data-msg-label={ui.form.comment}
-        ></textarea>
-      </div>
-
-      <label class="form__consent check-row">
         <input
-          type="checkbox"
-          name="consent"
-          required
-          data-field="consent"
-          data-msg-error={ui.form.errorConsent}
+          class="form__input"
+          id="booking-date"
+          name="date"
+          type="date"
+          enterkeyhint="next"
+          data-field="date"
+          data-msg-label={ui.form.date}
         />
-        <span>
-          {ui.form.consent} — <a href={href(locale, 'privacy')}>{ui.footer.privacy}</a>
-        </span>
-      </label>
-      <p
-        class="form__error"
-        id="booking-error-consent"
-        data-error="consent"
-        role="alert"
-        hidden
-      ></p>
-
-      <div class="form__actions">
-        <button class="btn btn--lg btn--block" type="submit">
-          <Icon name="telegram" class="btn__icon" />
-          {ui.form.submit}
-        </button>
-
-        <p class="form__divider">{ui.form.orDirect}</p>
-
-        <div class="form__alternatives">
-          {whatsappUrl && (
-            <a class="btn btn--ghost" href={whatsappUrl} target="_blank" rel="noopener noreferrer">
-              <Icon name="whatsapp" class="btn__icon" />
-              {ui.cta.whatsapp}
-            </a>
-          )}
-          <a
-            class="btn btn--ghost"
-            href={site.telegramUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Icon name="phone" class="btn__icon" />@{site.telegram}
-          </a>
-        </div>
       </div>
 
-      <p class="form__error" data-error-open role="alert" hidden>
-        {ui.form.errorOpen}
-      </p>
+      <div class="form__field">
+        <label class="form__label" for="booking-time">
+          {ui.form.time}
+        </label>
+        <select
+          class="form__select"
+          id="booking-time"
+          name="time"
+          data-field="time"
+          data-msg-label={ui.form.time}
+        >
+          {times.map((slot) => (
+            <option value={slot}>{slot}</option>
+          ))}
+        </select>
+      </div>
+    </div>
 
-      <p class="form__success" data-success role="status" hidden>
-        <strong>{ui.form.successTitle}.</strong> {ui.form.successText}
-      </p>
-    </form>
-  </div>
-</section>
+    <div class="form__field">
+      <label class="form__label" for="booking-comment">
+        {ui.form.comment}
+      </label>
+      <textarea
+        class="form__textarea"
+        id="booking-comment"
+        name="comment"
+        placeholder={ui.form.commentPlaceholder}
+        enterkeyhint="done"
+        data-field="comment"
+        data-msg-label={ui.form.comment}
+      ></textarea>
+    </div>
+
+    <label class="form__consent check-row">
+      <input
+        type="checkbox"
+        name="consent"
+        required
+        data-field="consent"
+        data-msg-error={ui.form.errorConsent}
+      />
+      <span>
+        {ui.form.consent} — <a href={href(locale, 'privacy')}>{ui.footer.privacy}</a>
+      </span>
+    </label>
+    <p class="form__error" id="booking-error-consent" data-error="consent" role="alert" hidden></p>
+
+    <div class="form__actions">
+      <button class="btn btn--lg btn--block" type="submit">
+        <Icon name="telegram" class="btn__icon" />
+        {ui.form.submit}
+      </button>
+
+      <p class="form__divider">{ui.form.orDirect}</p>
+
+      <div class="form__alternatives">
+        {whatsappUrl && (
+          <a class="btn btn--ghost" href={whatsappUrl} target="_blank" rel="noopener noreferrer">
+            <Icon name="whatsapp" class="btn__icon" />
+            {ui.cta.whatsapp}
+          </a>
+        )}
+        <a class="btn btn--ghost" href={site.telegramUrl} target="_blank" rel="noopener noreferrer">
+          <Icon name="phone" class="btn__icon" />@{site.telegram}
+        </a>
+      </div>
+    </div>
+
+    <p class="form__error" data-error-open role="alert" hidden>
+      {ui.form.errorOpen}
+    </p>
+
+    <p class="form__success" data-success role="status" hidden>
+      <strong>{ui.form.successTitle}.</strong> {ui.form.successText}
+    </p>
+  </form>
+</Section>
 
 <script>
   /**

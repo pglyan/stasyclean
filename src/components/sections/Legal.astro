@@ -2,7 +2,7 @@
 import { formatDate, type Locale } from '../../i18n/config';
 import { useUI } from '../../i18n/ui';
 import { legalDocs, type LegalDocKey } from '../../data/legal';
-import { sectionClass } from '../ui/sectionClass';
+import Section from '../ui/Section.astro';
 
 /**
  * Юридическая страница (политика конфиденциальности, условия оказания услуг).
@@ -24,28 +24,26 @@ const ui = useUI(locale);
 const content = legalDocs[doc][locale];
 ---
 
-<section class={sectionClass(surface)} id={doc}>
-  <div class="container">
-    <p class="legal__updated">
-      {ui.common.updated}: {formatDate(content.updated, locale)}
-    </p>
+<Section surface={surface} id={doc}>
+  <p class="legal__updated">
+    {ui.common.updated}: {formatDate(content.updated, locale)}
+  </p>
 
-    <div class="legal">
-      {content.sections.map((section) => (
-        <>
-          <h2>{section.title}</h2>
-          {section.paragraphs.map((paragraph) => (
-            <p>{paragraph}</p>
-          ))}
-          {section.list && (
-            <ul>
-              {section.list.map((item) => (
-                <li>{item}</li>
-              ))}
-            </ul>
-          )}
-        </>
-      ))}
-    </div>
+  <div class="legal">
+    {content.sections.map((section) => (
+      <>
+        <h2>{section.title}</h2>
+        {section.paragraphs.map((paragraph) => (
+          <p>{paragraph}</p>
+        ))}
+        {section.list && (
+          <ul>
+            {section.list.map((item) => (
+              <li>{item}</li>
+            ))}
+          </ul>
+        )}
+      </>
+    ))}
   </div>
-</section>
+</Section>

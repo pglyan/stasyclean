@@ -14,16 +14,14 @@ import JsonLd from '../components/seo/JsonLd.astro';
 
 /**
  * Порядок подключения стилей важен:
- *   1) tokens  — инварианты и дефолты переменных;
- *   2) params  — параметры оформления (акцент, плотность, карточки…);
- *   3) base/layout/components — сами правила;
- *   4) @skin   — CSS темы, поэтому её палитра перекрывает дефолты.
+ *   1) tokens  — переменные: инварианты и параметры стиля;
+ *   2) base/layout/components — сами правила;
+ *   3) @skin   — CSS темы, поэтому её палитра перекрывает дефолты.
  *
- * @skin и @theme — алиасы из astro.config.mjs: они указывают на CSS
- * и шрифты темы сайта (src/themes/<id>/theme.css, src/themes/entries/<id>.ts).
+ * @skin — алиас из astro.config.mjs: он указывает на CSS темы сайта
+ * (src/themes/nordic/theme.css).
  */
 import '../styles/tokens.css';
-import '../styles/params.css';
 import '../styles/base.css';
 import '../styles/layout.css';
 import '../styles/components-core.css';
@@ -37,12 +35,11 @@ import '../styles/components-blocks-e.css';
 import '@skin';
 
 /**
- * Данные темы сайта для сборки: id темы и адреса субсетов её шрифтов.
+ * Оформление сайта для сборки: схема, шрифты, цвета, атрибуты <html>
+ * (src/theme.ts).
  */
-import themeEntry from '@theme';
-import { designForBuild } from '../data/activeDesign';
-import { themeColors } from '../themes/tokens';
-import { schemeBrand } from '../themes/brand';
+import { defaultScheme, headingFont, bodyFont, fontUrls, htmlAttributes } from '../theme';
+import { accentHex } from '../themes/brand';
 
 interface Props {
   locale: Locale;
@@ -112,27 +109,18 @@ const alternates = localeSwitchLinks(locale, routeKey).map((link) => ({
  */
 const preloadFonts = [
   ...new Set(
-    [designForBuild.headingFont, designForBuild.bodyFont].flatMap((family) => {
-      const familyUrls = themeEntry.fonts[family];
+    [headingFont, bodyFont].flatMap((family) => {
+      const familyUrls = fontUrls[family];
       return familyUrls ? [familyUrls[locale], ...LOCALES.map((code) => familyUrls[code])] : [];
     }),
   ),
 ];
 
 /**
- * Цвет интерфейса браузера (адресная строка на телефоне) — акцент темы,
+ * Цвет интерфейса браузера (адресная строка на телефоне) — акцент схемы,
  * а не константа: он должен совпадать с тем, что видит посетитель.
- * Натуральная схема темы (её `kind`) — base-токены, вторая — alt.
- *
- * Обращаемся к designForBuild напрямую, а не через локальный `theme`:
- * Astro поднимает объявления, которые нужны шаблону, наверх тела компонента,
- * и ссылка на `theme` оказалась бы выше его объявления.
  */
-const themeColor = schemeBrand(
-  themeColors[designForBuild.theme.id],
-  designForBuild.theme.kind,
-  designForBuild.scheme,
-);
+const themeColor = accentHex(defaultScheme);
 
 /**
  * Пока в проекте нет фотографий, вместо og:image используется
@@ -142,43 +130,10 @@ const themeColor = schemeBrand(
  * учитывает base — он приходит без слэша.
  */
 const ogImage = absolute(asset(`og/${locale}.png`));
-
-/** Тема сайта: её CSS, её палитра, её умолчания. */
-const theme = designForBuild.theme;
-
-/**
- * Алиас @theme и designForBuild обязаны указывать на одну тему:
- * первый выбирает CSS, второй — параметры разметки.
- */
-if (themeEntry.id !== theme.id) {
-  throw new Error(
-    `Расхождение темы: astro.config.mjs выбрал «${themeEntry.id}», ` +
-      `а designForBuild — «${theme.id}». ` +
-      'Проверьте алиасы @skin и @theme в astro.config.mjs.',
-  );
-}
-
-/**
- * Тема обязана поставлять все семейства, которые сама разрешает в поле
- * `available` (src/data/themes.ts). Иначе предзагрузка шрифта останется
- * без адреса, а браузер молча возьмёт fallback — и на сайте окажется не тот
- * шрифт, что заявлен в данных темы. Дешевле упасть на сборке.
- */
-const missingFonts = [...new Set([...theme.available.heading, ...theme.available.body])].filter(
-  (kind) => kind !== 'system' && !themeEntry.fonts[kind],
-);
-
-if (missingFonts.length) {
-  throw new Error(
-    `Тема «${theme.id}» разрешает шрифты ${missingFonts.join(', ')}, но её вход ` +
-      `(src/themes/entries/${theme.id}.ts) их не поставляет. Добавьте туда импорт ` +
-      'адресов субсетов или уберите семейство из `available`.',
-  );
-}
 ---
 
 <!doctype html>
-<html lang={meta.htmlLang} {...designForBuild.attributes}>
+<html lang={meta.htmlLang} {...htmlAttributes}>
   <head>
     <meta charset="utf-8" />
     {/* viewport-fit=cover включает переменные safe-area (вырез камеры,
@@ -190,7 +145,7 @@ if (missingFonts.length) {
     {/*
       Раннее восстановление схемы.
 
-      На сборке data-scheme задаёт src/data/activeDesign.ts, а выбор
+      На сборке data-scheme задаёт src/theme.ts, а выбор
       посетителя лежит в localStorage. Считать его в конце разбора
       страницы поздно: у вернувшегося посетителя страница успела бы мигнуть
       несохранённой схемой. Поэтому крошечный inline-скрипт — без
