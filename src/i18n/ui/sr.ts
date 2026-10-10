@@ -43,6 +43,8 @@ export const sr = {
     total: 'Procena cene',
     totalNote: 'Konačnu cenu potvrđuje menadžer na Telegramu',
     included: 'Šta je u ceni',
+    standard: 'Standard',
+    premium: 'Premium',
   },
 
   common: {
@@ -93,14 +95,21 @@ export const sr = {
   calc: {
     areaLabel: 'Kvadratura stana',
     planLabel: 'Format čišćenja',
+    tariffLabel: 'Tarifa',
     extrasLabel: 'Dodatni zadaci',
     hoursLabel: 'Koliko sati vam treba',
     resultHint: 'Ovo je samo orijentir. Tačan iznos kažemo posle nekoliko kratkih pitanja.',
-    noExtras: 'Dodatni zadaci nisu izabrani',
     detailsShow: 'Prikaži detalje',
     detailsHide: 'Sakrij detalje',
     smartHint: 'Kod Smart čišćenja plaćate po satu, pa se cena računa po vremenu.',
     overLimit: 'Kvadratura je veća od {max} — obračun radimo individualno.',
+    included: 'Uključeno',
+    includedInHours: 'Ulazi u sate',
+    premiumOnRequest: 'Premium — cena na upit',
+    reset: 'Poništi',
+    approx: 'približno',
+    decrease: 'Smanji',
+    increase: 'Povećaj',
   },
 
   form: {

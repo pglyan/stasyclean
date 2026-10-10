@@ -57,14 +57,44 @@ const listId = `checklist-${checklist.serviceKey}`;
         tabindex={0}
         hidden={index !== 0}
       >
-        <ul class="check-list grid--auto list-reset">
-          {group.items[locale].map((item) => (
-            <li>
-              <Icon name="check" />
-              <span>{item}</span>
-            </li>
-          ))}
-        </ul>
+        {group.items && (
+          <ul class="check-list grid--auto list-reset">
+            {group.items[locale].map((item) => (
+              <li>
+                <Icon name="check" />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {group.itemsByPlan && (
+          <div class="plan-compare">
+            <div class="plan-compare__col">
+              <h3 class="plan-compare__title">{ui.price.standard}</h3>
+              <ul class="check-list list-reset">
+                {group.itemsByPlan[locale].standard.map((item) => (
+                  <li>
+                    <Icon name="check" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div class="plan-compare__col plan-compare__col--premium">
+              <h3 class="plan-compare__title">{ui.price.premium}</h3>
+              <ul class="check-list list-reset">
+                {group.itemsByPlan[locale].premium.map((item) => (
+                  <li>
+                    <Icon name="check" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
+
         {group.note && <p class="tabs__panel-note">{group.note[locale]}</p>}
       </div>
     ))}

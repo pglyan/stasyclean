@@ -242,3 +242,25 @@
 .tabs__panel-note {
   margin-block-start: var(--s4);
 }
+
+/* Сравнение тарифов внутри чек-листа (поддерживающая уборка). */
+.plan-compare {
+  display: grid;
+  gap: var(--s6);
+}
+
+@media (min-width: 48rem) {
+  .plan-compare {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--s8);
+  }
+}
+
+.plan-compare__title {
+  margin: 0 0 var(--s4);
+  font-size: var(--fs-h4);
+}
+
+.plan-compare__col--premium .plan-compare__title {
+  color: var(--brand-strong);
+}

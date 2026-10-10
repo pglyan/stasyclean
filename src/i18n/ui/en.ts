@@ -43,6 +43,8 @@ export const en = {
     total: 'Estimated price',
     totalNote: 'The final price is confirmed by our manager on Telegram',
     included: 'What the price covers',
+    standard: 'Standard',
+    premium: 'Premium',
   },
 
   common: {
@@ -96,15 +98,22 @@ export const en = {
   calc: {
     areaLabel: 'Apartment area',
     planLabel: 'Cleaning format',
+    tariffLabel: 'Plan',
     extrasLabel: 'Extra tasks',
     hoursLabel: 'How many hours you need',
     resultHint:
       'This is a guide only. We will confirm the exact amount after a couple of quick questions.',
-    noExtras: 'No extra tasks selected',
     detailsShow: 'Show details',
     detailsHide: 'Hide details',
     smartHint: 'With smart cleaning you pay by the hour, so the price is based on time.',
     overLimit: 'The area is over {max} — we will quote you individually.',
+    included: 'Included',
+    includedInHours: 'Included in the hours',
+    premiumOnRequest: 'Premium — price on request',
+    reset: 'Reset',
+    approx: 'approximate',
+    decrease: 'Decrease',
+    increase: 'Increase',
   },
 
   form: {

@@ -8,11 +8,13 @@ import {
   hourlyRate,
   plans,
 } from '../../data/prices';
-import { extraServices } from '../../data/extras';
+import { zoneGroups, zoneLabels } from '../../data/calculator';
+import { unitLabels, type PriceLine } from '../../data/extras';
 import { services } from '../../data/services';
-import { LOCALE_META, formatNumber, type Locale } from '../../i18n/config';
+import { LOCALE_META, formatNumber, formatPrice, type Locale } from '../../i18n/config';
 import { useUI } from '../../i18n/ui';
 import { site } from '../../data/site';
+import type { ServiceKey } from '../../i18n/routes';
 
 import Icon from '../ui/Icon.astro';
 import SectionHead from './SectionHead.astro';
@@ -21,15 +23,18 @@ import Section from '../ui/Section.astro';
 /**
  * Калькулятор стоимости.
  *
- * Считает ТОЛЬКО по опубликованным ценам клиента, поэтому ничего не выдумывает:
- * тарифы по площади берутся из prices.ts и встраиваются в data-атрибуты,
- * Смарт Клининг считается как ставка × часы, доп. услуги с фиксированной
- * ценой прибавляются к сумме.
+ * Считает только по опубликованным ценам клиента. Гибридная модель:
+ *   • база — тариф по площади или Смарт по часам;
+ *   • фикс. доп. услуги — галочкой;
+ *   • позиции «за м² / ед. / комнату / 30 мин / створку» — счётчиком;
+ *   • позиции-диапазоны — в сумму как «от», рядом бейдж.
  *
- * Позиции с расчётом за м² или за единицу (обеспыливание стен, уборка внутри
- * шкафов) в калькулятор сознательно не попадают: без количества они дали бы
- * неверную цифру. Итог всегда подписан как предварительный — ровно так же,
- * как в публичном прайсе клиента.
+ * Матрица включений (includedIn) не даёт тарифицировать дважды то, что
+ * уже входит в Премиум. Для Смарта все задачи идут без доплаты — «входит
+ * в часы».
+ *
+ * Цены и структура посчитаны на сборке и уходят в data-атрибуты, поэтому
+ * скрипту не нужны ни справочники, ни словари — только арифметика и Intl.
  */
 
 interface Props {
@@ -37,27 +42,65 @@ interface Props {
   withHead?: boolean;
   /** Серый фон секции (чередование полос на странице). */
   surface?: boolean;
+  /** Предвыбрать услугу — для калькулятора на странице услуги. */
+  serviceKey?: ServiceKey;
 }
 
-const { locale, withHead = true, surface = false } = Astro.props;
+const { locale, withHead = true, surface = false, serviceKey } = Astro.props;
 const ui = useUI(locale);
 
-/** id для aria-controls кнопки-тоггла состава (см. разметку ниже). */
+/** id для aria-controls кнопки-тоггла состава. */
 const detailsId = 'calculator-details';
 
-/** Опции формата уборки: для каждой услуги — её тарифы. */
+/** Услуга по умолчанию: переданная страницей или первая в списке. */
+const defaultKey = serviceKey ?? services[0].key;
+
+/** Опции формата уборки: подтверждённые тарифы (pending в выбор не входит). */
 const serviceOptions = services.map((service) => ({
   service,
-  plans: plans.filter((plan) => plan.serviceKey === service.key),
+  plans: plans
+    .filter((plan) => plan.serviceKey === service.key && !plan.pending)
+    .map((plan) => [plan.id, plan.name[locale], plan.tiers] as const),
   hourly: service.priceUnit === 'hour' ? hourlyRate.price : null,
+  pending: plans.some((plan) => plan.serviceKey === service.key && plan.pending)
+    ? ui.calc.premiumOnRequest
+    : null,
 }));
-
-/** Доп. услуги с фиксированной или «от»-ценой — считаются без уточнений. */
-const calcExtras = extraServices.filter((line) => line.unit === 'flat');
 
 /** Площадь с единицей для подстановки в тексты ({max}). */
 const areaMaxText = `${formatNumber(AREA_MAX, locale)} ${areaUnit[locale]}`;
 const overLimitText = ui.calc.overLimit.replace('{max}', areaMaxText);
+const areaValues = AREA_TIERS.join(' ');
+
+/** Подсказка о диапазоне часов и ставке (Смарт Клининг). */
+const hoursMax = hourlyRate.minimumHours + 7;
+const hoursRangeText = `${formatNumber(hourlyRate.minimumHours, locale)}–${formatNumber(
+  hoursMax,
+  locale,
+)} ${ui.price.hour} · ${formatPrice(hourlyRate.price, locale)} / ${ui.price.hour}`;
+
+/** Подпись к позиции: «+ от 1 200 RSD · за 1 ед.». */
+function addOnPrice(line: PriceLine): string {
+  const from = line.price === undefined;
+  const value = line.price ?? line.priceFrom ?? 0;
+  const unit = unitLabels[line.unit][locale];
+  return [`+${from ? ` ${ui.price.from}` : ''} ${formatPrice(value, locale)}`, unit]
+    .filter(Boolean)
+    .join(' · ');
+}
+
+/**
+ * Статичный итог для выбранного по умолчанию варианта: виден без JS и до
+ * первого пересчёта, поэтому нет «мигания» с прочерка на число.
+ */
+const defaultService = services.find((service) => service.key === defaultKey) ?? services[0];
+const defaultPlan = plans.find((plan) => plan.serviceKey === defaultService.key && !plan.pending);
+const fallbackTotal =
+  defaultService.priceUnit === 'hour'
+    ? formatPrice(hourlyRate.price * hourlyRate.minimumHours, locale)
+    : defaultPlan
+      ? formatPrice(defaultPlan.tiers[0], locale)
+      : '—';
 ---
 
 <Section surface={surface} id="calculator">
@@ -71,25 +114,31 @@ const overLimitText = ui.calc.overLimit.replace('{max}', areaMaxText);
     data-tg={site.telegramUrl}
     data-msg-service={ui.calc.planLabel}
     data-msg-area={ui.calc.areaLabel}
-    data-msg-extras={ui.calc.extrasLabel}
+    data-msg-hours={ui.calc.hoursLabel}
     data-msg-total={ui.price.total}
-    data-msg-none={ui.calc.noExtras}
+    data-msg-note={ui.price.totalNote}
     data-msg-over={overLimitText}
+    data-msg-from={ui.price.from}
+    data-msg-included={ui.calc.included}
+    data-msg-in-hours={ui.calc.includedInHours}
+    data-msg-tasks={ui.calc.extrasLabel}
   >
     <div class="calc__controls">
       <div class="field">
         <span class="field__label">{ui.calc.planLabel}</span>
-        <div class="chips">
-          {serviceOptions.map((option, index) => (
+        <div class="chips" role="radiogroup" aria-label={ui.calc.planLabel}>
+          {serviceOptions.map((option) => (
             <button
               class="chip"
               type="button"
+              role="radio"
               data-service={option.service.key}
-              data-plans={JSON.stringify(
-                option.plans.map((plan) => [plan.id, plan.name[locale], plan.tiers]),
-              )}
+              data-plans={JSON.stringify(option.plans)}
               data-hourly={option.hourly ?? ''}
-              aria-pressed={index === 0 ? 'true' : 'false'}
+              data-pending={option.pending ?? undefined}
+              data-default={option.service.key === defaultKey ? '' : undefined}
+              aria-checked={option.service.key === defaultKey ? 'true' : 'false'}
+              tabindex={option.service.key === defaultKey ? 0 : -1}
             >
               {option.service.name[locale]}
             </button>
@@ -98,82 +147,234 @@ const overLimitText = ui.calc.overLimit.replace('{max}', areaMaxText);
       </div>
 
       <div class="field" data-plans-field hidden>
-        <span class="field__label">{ui.price.included}</span>
-        <div class="chips" data-plans-list></div>
+        <span class="field__label">{ui.calc.tariffLabel}</span>
+        <div class="chips" role="radiogroup" aria-label={ui.calc.tariffLabel} data-plans-list></div>
+        <p class="field__hint" data-plans-note hidden></p>
       </div>
 
-      <div class="field" data-hours-field hidden>
+      <div
+        class="field"
+        data-hours-field
+        data-min={hourlyRate.minimumHours}
+        data-max={hoursMax}
+        data-hours-range={hoursRangeText}
+        hidden
+      >
         <span class="field__label">{ui.calc.hoursLabel}</span>
-        <input
-          class="range"
-          type="range"
-          min={hourlyRate.minimumHours}
-          max={hourlyRate.minimumHours + 7}
-          step="1"
-          value={hourlyRate.minimumHours}
-          data-hours
-          aria-label={ui.calc.hoursLabel}
-        />
-        <span class="field__hint" data-hours-output></span>
+        <div class="stepper stepper--hours">
+          <button
+            class="stepper__btn"
+            type="button"
+            data-hours-step="-1"
+            aria-label={ui.calc.decrease}
+          >
+            −
+          </button>
+          <output class="stepper__value" data-hours-value>
+            {hourlyRate.minimumHours}
+          </output>
+          <button
+            class="stepper__btn"
+            type="button"
+            data-hours-step="1"
+            aria-label={ui.calc.increase}
+          >
+            +
+          </button>
+        </div>
+        <span class="field__hint" data-hours-output>
+          {hoursRangeText}
+        </span>
       </div>
 
-      <div class="field" data-area-field>
+      <div class="field" data-area-field data-areas={areaValues} data-max={AREA_MAX}>
         <span class="field__label">{ui.calc.areaLabel}</span>
-        <div class="chips">
+        <div class="chips" role="radiogroup" aria-label={ui.calc.areaLabel}>
           {AREA_TIERS.map((tier, index) => (
             <button
               class="chip"
               type="button"
+              role="radio"
               data-area={index}
-              aria-pressed={index === 0 ? 'true' : 'false'}
+              aria-checked={index === 0 ? 'true' : 'false'}
+              tabindex={index === 0 ? 0 : -1}
             >
               {areaUpTo[locale]} {formatNumber(tier, locale)} {areaUnit[locale]}
             </button>
           ))}
-          <button class="chip" type="button" data-area="over" aria-pressed="false">
+          <button
+            class="chip"
+            type="button"
+            role="radio"
+            data-area="over"
+            aria-checked="false"
+            tabindex="-1"
+          >
             {areaOver[locale]} {areaMaxText}
           </button>
         </div>
+        <p class="field__hint">{overLimitText}</p>
       </div>
 
       <div class="field">
         <span class="field__label">{ui.calc.extrasLabel}</span>
-        <div class="calc__extras grid--auto">
-          {calcExtras.map((line) => (
-            <label class="check check-row panel panel--sm">
-              <input
-                type="checkbox"
-                data-extra
-                data-price={line.price ?? line.priceFrom ?? 0}
-                data-name={line.name[locale]}
-              />
-              <span>
-                <span class="check__name">{line.name[locale]}</span>
-                <span class="check__price">
-                  + {line.price !== undefined ? '' : `${ui.price.from} `}
-                  {formatNumber(line.price ?? line.priceFrom ?? 0, locale)}{' '}
-                  {LOCALE_META[locale].currencyLabel}
+        <div class="calc__zones">
+          {zoneGroups.map((group, groupIndex) => (
+            <details
+              class="zone"
+              data-zone={group.zone}
+              data-zone-label={zoneLabels[group.zone][locale]}
+              open={groupIndex === 0 ? true : undefined}
+            >
+              <summary class="zone__summary">
+                <span class="zone__title">{zoneLabels[group.zone][locale]}</span>
+                <span class="zone__meta">
+                  <span class="zone__count" data-zone-count hidden></span>
+                  <Icon name="chevron-down" class="zone__icon" />
                 </span>
-              </span>
-            </label>
+              </summary>
+              <div class="zone__items">
+                {group.lines.map((line) =>
+                  line.unit === 'flat' ? (
+                    <label
+                      class="check check-row addon panel panel--sm"
+                      data-addon
+                      data-id={line.id}
+                      data-name={line.name[locale]}
+                      data-price={line.price ?? line.priceFrom ?? 0}
+                      data-from={line.price === undefined ? '' : undefined}
+                      data-included={(line.includedIn ?? []).join(' ')}
+                      data-services={(line.services ?? []).join(' ')}
+                    >
+                      <input type="checkbox" data-addon-input />
+                      <span class="addon__text">
+                        <span class="check__name">{line.name[locale]}</span>
+                        <span class="check__price">{addOnPrice(line)}</span>
+                      </span>
+                      <span class="addon__badge" data-included-badge hidden>
+                        {ui.calc.included}
+                      </span>
+                    </label>
+                  ) : line.prefill === 'area' ? (
+                    <div
+                      class="addon addon--toggle panel panel--sm"
+                      data-addon
+                      data-id={line.id}
+                      data-name={line.name[locale]}
+                      data-kind={line.unit}
+                      data-price={line.price ?? line.priceFrom ?? 0}
+                      data-from={line.price === undefined ? '' : undefined}
+                      data-included={(line.includedIn ?? []).join(' ')}
+                      data-services={(line.services ?? []).join(' ')}
+                      data-min={line.min ?? 1}
+                      data-max={line.max ?? 10}
+                      data-toggle-count
+                    >
+                      <label class="addon__toggle check-row">
+                        <input type="checkbox" data-addon-input />
+                        <span class="addon__text">
+                          <span class="check__name">{line.name[locale]}</span>
+                          <span class="check__price">{addOnPrice(line)}</span>
+                        </span>
+                      </label>
+                      <div class="stepper" data-count-stepper hidden>
+                        <button
+                          class="stepper__btn"
+                          type="button"
+                          data-step="-1"
+                          aria-label={`${ui.calc.decrease}: ${line.name[locale]}`}
+                        >
+                          −
+                        </button>
+                        <output class="stepper__value" data-count aria-label={ui.price.area}>
+                          {line.min ?? 1}
+                        </output>
+                        <button
+                          class="stepper__btn"
+                          type="button"
+                          data-step="1"
+                          aria-label={`${ui.calc.increase}: ${line.name[locale]}`}
+                        >
+                          +
+                        </button>
+                        <span class="addon__unit">{areaUnit[locale]}</span>
+                      </div>
+                      <span class="addon__badge" data-included-badge hidden>
+                        {ui.calc.included}
+                      </span>
+                    </div>
+                  ) : (
+                    <div
+                      class="addon addon--count panel panel--sm"
+                      data-addon
+                      data-id={line.id}
+                      data-name={line.name[locale]}
+                      data-kind={line.unit}
+                      data-price={line.price ?? line.priceFrom ?? 0}
+                      data-from={line.price === undefined ? '' : undefined}
+                      data-included={(line.includedIn ?? []).join(' ')}
+                      data-services={(line.services ?? []).join(' ')}
+                      data-min={line.min ?? 1}
+                      data-max={line.max ?? 10}
+                      data-prefill={line.prefill}
+                    >
+                      <span class="addon__text">
+                        <span class="check__name">{line.name[locale]}</span>
+                        <span class="check__price">{addOnPrice(line)}</span>
+                      </span>
+                      <div class="stepper">
+                        <button
+                          class="stepper__btn"
+                          type="button"
+                          data-step="-1"
+                          aria-label={`${ui.calc.decrease}: ${line.name[locale]}`}
+                        >
+                          −
+                        </button>
+                        <output class="stepper__value" data-count>
+                          0
+                        </output>
+                        <button
+                          class="stepper__btn"
+                          type="button"
+                          data-step="1"
+                          aria-label={`${ui.calc.increase}: ${line.name[locale]}`}
+                        >
+                          +
+                        </button>
+                      </div>
+                      <span class="addon__badge" data-included-badge hidden>
+                        {ui.calc.included}
+                      </span>
+                    </div>
+                  ),
+                )}
+              </div>
+            </details>
           ))}
         </div>
-        <p class="field__hint">{overLimitText}</p>
       </div>
     </div>
 
     <div class="calc__result panel">
-      <span class="calc__result-label">{ui.price.total}</span>
+      <div class="calc__result-head">
+        <span class="calc__result-label">{ui.price.total}</span>
+        <span class="calc__task-count" data-task-count hidden></span>
+      </div>
 
       {/*
-          Цена и кнопка-«язычок» — в одной строке: кнопка не занимает целую
-          строку в одиночку. На телефоне список раскрывается ВВЕРХ (см. CSS),
-          а эта строка остаётся у нижней кромки панели, поэтому кнопка всегда
-          на месте и за ней не нужно тянуться.
-        */}
+        Цена и кнопка-«язычок» — в одной строке: кнопка не занимает целую
+        строку в одиночку. На телефоне список раскрывается ВВЕРХ (см. CSS),
+        а эта строка остаётся у нижней кромки панели.
+      */}
       <div class="calc__total-row">
-        <strong class="calc__total num num--strong" data-total>
-          —
+        <strong
+          class="calc__total num num--strong"
+          data-total
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          {fallbackTotal}
         </strong>
         <button
           class="calc__toggle"
@@ -194,13 +395,14 @@ const overLimitText = ui.calc.overLimit.replace('{max}', areaMaxText);
         <p class="calc__note">{ui.price.totalNote}</p>
       </div>
 
+      <button class="calc__reset" type="button" data-reset>
+        {ui.calc.reset}
+      </button>
+
       {/*
-          Кнопка «Написать в Telegram» с готовым составом. На телефоне она
-          скрыта: заказ идёт через кнопку «Заказать» в закреплённом футере
-          (см. components-blocks-c.css). Но ссылку скрипт обновляет всегда —
-          эту же ссылку получает и кнопка футера, когда посетитель что-то
-          выбрал в калькуляторе.
-        */}
+        Кнопка «Написать в Telegram» с готовым составом. На телефоне она
+        скрыта: заказ идёт через кнопку «Заказать» в закреплённом футере.
+      */}
       <a
         class="btn btn--block calc__cta"
         href={site.telegramUrl}
@@ -219,63 +421,136 @@ const overLimitText = ui.calc.overLimit.replace('{max}', areaMaxText);
   /**
    * Калькулятор: пересчёт на клиенте, без запросов к серверу.
    *
-   * Все цены уже лежат в data-атрибутах (посчитаны при сборке), поэтому
-   * скрипту не нужны ни справочники, ни словари — только арифметика
-   * и Intl.NumberFormat. Ссылка на Telegram обновляется вместе с выбором,
-   * так что менеджер получает заявку с готовым составом работ.
-   *
    * Модель инстанцирования — querySelectorAll: калькулятор на странице
-   * один, но скрипт не зависит от того, что элемент ровно один.
+   * один, но скрипт не зависит от этого.
    */
   document.querySelectorAll<HTMLElement>('[data-calculator]').forEach(initCalculator);
+
+  type PlanRow = [string, string, number[]];
+  type AreaSel = number | 'over';
 
   function initCalculator(root: HTMLElement) {
     const currency = root.dataset.currency ?? 'RSD';
     const money = new Intl.NumberFormat(root.dataset.locale ?? 'ru-RU', {
       maximumFractionDigits: 0,
     });
+    const msg = (key: string, fallback = '') => root.dataset[key] ?? fallback;
 
     const serviceChips = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-service]'));
     const areaChips = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-area]'));
     const results = root.querySelector<HTMLElement>('[data-total]');
-    const lines = root.querySelector<HTMLElement>('[data-lines]');
+    const lineList = root.querySelector<HTMLElement>('[data-lines]');
     const plansField = root.querySelector<HTMLElement>('[data-plans-field]');
     const plansList = root.querySelector<HTMLElement>('[data-plans-list]');
+    const plansNote = root.querySelector<HTMLElement>('[data-plans-note]');
     const hoursField = root.querySelector<HTMLElement>('[data-hours-field]');
-    const hoursInput = root.querySelector<HTMLInputElement>('[data-hours]');
+    const hoursValue = root.querySelector<HTMLElement>('[data-hours-value]');
     const hoursOutput = root.querySelector<HTMLElement>('[data-hours-output]');
+    const hoursMinus = hoursField?.querySelector<HTMLButtonElement>('[data-hours-step="-1"]');
+    const hoursPlus = hoursField?.querySelector<HTMLButtonElement>('[data-hours-step="1"]');
     const areaField = root.querySelector<HTMLElement>('[data-area-field]');
-    /** Ссылки с готовым составом: кнопка в панели калькулятора. */
+    const addonRows = Array.from(root.querySelectorAll<HTMLElement>('[data-addon]'));
+    const zoneEls = Array.from(root.querySelectorAll<HTMLDetailsElement>('[data-zone]'));
+    const taskCount = root.querySelector<HTMLElement>('[data-task-count]');
     const orderLinks = Array.from(root.querySelectorAll<HTMLAnchorElement>('[data-order-link]'));
-    /** Кнопка «Заказать» в закреплённом футере — она живёт вне секции калькулятора. */
     const footerBooks = Array.from(
       document.querySelectorAll<HTMLAnchorElement>('[data-order-book]'),
     );
-    /** Тоггл и раскрывающийся состав в панели результата (телефон). */
+    /** Исходные значения кнопок футера — чтобы «Сбросить» вернул их как было. */
+    const footerDefaults = footerBooks.map((link) => ({
+      link,
+      href: link.getAttribute('href') ?? '',
+      aria: link.getAttribute('aria-label') ?? '',
+      label: link.querySelector<HTMLElement>('[data-order-label]')?.textContent ?? '',
+    }));
     const details = root.querySelector<HTMLElement>('[data-details]');
     const detailsToggle = root.querySelector<HTMLButtonElement>('[data-details-toggle]');
 
-    type PlanRow = [string, string, number[]];
+    const hoursMin = Number(hoursField?.dataset.min ?? 3);
+    const hoursMax = Number(hoursField?.dataset.max ?? 10);
+    const hoursRange = hoursField?.dataset.hoursRange ?? '';
+    const areaTiers = (areaField?.dataset.areas ?? '').split(/\s+/).filter(Boolean).map(Number);
+    const areaCeiling = Number(areaField?.dataset.max ?? areaTiers[areaTiers.length - 1] ?? 150);
 
-    let plan = { name: '', tiers: [] as number[] };
-    let areaIndex: number | 'over' = 0;
+    const storageKey = `stasyclean:calc:${root.dataset.locale ?? ''}`;
 
-    /**
-     * Посетитель что-то менял в калькуляторе.
-     *
-     * До этого «Заказать» в футере ведёт на обычный Telegram, после — несёт
-     * состав заказа и получает подсказку data-order-ready. Так ссылка меняет
-     * смысл только тогда, когда пользователь действительно сделал выбор,
-     * а не просто открыл страницу с выбором по умолчанию.
-     */
+    const state = {
+      service: '',
+      planId: '',
+      area: 0 as AreaSel,
+      hours: hoursMin,
+      qty: {} as Record<string, number>,
+    };
+
+    let currentPlan: { id: string; name: string; tiers: number[] } = {
+      id: '',
+      name: '',
+      tiers: [],
+    };
     let interacted = false;
 
-    const activeChip = (chips: HTMLButtonElement[]) =>
-      chips.find((chip) => chip.getAttribute('aria-pressed') === 'true');
+    const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
-    const setPressed = (chips: HTMLButtonElement[], chosen: HTMLButtonElement | null) => {
-      chips.forEach((chip) => chip.setAttribute('aria-pressed', String(chip === chosen)));
+    // --- Сохранение состояния -------------------------------------------------
+    function loadState(): typeof state | null {
+      try {
+        const raw = localStorage.getItem(storageKey);
+        return raw ? (JSON.parse(raw) as typeof state) : null;
+      } catch {
+        return null;
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(state));
+      } catch {
+        /* локальное хранилище недоступно — считаем без сохранения */
+      }
+    }
+
+    // --- Метаданные позиций ---------------------------------------------------
+    type Meta = {
+      id: string;
+      name: string;
+      kind: string;
+      price: number;
+      from: boolean;
+      included: string[];
+      services: string[];
+      min: number;
+      max: number;
+      prefill: boolean;
+      toggleCount: boolean;
     };
+
+    const metas = addonRows.map((row): Meta => ({
+      id: row.dataset.id ?? '',
+      name: row.dataset.name ?? '',
+      kind: row.dataset.kind ?? 'flat',
+      price: Number(row.dataset.price ?? 0),
+      from: row.hasAttribute('data-from'),
+      included: (row.dataset.included ?? '').split(/\s+/).filter(Boolean),
+      services: (row.dataset.services ?? '').split(/\s+/).filter(Boolean),
+      min: Number(row.dataset.min ?? 1),
+      max: Number(row.dataset.max ?? 10),
+      prefill: row.dataset.prefill === 'area',
+      toggleCount: row.hasAttribute('data-toggle-count'),
+    }));
+    const metaById = new Map(metas.map((meta) => [meta.id, meta]));
+
+    // --- Выбор (радиогруппы) --------------------------------------------------
+    function activeChip(chips: HTMLButtonElement[]) {
+      return chips.find((chip) => chip.getAttribute('aria-checked') === 'true');
+    }
+
+    function setRadio(chips: HTMLButtonElement[], chosen: HTMLButtonElement | null) {
+      chips.forEach((chip) => {
+        const active = chip === chosen;
+        chip.setAttribute('aria-checked', String(active));
+        chip.tabIndex = active ? 0 : -1;
+      });
+    }
 
     function readPlans(chip?: HTMLButtonElement): PlanRow[] {
       if (!chip?.dataset.plans) return [];
@@ -286,106 +561,328 @@ const overLimitText = ui.calc.overLimit.replace('{max}', areaMaxText);
       }
     }
 
-    function selectedExtras() {
-      return Array.from(root.querySelectorAll<HTMLInputElement>('[data-extra]:checked')).map(
-        (input) => ({ name: input.dataset.name ?? '', price: Number(input.dataset.price ?? 0) }),
-      );
+    function isHourly() {
+      return Boolean(Number(activeChip(serviceChips)?.dataset.hourly ?? 0));
     }
 
-    /** Кнопки вариантов строим на клиенте: заранее неизвестно, у какой услуги их две. */
-    function renderPlans(rows: PlanRow[]) {
-      if (!plansList) return;
+    /** Текущая площадь в м² (верхняя граница выбранного диапазона). */
+    function areaM2() {
+      if (state.area === 'over') return areaCeiling;
+      return areaTiers[state.area] ?? 0;
+    }
 
+    // --- Тарифы ---------------------------------------------------------------
+    function renderPlans(rows: PlanRow[], chip: HTMLButtonElement) {
+      if (!plansList) return;
       plansList.replaceChildren();
 
-      if (rows.length <= 1) {
-        plansField?.setAttribute('hidden', '');
-        plan = { name: rows[0]?.[1] ?? '', tiers: rows[0]?.[2] ?? [] };
-        return;
-      }
+      const chosenId = rows.some((row) => row[0] === state.planId)
+        ? state.planId
+        : (rows[0]?.[0] ?? '');
 
-      plansField?.removeAttribute('hidden');
-      plan = { name: rows[0][1], tiers: rows[0][2] };
-
-      rows.forEach(([, name, tiers], index) => {
+      rows.forEach(([id, name, tiers]) => {
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'chip';
+        button.setAttribute('role', 'radio');
+        button.dataset.planId = id;
         button.textContent = name;
-        button.setAttribute('aria-pressed', String(index === 0));
-        button.addEventListener('click', () => {
-          setPressed(Array.from(plansList.querySelectorAll<HTMLButtonElement>('.chip')), button);
-          plan = { name, tiers };
-          interacted = true;
-          update();
-        });
+        const active = id === chosenId;
+        button.setAttribute('aria-checked', String(active));
+        button.tabIndex = active ? 0 : -1;
+        if (active) currentPlan = { id, name, tiers };
         plansList.appendChild(button);
       });
+
+      if (rows.length === 0) currentPlan = { id: '', name: '', tiers: [] };
+      state.planId = chosenId;
+
+      const noteText = chip.dataset.pending ?? '';
+      if (plansNote) {
+        plansNote.hidden = !noteText;
+        plansNote.textContent = noteText;
+      }
+      // Один тариф показываем только если рядом есть пояснение (Премиум по запросу).
+      if (plansField) plansField.hidden = rows.length <= 1 && !noteText;
     }
 
-    function update() {
-      const activeService = activeChip(serviceChips);
-      const hourly = Number(activeService?.dataset.hourly ?? 0) || 0;
-      const extras = selectedExtras();
-      const rows: string[] = [];
-      let total = 0;
+    function selectService(chip: HTMLButtonElement) {
+      setRadio(serviceChips, chip);
+      state.service = chip.dataset.service ?? '';
 
-      if (areaIndex === 'over' && !hourly) {
-        if (results) results.textContent = '—';
-        lines?.replaceChildren();
-        const note = document.createElement('li');
-        note.textContent = root.dataset.msgOver ?? '';
-        lines?.appendChild(note);
+      const hourly = Boolean(Number(chip.dataset.hourly ?? 0));
+      if (hoursField) hoursField.hidden = !hourly;
+      if (areaField) areaField.hidden = hourly;
+
+      renderPlans(readPlans(chip), chip);
+      update();
+    }
+
+    function selectPlan(chip: HTMLButtonElement) {
+      const list = chip.closest<HTMLElement>('[data-plans-list]');
+      if (list) {
+        setRadio(Array.from(list.querySelectorAll<HTMLButtonElement>('[role="radio"]')), chip);
+      }
+      const row = readPlans(activeChip(serviceChips)).find(
+        (item) => item[0] === chip.dataset.planId,
+      );
+      if (row) {
+        currentPlan = { id: row[0], name: row[1], tiers: row[2] };
+        state.planId = row[0];
+      }
+      interacted = true;
+      saveState();
+      update();
+    }
+
+    function selectArea(chip: HTMLButtonElement) {
+      setRadio(areaChips, chip);
+      state.area = chip.dataset.area === 'over' ? 'over' : Number(chip.dataset.area);
+      interacted = true;
+      saveState();
+      update();
+    }
+
+    // --- Счётчики и галочки ---------------------------------------------------
+    function renderCounter(row: HTMLElement, meta: Meta, qty: number, locked: boolean) {
+      if (meta.kind === 'flat') {
+        const input = row.querySelector<HTMLInputElement>('[data-addon-input]');
+        if (input) {
+          input.checked = qty > 0;
+          input.disabled = locked;
+        }
         return;
       }
 
+      const output = row.querySelector<HTMLElement>('[data-count]');
+      const minus = row.querySelector<HTMLButtonElement>('[data-step="-1"]');
+      const plus = row.querySelector<HTMLButtonElement>('[data-step="1"]');
+
+      if (meta.toggleCount) {
+        // Переключатель + счётчик: чекбокс включает позицию, счётчик уточняет
+        // количество. Счётчик показываем только когда включено.
+        const input = row.querySelector<HTMLInputElement>('[data-addon-input]');
+        const stepper = row.querySelector<HTMLElement>('[data-count-stepper]');
+        if (input) {
+          input.checked = qty > 0;
+          input.disabled = locked;
+        }
+        if (stepper) stepper.hidden = qty <= 0 || locked;
+        if (output) output.textContent = String(qty > 0 ? qty : meta.min);
+        if (minus) minus.disabled = locked || qty <= meta.min;
+        if (plus) plus.disabled = locked || qty >= meta.max;
+        return;
+      }
+
+      if (output) output.textContent = String(qty);
+      if (minus) minus.disabled = locked || qty <= 0;
+      if (plus) plus.disabled = locked || qty >= meta.max;
+    }
+
+    function stepAddon(row: HTMLElement, dir: number) {
+      const meta = metaById.get(row.dataset.id ?? '');
+      if (!meta) return;
+      if (!isHourly() && meta.included.includes(currentPlan.id)) return;
+
+      let qty = state.qty[meta.id] ?? 0;
+      if (meta.kind === 'flat') {
+        qty = qty > 0 ? 0 : 1;
+      } else if (meta.toggleCount) {
+        // −  на минимуме выключает позицию; + не даёт уйти выше максимума.
+        const next = qty + dir;
+        qty = next < meta.min ? 0 : clamp(next, meta.min, meta.max);
+      } else if (qty === 0 && dir > 0 && meta.prefill) {
+        // Обеспыливание стен: предзаполняем площадью квартиры (приблизительно).
+        qty = areaM2();
+      } else {
+        qty = clamp(qty + dir, 0, meta.max);
+      }
+      state.qty[meta.id] = qty;
+      interacted = true;
+      saveState();
+      update();
+    }
+
+    function toggleAddon(input: HTMLInputElement) {
+      const row = input.closest<HTMLElement>('[data-addon]');
+      const meta = row ? metaById.get(row.dataset.id ?? '') : undefined;
+      if (!meta) return;
+      if (meta.toggleCount) {
+        // Включаем — сразу подставляем площадь квартиры, дальше правится счётчиком.
+        state.qty[meta.id] = input.checked ? areaM2() : 0;
+      } else {
+        state.qty[meta.id] = input.checked ? 1 : 0;
+      }
+      interacted = true;
+      saveState();
+      update();
+    }
+
+    function stepHours(dir: number) {
+      state.hours = clamp(state.hours + dir, hoursMin, hoursMax);
+      interacted = true;
+      saveState();
+      update();
+    }
+
+    // --- Пересчёт -------------------------------------------------------------
+    function update() {
+      const serviceChip = activeChip(serviceChips);
+      const serviceKey = serviceChip?.dataset.service ?? '';
+      const hourly = Number(serviceChip?.dataset.hourly ?? 0) || 0;
+
+      const feed: { label: string; value: string }[] = [];
+      const zoneLines = new Map<string, string[]>();
+      let base: number | null = null;
+
       if (hourly) {
-        const hours = Number(hoursInput?.value ?? 1);
-        total = hourly * hours;
-        rows.push(`${hours} × ${money.format(hourly)} ${currency}`);
-        if (hoursOutput) hoursOutput.textContent = `${hours} × ${money.format(hourly)} ${currency}`;
-      } else if (plan.tiers.length) {
-        total = plan.tiers[areaIndex as number] ?? 0;
-        rows.push(`${plan.name} — ${money.format(total)} ${currency}`);
+        base = hourly * state.hours;
+        if (hoursValue) hoursValue.textContent = String(state.hours);
+        if (hoursOutput) {
+          hoursOutput.textContent = `${state.hours} × ${money.format(hourly)} ${currency}${
+            hoursRange ? ` · ${hoursRange}` : ''
+          }`;
+        }
+        if (hoursMinus) hoursMinus.disabled = state.hours <= hoursMin;
+        if (hoursPlus) hoursPlus.disabled = state.hours >= hoursMax;
+      } else if (state.area === 'over') {
+        base = null;
+      } else if (currentPlan.tiers.length) {
+        base = currentPlan.tiers[state.area as number] ?? 0;
+        feed.push({ label: currentPlan.name, value: `${money.format(base)} ${currency}` });
       }
 
-      for (const extra of extras) {
-        rows.push(`${extra.name} — +${money.format(extra.price)} ${currency}`);
-        total += extra.price;
-      }
+      let total = base ?? 0;
+      let hasFrom = false;
+      let taskN = 0;
 
-      if (results) results.textContent = `${money.format(total)} ${currency}`;
+      const zoneTotals = new Map<string, number>();
 
-      if (lines) {
-        lines.replaceChildren();
-        for (const row of rows) {
-          const item = document.createElement('li');
-          item.textContent = row;
-          lines.appendChild(item);
+      for (const row of addonRows) {
+        const meta = metaById.get(row.dataset.id ?? '');
+        if (!meta) continue;
+
+        const applicable = meta.services.length === 0 || meta.services.includes(serviceKey);
+        row.hidden = !applicable;
+        if (!applicable) continue;
+
+        const locked = !hourly && meta.included.includes(currentPlan.id);
+        const qty = state.qty[meta.id] ?? 0;
+
+        row.dataset.active = qty > 0 ? 'true' : 'false';
+        row.dataset.locked = locked ? 'true' : 'false';
+        renderCounter(row, meta, qty, locked);
+
+        const badge = row.querySelector<HTMLElement>('[data-included-badge]');
+        if (badge) {
+          const showBadge = locked || (hourly && qty > 0);
+          badge.hidden = !showBadge;
+          badge.textContent = hourly ? msg('msgInHours') : msg('msgIncluded');
+        }
+
+        if (qty > 0) {
+          taskN += 1;
+          const zone = row.closest<HTMLElement>('[data-zone]');
+          const zoneKey = zone?.dataset.zone ?? '';
+          zoneTotals.set(zoneKey, (zoneTotals.get(zoneKey) ?? 0) + 1);
+
+          const suffix = qty > 1 ? ` ×${qty}` : '';
+          const zoneLabel = zone?.dataset.zoneLabel ?? '';
+          const list = zoneLines.get(zoneLabel) ?? [];
+          list.push(`${meta.name}${suffix}`);
+          zoneLines.set(zoneLabel, list);
+
+          if (!locked && !hourly) {
+            const cost = qty * meta.price;
+            total += cost;
+            if (meta.from) hasFrom = true;
+            feed.push({
+              label: `${meta.name}${suffix}`,
+              value: `+${meta.from ? ` ${msg('msgFrom')}` : ''} ${money.format(cost)} ${currency}`,
+            });
+          } else {
+            feed.push({
+              label: `${meta.name}${suffix}`,
+              value: hourly ? msg('msgInHours') : msg('msgIncluded'),
+            });
+          }
         }
       }
 
-      // Готовое сообщение в Telegram: менеджер сразу видит состав заявки.
-      // Ссылку в панели обновляем всегда, а кнопку в футере — только когда
-      // посетитель что-то выбрал: до этого она остаётся обычной ссылкой.
+      // Зоны: прячем пустые, показываем счётчик выбранного.
+      for (const zone of zoneEls) {
+        const key = zone.dataset.zone ?? '';
+        const hasVisible = addonRows.some(
+          (row) => !row.hidden && row.closest<HTMLElement>('[data-zone]') === zone,
+        );
+        zone.hidden = !hasVisible;
+        const count = zoneTotals.get(key) ?? 0;
+        const countEl = zone.querySelector<HTMLElement>('[data-zone-count]');
+        if (countEl) {
+          countEl.hidden = count === 0;
+          countEl.textContent = String(count);
+        }
+      }
+
+      // Итог.
+      if (results) {
+        if (base === null) {
+          results.textContent = '—';
+        } else {
+          const prefix = hasFrom ? `${msg('msgFrom')} ` : '';
+          results.textContent = `${prefix}${money.format(total)} ${currency}`;
+        }
+      }
+
+      if (taskCount) {
+        taskCount.hidden = taskN === 0;
+        taskCount.textContent = taskN > 0 ? `${msg('msgTasks')}: ${taskN}` : '';
+      }
+
+      // Состав заказа.
+      if (lineList) {
+        lineList.replaceChildren();
+        if (base === null) {
+          const note = document.createElement('li');
+          note.textContent = msg('msgOver');
+          lineList.appendChild(note);
+        }
+        for (const item of feed) {
+          const li = document.createElement('li');
+          const label = document.createElement('span');
+          label.textContent = item.label;
+          const value = document.createElement('span');
+          value.className = 'num';
+          value.textContent = item.value;
+          li.append(label, value);
+          lineList.appendChild(li);
+        }
+      }
+
+      // Письмо менеджеру.
       const areaLabel =
-        areaIndex === 'over'
-          ? (root.dataset.msgOver ?? '')
-          : (areaChips[areaIndex as number]?.textContent?.trim() ?? '');
+        state.area === 'over'
+          ? msg('msgOver')
+          : (areaChips[state.area as number]?.textContent?.trim() ?? '');
+      const serviceName = serviceChip?.textContent?.trim() ?? '';
+      const planSuffix = !hourly && currentPlan.name ? ` / ${currentPlan.name}` : '';
+      const totalText =
+        base === null
+          ? msg('msgOver')
+          : `${hasFrom ? `${msg('msgFrom')} ` : ''}${money.format(base === null ? 0 : total)} ${currency}`;
 
       const parts = [
-        `${root.dataset.msgService}: ${activeService?.textContent?.trim() ?? ''}${hourly ? '' : ` / ${plan.name}`}`,
-        `${root.dataset.msgArea}: ${areaLabel}`,
-        `${root.dataset.msgExtras}: ${
-          extras.length
-            ? extras.map((extra) => extra.name).join(', ')
-            : (root.dataset.msgNone ?? '')
-        }`,
-        `${root.dataset.msgTotal}: ${money.format(total)} ${currency}`,
+        `${msg('msgService')}: ${serviceName}${planSuffix}`,
+        hourly ? `${msg('msgHours')}: ${state.hours}` : `${msg('msgArea')}: ${areaLabel}`,
       ];
+      if (taskN > 0) {
+        for (const [zone, items] of zoneLines) parts.push(`${zone}: ${items.join(', ')}`);
+      } else {
+        parts.push(`${msg('msgTasks')}: —`);
+      }
+      parts.push(`${msg('msgTotal')}: ${totalText}`, msg('msgNote'));
 
       const orderUrl = `${root.dataset.tg}?text=${encodeURIComponent(parts.join('\n'))}`;
-
       for (const link of orderLinks) link.href = orderUrl;
 
       if (interacted) {
@@ -399,63 +896,151 @@ const overLimitText = ui.calc.overLimit.replace('{max}', areaMaxText);
       }
     }
 
-    function selectService(chip: HTMLButtonElement) {
-      setPressed(serviceChips, chip);
-      const isHourly = Boolean(chip.dataset.hourly);
-
-      hoursField?.toggleAttribute('hidden', !isHourly);
-      areaField?.toggleAttribute('hidden', isHourly);
-      renderPlans(readPlans(chip));
+    // --- Сброс ----------------------------------------------------------------
+    function resetAll() {
+      state.qty = {};
+      state.hours = hoursMin;
+      state.area = 0;
+      state.planId = '';
+      interacted = false;
+      try {
+        localStorage.removeItem(storageKey);
+      } catch {
+        /* noop */
+      }
+      const first = serviceChips[0];
+      if (first) selectService(first);
+      setRadio(areaChips, areaChips[0] ?? null);
       update();
+
+      // Возвращаем кнопку футера к обычному Telegram.
+      for (const item of footerDefaults) {
+        item.link.setAttribute('href', item.href);
+        delete item.link.dataset.orderReady;
+        if (item.aria) item.link.setAttribute('aria-label', item.aria);
+        const label = item.link.querySelector<HTMLElement>('[data-order-label]');
+        if (label && item.label) label.textContent = item.label;
+      }
     }
 
-    serviceChips.forEach((chip) =>
-      chip.addEventListener('click', () => {
-        interacted = true;
-        selectService(chip);
-      }),
-    );
+    // --- События (делегирование) ----------------------------------------------
+    root.addEventListener('click', (event) => {
+      const target = event.target as HTMLElement;
 
-    areaChips.forEach((chip) => {
-      chip.addEventListener('click', () => {
-        setPressed(areaChips, chip);
-        const value = chip.dataset.area;
-        areaIndex = value === 'over' ? 'over' : Number(value);
+      const reset = target.closest('[data-reset]');
+      if (reset) {
+        resetAll();
+        return;
+      }
+
+      const serviceChip = target.closest<HTMLButtonElement>('[data-service]');
+      if (serviceChip) {
         interacted = true;
-        update();
-      });
+        selectService(serviceChip);
+        return;
+      }
+
+      const planChip = target.closest<HTMLButtonElement>('[data-plan-id]');
+      if (planChip) {
+        selectPlan(planChip);
+        return;
+      }
+
+      const areaChip = target.closest<HTMLButtonElement>('[data-area]');
+      if (areaChip) {
+        selectArea(areaChip);
+        return;
+      }
+
+      const hoursBtn = target.closest<HTMLButtonElement>('[data-hours-step]');
+      if (hoursBtn) {
+        stepHours(Number(hoursBtn.dataset.hoursStep));
+        return;
+      }
+
+      const stepBtn = target.closest<HTMLButtonElement>('[data-step]');
+      if (stepBtn) {
+        const row = stepBtn.closest<HTMLElement>('[data-addon]');
+        if (row) stepAddon(row, Number(stepBtn.dataset.step));
+      }
     });
 
-    root.querySelectorAll<HTMLInputElement>('[data-extra]').forEach((input) => {
-      input.addEventListener('change', () => {
-        interacted = true;
-        update();
-      });
+    root.addEventListener('change', (event) => {
+      const input = event.target as HTMLInputElement;
+      if (input.matches('[data-addon-input]')) toggleAddon(input);
     });
 
-    hoursInput?.addEventListener('input', () => {
-      interacted = true;
-      update();
+    // Стрелки в радиогруппах: фокус и выбор, как ждёт скринридер.
+    root.addEventListener('keydown', (event) => {
+      const chip = (event.target as HTMLElement).closest<HTMLButtonElement>('[role="radio"]');
+      const group = chip?.closest<HTMLElement>('[role="radiogroup"]');
+      if (!chip || !group) return;
+
+      const chips = Array.from(group.querySelectorAll<HTMLButtonElement>('[role="radio"]'));
+      const index = chips.indexOf(chip);
+      let next = -1;
+      if (event.key === 'ArrowRight' || event.key === 'ArrowDown')
+        next = (index + 1) % chips.length;
+      else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp')
+        next = (index - 1 + chips.length) % chips.length;
+      else if (event.key === 'Home') next = 0;
+      else if (event.key === 'End') next = chips.length - 1;
+      if (next < 0) return;
+
+      event.preventDefault();
+      const target = chips[next];
+      target.focus();
+      target.click();
     });
 
-    /**
-     * Сворачивание состава в панели результата на телефоне.
-     *
-     * data-expanded управляет видимостью только на узких экранах (CSS):
-     * на десктопе кнопка скрыта, а состав показан всегда. Подпись меняем
-     * в разметке, aria-expanded — для скринридеров.
-     */
+    // Сворачивание состава на телефоне (см. CSS).
     detailsToggle?.addEventListener('click', () => {
       if (!details) return;
       const expanded = details.dataset.expanded !== 'true';
       details.dataset.expanded = String(expanded);
       detailsToggle.setAttribute('aria-expanded', String(expanded));
-      // Текст подписи ушёл в aria-label: видимая часть — только шеврон.
       const label = expanded ? detailsToggle.dataset.labelHide : detailsToggle.dataset.labelShow;
       if (label) detailsToggle.setAttribute('aria-label', label);
     });
 
-    // Стартовое состояние: первая услуга, её первый тариф, первая площадь
-    if (serviceChips[0]) selectService(serviceChips[0]);
+    // --- Старт ----------------------------------------------------------------
+    const saved = loadState();
+    const defaultChip =
+      serviceChips.find((chip) => chip.hasAttribute('data-default')) ?? serviceChips[0];
+
+    if (
+      saved &&
+      saved.service &&
+      serviceChips.some((chip) => chip.dataset.service === saved.service)
+    ) {
+      state.qty = saved.qty && typeof saved.qty === 'object' ? saved.qty : {};
+      state.hours = clamp(Number(saved.hours) || hoursMin, hoursMin, hoursMax);
+      state.area = saved.area === 'over' || typeof saved.area === 'number' ? saved.area : 0;
+      state.planId = typeof saved.planId === 'string' ? saved.planId : '';
+      const chip =
+        serviceChips.find((item) => item.dataset.service === saved.service) ?? defaultChip;
+      selectService(chip);
+      const areaChip =
+        state.area === 'over'
+          ? areaChips.find((item) => item.dataset.area === 'over')
+          : areaChips[state.area as number];
+      if (areaChip) setRadio(areaChips, areaChip);
+      const planChip = plansList?.querySelector<HTMLButtonElement>(
+        `[data-plan-id="${state.planId}"]`,
+      );
+      if (planChip) selectPlan(planChip);
+      interacted = true;
+    } else if (defaultChip) {
+      selectService(defaultChip);
+    }
+
+    update();
+
+    // Восстановленные зоны с выбором раскрываем.
+    for (const zone of zoneEls) {
+      if (Number(zone.querySelector<HTMLElement>('[data-zone-count]')?.textContent ?? 0) > 0) {
+        zone.open = true;
+      }
+    }
   }
 </script>

@@ -61,9 +61,9 @@
   }
 }
 
-/* Состояние выбора общее для чипов калькулятора (aria-pressed)
+/* Состояние выбора общее для чипов калькулятора (aria-checked)
    и вкладок чек-листа (aria-selected). */
-.chip[aria-pressed='true'],
+.chip[aria-checked='true'],
 .chip[aria-selected='true'] {
   border-color: var(--brand);
   background: var(--brand);
@@ -71,12 +71,6 @@
 }
 
 /* Доп. задачи в калькуляторе */
-.calc__extras {
-  display: grid;
-  gap: var(--s2);
-  --col-min: 17rem;
-}
-
 .check {
   padding: var(--s3);
   font-size: var(--fs-sm);
@@ -208,6 +202,200 @@
   gap: var(--s3);
 }
 
+/* Заголовок панели результата: подпись «Итог» и число задач. */
+.calc__result-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+}
+
+.calc__task-count {
+  font-size: var(--fs-xs);
+  color: var(--ink-soft);
+}
+
+/* Сброс выбора — тихая текстовая кнопка. */
+.calc__reset {
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--brand-strong);
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}
+
+/* Зоны доп. задач — аккордеоны на нативном <details>. */
+.calc__zones {
+  display: grid;
+  gap: var(--s2);
+}
+
+.zone {
+  overflow: hidden;
+  border: var(--bw) solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface);
+}
+
+.zone__summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3);
+  min-block-size: var(--tap-min);
+  padding: var(--s3) var(--s4);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  list-style: none;
+  cursor: pointer;
+}
+
+.zone__summary::-webkit-details-marker {
+  display: none;
+}
+
+.zone__meta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  color: var(--ink-soft);
+}
+
+.zone__count {
+  min-inline-size: 1.5rem;
+  padding-inline: var(--s2);
+  border-radius: var(--r-pill);
+  background: var(--brand);
+  color: var(--brand-ink);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  text-align: center;
+}
+
+.zone__icon {
+  inline-size: 1.125em;
+  block-size: 1.125em;
+  transition: transform var(--dur) var(--ease);
+}
+
+.zone[open] .zone__icon {
+  transform: rotate(180deg);
+}
+
+.zone__items {
+  display: grid;
+  gap: var(--s2);
+  padding: 0 var(--s3) var(--s3);
+}
+
+/* Позиция доп. услуг: фикс. — строка с чекбоксом, счётная — строка со счётчиком. */
+.addon {
+  align-items: center;
+  transition:
+    border-color var(--dur-fast) var(--ease),
+    background-color var(--dur-fast) var(--ease);
+}
+
+.check-row.addon {
+  grid-template-columns: auto 1fr auto;
+}
+
+.addon--count {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s3);
+  padding: var(--s3);
+}
+
+/* Позиция «переключатель + счётчик» (обеспыливание стен). */
+.addon--toggle {
+  display: grid;
+  gap: var(--s3);
+  padding: var(--s3);
+}
+
+.addon__toggle {
+  align-items: center;
+}
+
+.addon__unit {
+  font-size: var(--fs-xs);
+  color: var(--ink-soft);
+}
+
+.addon__text {
+  display: grid;
+  gap: 0.15em;
+  min-inline-size: 0;
+}
+
+.addon[data-active='true'] {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+}
+
+.addon[data-locked='true'] {
+  opacity: 0.7;
+}
+
+.addon__badge {
+  flex: none;
+  padding: 0.15em 0.6em;
+  border-radius: var(--r-pill);
+  background: var(--brand-soft);
+  color: var(--brand-strong);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Счётчик количества */
+.stepper {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: var(--s2);
+}
+
+.stepper__btn {
+  inline-size: var(--tap-min);
+  block-size: var(--tap-min);
+  border: var(--bw-strong) solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: var(--fs-h4);
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    border-color var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease);
+}
+
+@media (hover: hover) {
+  .stepper__btn:hover:not(:disabled) {
+    border-color: var(--brand-ring);
+  }
+}
+
+.stepper__btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.stepper__value {
+  min-inline-size: 2ch;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
 /* ==================== Шаги ==================== */
 
 .steps {
@@ -316,6 +504,12 @@
     display: block;
   }
 
+  /* Запас снизу: прилипающая панель итога не должна перекрывать
+     последние поля управления при прокрутке. */
+  .calc__controls {
+    padding-block-end: calc(var(--sticky-h) + var(--s6));
+  }
+
   .calc__result {
     /* Колонка, чтобы «резиновым» был только состав: итог и кнопка держатся
        у нижней кромки и не уезжают вверх при раскрытии списка. */
@@ -381,8 +575,9 @@
   }
 
   /* Итог, подпись и кнопки не сжимаются при прокрутке списка. */
-  .calc__result-label,
+  .calc__result-head,
   .calc__total-row,
+  .calc__reset,
   .calc__cta {
     flex: none;
   }

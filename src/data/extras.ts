@@ -1,11 +1,19 @@
 import type { Localized } from './types';
+import type { ServiceKey } from '../i18n/routes';
 
 /**
- * Дополнительные услуги и мойка окон.
- * Источник — публичная страница /цены текущего stasyclean.com.
+ * Дополнительные услуги, опции и мойка окон.
+ *
+ * Источник — бриф клиента (docs/client-brief.md). Модель расширена под
+ * калькулятор: у каждой позиции есть зона (для группировки), единица
+ * расчёта и список тарифов, в которые она уже входит (чтобы Премиум
+ * не тарифицировался дважды).
  */
 
 export type Unit = 'item' | 'room' | 'm2' | '30min' | 'sash' | 'flat';
+
+/** Зона квартиры — по ней позиции группируются в калькуляторе. */
+export type Zone = 'kitchen' | 'bathroom' | 'rooms' | 'windows' | 'other';
 
 export const unitLabels: Record<Unit, Localized> = {
   item: { sr: 'za 1 kom.', en: 'per item', ru: 'за 1 ед.' },
@@ -27,6 +35,24 @@ export interface PriceLine {
   /** Верхняя граница диапазона. */
   priceTo?: number;
   unit: Unit;
+  /** Зона для группировки в калькуляторе. */
+  zone: Zone;
+  /**
+   * Тарифы (planId), в которые позиция уже входит в цену. В калькуляторе
+   * такая позиция помечается «включено» и не тарифицируется.
+   */
+  includedIn?: string[];
+  /**
+   * Услуги, к которым позиция применима. Не задано — применима ко всем
+   * (включая Смарт, где она превращается в задачу без доплаты).
+   */
+  services?: ServiceKey[];
+  /** Диапазон количества для счётчика (позиции с поштучным расчётом). */
+  min?: number;
+  max?: number;
+  step?: number;
+  /** Предзаполнить количество из выбранной площади квартиры. */
+  prefill?: 'area';
 }
 
 /** Дополнительные услуги — доступны к любой уборке, обсуждаются отдельно. */
@@ -40,6 +66,8 @@ export const extraServices: PriceLine[] = [
     },
     price: 1500,
     unit: 'flat',
+    zone: 'kitchen',
+    includedIn: ['general-premium'],
   },
   {
     id: 'fridge-freezer',
@@ -50,6 +78,8 @@ export const extraServices: PriceLine[] = [
     },
     price: 2500,
     unit: 'flat',
+    zone: 'kitchen',
+    includedIn: ['general-premium'],
   },
   {
     id: 'microwave',
@@ -60,6 +90,8 @@ export const extraServices: PriceLine[] = [
     },
     price: 500,
     unit: 'flat',
+    zone: 'kitchen',
+    includedIn: ['general-premium'],
   },
   {
     id: 'oven',
@@ -71,6 +103,8 @@ export const extraServices: PriceLine[] = [
     priceFrom: 1500,
     priceTo: 3000,
     unit: 'flat',
+    zone: 'kitchen',
+    includedIn: ['general-premium'],
   },
   {
     id: 'hood',
@@ -82,6 +116,7 @@ export const extraServices: PriceLine[] = [
     priceFrom: 500,
     priceTo: 1000,
     unit: 'flat',
+    zone: 'kitchen',
   },
   {
     id: 'dishwasher',
@@ -92,6 +127,8 @@ export const extraServices: PriceLine[] = [
     },
     price: 1000,
     unit: 'flat',
+    zone: 'kitchen',
+    includedIn: ['general-premium'],
   },
   {
     id: 'washing-machine',
@@ -102,6 +139,8 @@ export const extraServices: PriceLine[] = [
     },
     price: 1000,
     unit: 'flat',
+    zone: 'kitchen',
+    includedIn: ['general-premium'],
   },
   {
     id: 'balcony',
@@ -112,6 +151,7 @@ export const extraServices: PriceLine[] = [
     },
     priceFrom: 1200,
     unit: 'flat',
+    zone: 'other',
   },
   {
     id: 'walls',
@@ -122,6 +162,13 @@ export const extraServices: PriceLine[] = [
     },
     price: 20,
     unit: 'm2',
+    zone: 'rooms',
+    min: 1,
+    max: 500,
+    step: 1,
+    prefill: 'area',
+    // В генеральной Премиум обеспыливание заявлено «да» — см. docs/client-brief.md.
+    includedIn: ['general-premium'],
   },
   {
     id: 'cabinets-empty',
@@ -132,6 +179,11 @@ export const extraServices: PriceLine[] = [
     },
     price: 200,
     unit: 'item',
+    zone: 'rooms',
+    min: 1,
+    max: 30,
+    step: 1,
+    includedIn: ['general-premium'],
   },
   {
     id: 'cabinets-filled',
@@ -142,6 +194,10 @@ export const extraServices: PriceLine[] = [
     },
     price: 400,
     unit: 'item',
+    zone: 'rooms',
+    min: 1,
+    max: 30,
+    step: 1,
   },
   {
     id: 'chandelier',
@@ -152,6 +208,10 @@ export const extraServices: PriceLine[] = [
     },
     priceFrom: 1000,
     unit: 'item',
+    zone: 'rooms',
+    min: 1,
+    max: 10,
+    step: 1,
   },
   {
     id: 'bathroom-tiles',
@@ -162,39 +222,94 @@ export const extraServices: PriceLine[] = [
     },
     price: 1500,
     unit: 'room',
+    zone: 'bathroom',
+    min: 1,
+    max: 5,
+    step: 1,
+    includedIn: ['general-premium'],
+  },
+  {
+    id: 'ironing',
+    name: {
+      sr: 'Peglanje veša',
+      en: 'Ironing',
+      ru: 'Глажка белья',
+    },
+    price: 800,
+    unit: '30min',
+    zone: 'other',
+    min: 1,
+    max: 20,
+    step: 1,
   },
 ];
 
-/** Мойка окон — считается по створкам, обсуждается отдельно. */
+/**
+ * Доставка пылесоса и инвентаря. По брифу — только для поддерживающей
+ * уборки: там оборудование предоставляет клиент.
+ */
+export const vacuumDelivery: PriceLine = {
+  id: 'vacuum-delivery',
+  name: {
+    sr: 'Dostava usisivača i inventara',
+    en: 'Delivery of the vacuum cleaner and supplies',
+    ru: 'Доставка пылесоса и инвентаря',
+  },
+  price: 1000,
+  unit: 'flat',
+  zone: 'other',
+  services: ['regular'],
+};
+
+/** Мойка окон — считается по окнам и створкам, обсуждается отдельно. */
 export const windowServices: PriceLine[] = [
   {
     id: 'window-one',
     name: { sr: 'Jednokrilni prozor', en: 'Single-sash window', ru: 'Одностворчатое окно' },
     price: 500,
     unit: 'sash',
+    zone: 'windows',
+    min: 1,
+    max: 20,
+    step: 1,
+    includedIn: ['general-premium'],
   },
   {
     id: 'window-two',
     name: { sr: 'Dvokrilni prozor', en: 'Two-sash window', ru: 'Двухстворчатое окно' },
     price: 1000,
-    unit: 'sash',
+    unit: 'flat',
+    zone: 'windows',
+    min: 1,
+    max: 20,
+    step: 1,
+    includedIn: ['general-premium'],
   },
   {
     id: 'window-three',
     name: { sr: 'Trokrilni prozor', en: 'Three-sash window', ru: 'Трёхстворчатое окно' },
     price: 1500,
-    unit: 'sash',
+    unit: 'flat',
+    zone: 'windows',
+    min: 1,
+    max: 20,
+    step: 1,
+    includedIn: ['general-premium'],
   },
   {
     id: 'window-door',
     name: { sr: 'Balkonska vrata', en: 'Balcony door', ru: 'Балконная дверь' },
     price: 800,
     unit: 'flat',
+    zone: 'windows',
+    includedIn: ['general-premium'],
   },
   {
     id: 'window-block',
     name: { sr: 'Balkonski blok', en: 'Balcony window block', ru: 'Балконный блок' },
     price: 1500,
     unit: 'flat',
+    zone: 'windows',
+    includedIn: ['general-premium'],
   },
 ];

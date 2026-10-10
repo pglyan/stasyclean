@@ -27,6 +27,11 @@ export interface PricePlan {
   tiers: readonly [number, number, number, number, number, number];
   /** Отметка «чаще всего выбирают». */
   popular?: boolean;
+  /**
+   * Цена не подтверждена клиентом (нет в брифе). Такой тариф не попадает
+   * в калькулятор: там он показывается как «цена по запросу».
+   */
+  pending?: boolean;
 }
 
 export const plans: PricePlan[] = [
@@ -41,7 +46,9 @@ export const plans: PricePlan[] = [
     id: 'regular-premium',
     serviceKey: 'regular',
     name: { sr: 'Premium', en: 'Premium', ru: 'Премиум' },
+    // Цена не подтверждена клиентом (в брифе есть только Standard).
     tiers: [5500, 6500, 8500, 10500, 12500, 16000],
+    pending: true,
   },
   {
     id: 'general-standard',
@@ -57,7 +64,7 @@ export const plans: PricePlan[] = [
       en: 'Premium. All inclusive',
       ru: 'Премиум. Всё включено',
     },
-    tiers: [20000, 25000, 30000, 35000, 45000, 50000],
+    tiers: [20000, 25000, 30000, 35000, 44000, 48000],
   },
   {
     id: 'reno-standard',
